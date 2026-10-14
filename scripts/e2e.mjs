@@ -89,7 +89,7 @@ async function main() {
   try {
     await cleanFixtures();
     await prepareFixtures();
-    const command = ["moonbit-community/mooncram@0.0.4", ...arguments_, ...tests];
+    const command = ["moonbit-community/mooncram@0.0.6", ...arguments_, ...tests];
     console.log(`+ moonx ${command.join(" ")}`);
     const result = spawnSync("moonx", command, {
       cwd: projectRoot,
