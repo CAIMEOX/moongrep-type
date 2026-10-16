@@ -5,7 +5,7 @@ remaining expression for the target call. The result reports the complete
 declaration-plus-target outer expression as its match location.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/then-target/rules ../testdata/then-target/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/then-target/rules ../testdata/then-target/src
 ../testdata/then-target/src/hit.mbt:2:3-3:15
 rule: example
 description:
@@ -21,7 +21,7 @@ Ordered outer alternatives work for both expression and top-level contexts in
 one rule set. Inner captures are shared across every alternative.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/inside-alternatives/rules ../testdata/inside-alternatives/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/inside-alternatives/rules ../testdata/inside-alternatives/src
 ../testdata/inside-alternatives/src/expr.mbt:2:3-2:32
 rule: expr
 description:
@@ -67,7 +67,7 @@ variable and passed into the `attrs` argument of a sink. The reported range is
 the tainted local use, confirming propagation through the assignment.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/html-attrs-taint-sanitizer/rules ../testdata/html-attrs-taint-sanitizer/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/html-attrs-taint-sanitizer/rules ../testdata/html-attrs-taint-sanitizer/src
 ../testdata/html-attrs-taint-sanitizer/src/hit.mbt:3:30-3:35
 rule: example
 description:
@@ -84,7 +84,7 @@ Once the sink pattern matches, the negative pattern is skipped for that root,
 so both sink calls are reported even when one contains the negative shape.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/patterns-not-structural/rules ../testdata/patterns-not-structural/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/patterns-not-structural/rules ../testdata/patterns-not-structural/src
 ../testdata/patterns-not-structural/src/hit.mbt:2:3-2:12
 rule: example
 description:
@@ -112,7 +112,7 @@ inside each wrapper. The wrapper around `safe()` is reported, while wrappers
 containing `danger()` are omitted.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/patterns-not-inside/rules ../testdata/patterns-not-inside/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/patterns-not-inside/rules ../testdata/patterns-not-inside/src
 ../testdata/patterns-not-inside/src/hit.mbt:2:3-2:18
 rule: example
 description:

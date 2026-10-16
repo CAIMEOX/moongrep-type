@@ -7,7 +7,7 @@ components. Recursive discovery ignores the uppercase `.YAML` fixture and
 keeps slash-separated rule ids for the root and nested rules.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules '.\..\TESTDATA//recursive-rule-discovery-rules\.\' ../testdata/recursive-rule-discovery-src
+$ moonx moonbit-community/moongrep scan --rules '.\..\TESTDATA//recursive-rule-discovery-rules\.\' ../testdata/recursive-rule-discovery-src
 ..\testdata\recursive-rule-discovery-src\hits.mbt:2:14-2:28
 rule: example
 description:
@@ -35,7 +35,7 @@ A normalized single-rule path loads only that file. Its rule id comes directly
 from the YAML document and has no directory prefix.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule '.\..\testdata//recursive-rule-discovery-rules\nested\.\..\nested\\b.yml' ../testdata/recursive-rule-discovery-src
+$ moonx moonbit-community/moongrep scan --rule '.\..\testdata//recursive-rule-discovery-rules\nested\.\..\nested\\b.yml' ../testdata/recursive-rule-discovery-src
 ..\testdata\recursive-rule-discovery-src\hits.mbt:4:8-4:9
 rule: example
 description:
@@ -54,7 +54,7 @@ file explicitly rejects the suffix as invalid rule content with status 5
 before its invalid pattern is compiled.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule '.\..\testdata/recursive-rule-discovery-rules\ignored.YAML' ../testdata/recursive-rule-discovery-src
+$ moonx moonbit-community/moongrep scan --rule '.\..\testdata/recursive-rule-discovery-rules\ignored.YAML' ../testdata/recursive-rule-discovery-src
 @STDOUT (empty)
 @STDERR
 error: invalid rule

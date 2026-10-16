@@ -5,7 +5,7 @@ the stable rule order, each selected report range, and the explanatory
 diagnostic shown with each match.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint ../testdata/builtin-rules-all
+$ moonx moonbit-community/moongrep lint ../testdata/builtin-rules-all
 ../testdata/builtin-rules-all/catch_all.mbt:3:3-5:4
 rule: moonbitlang/catch_all
 description:
@@ -144,7 +144,7 @@ record preserves the rule description, report range, matched source, and
 annotated source context from the human-readable result.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --json ../testdata/builtin-rules-all
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-rules-all
 {"type":"finding","file":"../testdata/builtin-rules-all/catch_all.mbt","rule_id":"moonbitlang/catch_all","description":"Single catch arm handles every error, which can hide unexpected failures.\nPrefer matching only the specific error cases that can be recovered from.","range":{"start":{"line":3,"column":3},"end":{"line":5,"column":4}},"matched_source":"try risky() catch {\n    _ => recover()\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"async fn catches_everything(_) -> Unit {","is_match":false},{"line":3,"text":"  try risky() catch {","is_match":true},{"line":4,"text":"    _ => recover()","is_match":true},{"line":5,"text":"  }","is_match":true},{"line":6,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/match_option.mbt","rule_id":"moonbitlang/match_option","description":"Found an Option value handled with match over Some and None.\nPrefer if + is for simple Option checks.","range":{"start":{"line":3,"column":3},"end":{"line":11,"column":4}},"matched_source":"match value {\n    Some(inner) => {\n      let prepared = prepare(inner)\n      let validated = validate(prepared)\n      let normalized = normalize(validated)\n      finish(normalized)\n    }\n    None => false\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn option_match(value : Int?) -> Bool {","is_match":false},{"line":3,"text":"  match value {","is_match":true},{"line":4,"text":"    Some(inner) => {","is_match":true},{"line":5,"text":"      let prepared = prepare(inner)","is_match":true},{"line":6,"text":"      let validated = validate(prepared)","is_match":true},{"line":7,"text":"      let normalized = normalize(validated)","is_match":true},{"line":8,"text":"      finish(normalized)","is_match":true},{"line":9,"text":"    }","is_match":true},{"line":10,"text":"    None => false","is_match":true},{"line":11,"text":"  }","is_match":true},{"line":12,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/inspect_number.mbt","rule_id":"moonbitlang/inspect_number","description":"Found inspect() snapshots whose expected value is a plain number.\nPrefer numeric assertions for numeric checks.","range":{"start":{"line":3,"column":3},"end":{"line":3,"column":26}},"matched_source":"inspect(1, content=\"1\")","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn number_snapshot() -> Unit {","is_match":false},{"line":3,"text":"  inspect(1, content=\"1\")","is_match":true},{"line":4,"text":"}","is_match":false}]}
@@ -164,7 +164,7 @@ matches the fixture. The default human-readable output includes locations,
 rule metadata, and source context.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint ../testdata/builtin-rules
+$ moonx moonbit-community/moongrep lint ../testdata/builtin-rules
 ../testdata/builtin-rules/hit.mbt:3:3-3:26
 rule: moonbitlang/inspect_number
 description:

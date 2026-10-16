@@ -4,7 +4,7 @@ Separate type and constructor captures remain addressable through
 `inside-toplevel` and recursive `then`. This valid rule produces one finding.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule ../testdata/capture-scope/constructor.yaml ../testdata/capture-scope/constructor.mbt
+$ moonx moonbit-community/moongrep scan --rule ../testdata/capture-scope/constructor.yaml ../testdata/capture-scope/constructor.mbt
 ../testdata/capture-scope/constructor.mbt:3:28-3:47
 rule: split-constructor
 description:
@@ -22,7 +22,7 @@ binding identity across rule levels. Only the four functions with `let other`
 produce findings; the four functions with `let item` shadow the capture.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule ../testdata/capture-scope/regex.yaml ../testdata/capture-scope/regex.mbt
+$ moonx moonbit-community/moongrep scan --rule ../testdata/capture-scope/regex.yaml ../testdata/capture-scope/regex.mbt
 ../testdata/capture-scope/regex.mbt:10:29-10:73
 rule: regex-origin
 description:
