@@ -1,0 +1,48 @@
+///|
+import {
+  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.4/fs",
+  "moonbitlang/async@0.22.4/stdio",
+  "moonbitlang/core/diff",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/env",
+}
+
+///|
+/// Keep the final newline significant without adding an extra empty line.
+fn lines(text : String) -> Array[String] {
+  let lines = text.split("\n").map(line => line.to_owned()).to_array()
+  if text.is_empty() || text.has_suffix("\n") {
+    ignore(lines.pop())
+  } else {
+    lines[lines.length() - 1] += "\n\\ No newline at end of file"
+  }
+  lines
+}
+
+///|
+/// Print success for identical files, or a unified diff to stderr on failure.
+async fn main {
+  guard @env.args() is [_, left, right] else {
+    fail("usage: diff.mbtx <left> <right>")
+  }
+  guard @env.get_env_var("E2E_TEMP") is Some(directory) && !directory.is_empty() else {
+    fail("E2E_TEMP must name an existing temporary directory")
+  }
+  let left_path = "\{directory}/\{left}"
+  let right_path = "\{directory}/\{right}"
+  let left_bytes = @fs.read_file(left_path).binary()
+  let right_bytes = @fs.read_file(right_path).binary()
+  if left_bytes != right_bytes {
+    let old = lines(@utf8.decode(left_bytes, ignore_bom=false))
+    let new = lines(@utf8.decode(right_bytes, ignore_bom=false))
+    @stdio.stderr.write("--- \{left_path}\n+++ \{right_path}\n")
+    for hunk in @diff.Diff(old~, new~).group() {
+      @stdio.stderr.write(hunk.render(show=line => line))
+    }
+    fail(
+      "files differ: \{left_path} (\{left_bytes.length()} bytes), \{right_path} (\{right_bytes.length()} bytes)",
+    )
+  }
+  println("files are identical")
+}
