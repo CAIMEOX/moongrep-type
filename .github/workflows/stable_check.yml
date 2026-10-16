@@ -51,6 +51,9 @@ jobs:
       - name: setup e2e fixtures
         run: node scripts/setup-e2e.mjs
 
+      - name: check e2e syntax
+        run: moonx moonbit-community/mooncram@0.0.7 check e2etests
+
       - name: create e2e temp directory
         shell: bash
         env:

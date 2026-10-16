@@ -49,12 +49,17 @@ This is a [MoonBit](https://docs.moonbitlang.com) project.
   ```sh
   node scripts/setup-e2e.mjs
   export NO_COLOR=1 E2E_TEMP="$(mktemp -d)"
-  moonx moonbit-community/mooncram@0.0.6 test e2etests/common e2etests/unix
+  moonx moonbit-community/mooncram@0.0.7 check e2etests/common e2etests/unix
+  moonx moonbit-community/mooncram@0.0.7 test e2etests/common e2etests/unix
   rm -rf "$E2E_TEMP"
   ```
 
   Use `e2etests/windows` instead of `e2etests/unix` on Windows. Replace `test`
   with `update` to update the cram snapshots when the expected output changes.
+  Each pipeline segment must use `moonx` with the full local package name,
+  a pinned remote package coordinate, or a `.mbtx` script path. Set the working
+  directory with `#cwd(path)` at the start of a block. Environment variables
+  are inherited but are not expanded in command arguments.
 
 - You can run `moon check` to check the code is linted correctly.
 
