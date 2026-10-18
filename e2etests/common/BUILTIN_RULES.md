@@ -1,15 +1,11 @@
 # Builtin rules
 
-```mooncram-import
-jq : cli/jq@0.2.1
-```
-
 ## Misspelled builtin rule ID
 
 The former misspelled rule ID is rejected by `--disable`.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --disable moonbitlang/unnessary_else ../testdata/builtin-rules-all/unnecessary_else.mbt
+$ moonx moonbit-community/moongrep lint --disable moonbitlang/unnessary_else ../testdata/builtin-rules-all/unnecessary_else.mbt
 @STDOUT (ignore)
 @STDERR
 error: unknown rule id in --disable
@@ -24,11 +20,25 @@ This focused fixture checks several async signatures and includes a synchronous
 function with the same catch expression to make sure it is not reported.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --json ../testdata/builtin-catch-all-variants | jq -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-catch-all-variants | moonx cli/jq@0.2.1 -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
 moonbitlang/catch_all 3:3
 moonbitlang/catch_all 7:3
 moonbitlang/catch_all 11:3
 moonbitlang/catch_all 17:3
+```
+
+## Single-case match variants
+
+Constructor matches with explicit unit wildcard fallbacks suggest `if` + `is`.
+Guards, side effects in the fallback, extra arms, aliases, and or-patterns are
+outside this rule's scope. A bare `{}` fallback can be an empty Map and must not
+be assumed to be unit.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-match-single-case-variants | moonx cli/jq@0.2.1 -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
+moonbitlang/match_single_case 3:3
+moonbitlang/match_single_case 7:3
+moonbitlang/match_single_case 14:3
 ```
 
 ## Simplifiable assignment variants
@@ -38,7 +48,7 @@ values using `+`, `-`, `*`, or `/`, including both operand orders supported for
 commutative operators and compound expressions in the other operand.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --json ../testdata/builtin-simplifiable-assignment-variants/positive.mbt | jq -r 'select(.rule_id == "moonbitlang/simplifiable_assignment") | "\(.range.start.line):\(.range.start.column) \(.matched_source | @json | .[1:-1])"'
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-simplifiable-assignment-variants/positive.mbt | moonx cli/jq@0.2.1 -r 'select(.rule_id == "moonbitlang/simplifiable_assignment") | "\(.range.start.line):\(.range.start.column) \(.matched_source | @json | .[1:-1])"'
 14:3 add_left = add_left + step * 2
 16:3 add_right = step * 2 + add_right
 18:3 subtract = subtract - step
@@ -65,6 +75,6 @@ indexed targets, different field receivers or indexed collections, reversed
 this rule.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --json ../testdata/builtin-simplifiable-assignment-variants/negative.mbt | jq -s '[.[] | select(.rule_id == "moonbitlang/simplifiable_assignment")] | length'
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-simplifiable-assignment-variants/negative.mbt | moonx cli/jq@0.2.1 -s '[.[] | select(.rule_id == "moonbitlang/simplifiable_assignment")] | length'
 0
 ```

@@ -5,7 +5,7 @@ directory and reports the matched file through the path supplied on the
 command line. The target contains `again -> .`; traversal skips that cycle.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --verbose --pattern 'target()' ../testdata/symlink/scan-dir-link
+$ moonx moonbit-community/moongrep scan --verbose --pattern 'target()' ../testdata/symlink/scan-dir-link
 ../testdata/symlink/scan-dir-link/hit.mbt:3:3-3:11
 rule: target()
 description:
@@ -20,7 +20,7 @@ source:
 Verbose traversal reports the cycle through the existing skipped-path event.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --verbose --pattern 'target()' ../testdata/symlink/scan-dir-link
+$ moonx moonbit-community/moongrep scan --verbose --pattern 'target()' ../testdata/symlink/scan-dir-link
 @STDOUT (ignore)
 @STDERR
 moongrep scan: loaded rule target()
@@ -34,7 +34,7 @@ link while the scan root continues to use its own symlinked path. The rule
 target also contains `again -> .`, which is skipped during discovery.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/symlink/rules-dir-link ../testdata/symlink/scan-dir-link
+$ moonx moonbit-community/moongrep scan --rules ../testdata/symlink/rules-dir-link ../testdata/symlink/scan-dir-link
 ../testdata/symlink/scan-dir-link/hit.mbt:3:3-3:11
 rule: example
 description:

@@ -1,16 +1,11 @@
 # Docs command
 
-```mooncram-import
-grep : cli/grep@0.2.0
-cmp : cli/cmp@0.2.0
-```
-
 ## Embedded CLI document headings
 
 The named CLI document prints the embedded source.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep docs CLISpec | grep -E '^# Command-Line Interface Specification$|^## (`scan` and `lint`|JSON Lines Output|Diagnostics and Exit Status)$'
+$ moonx moonbit-community/moongrep docs CLISpec | moonx cli/grep@0.2.0 -E '^# Command-Line Interface Specification$|^## (`scan` and `lint`|JSON Lines Output|Diagnostics and Exit Status)$'
 # Command-Line Interface Specification
 ## `scan` and `lint`
 ## JSON Lines Output
@@ -20,5 +15,5 @@ $ moongrep docs CLISpec | grep -E '^# Command-Line Interface Specification$|^## 
 The embedded rule specification stays synchronized with its source.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep docs RuleSpec | cmp ../../internal/docs/RuleSpec.md -
+$ moonx moonbit-community/moongrep docs RuleSpec | moonx cli/cmp@0.2.0 ../../internal/docs/RuleSpec.md -
 ```

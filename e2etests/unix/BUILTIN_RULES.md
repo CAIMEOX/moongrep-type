@@ -5,7 +5,7 @@ the stable rule order, each selected report range, and the explanatory
 diagnostic shown with each match.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint ../testdata/builtin-rules-all
+$ moonx moonbit-community/moongrep lint ../testdata/builtin-rules-all
 ../testdata/builtin-rules-all/catch_all.mbt:3:3-5:4
 rule: moonbitlang/catch_all
 description:
@@ -113,6 +113,20 @@ source:
 7 | }
 8 | ///|
 
+../testdata/builtin-rules-all/match_single_case.mbt:3:3-6:4
+rule: moonbitlang/match_single_case
+description:
+  Match handles one constructor and otherwise does nothing.
+  Prefer if + is, keeping the complete constructor pattern and branch body.
+source:
+1 | ///|
+2 | fn single_case_match(value : Int?) -> Unit {
+3 >   match value {
+4 >     Some(inner) => consume(inner)
+5 >     _ => ()
+6 >   }
+7 | }
+
 ../testdata/builtin-rules-all/simplifiable_assignment.mbt:4:3-4:19
 rule: moonbitlang/simplifiable_assignment
 description:
@@ -184,7 +198,7 @@ record preserves the rule description, report range, matched source, and
 annotated source context from the human-readable result.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint --json ../testdata/builtin-rules-all
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-rules-all
 {"type":"finding","file":"../testdata/builtin-rules-all/catch_all.mbt","rule_id":"moonbitlang/catch_all","description":"Single catch arm handles every error, which can hide unexpected failures.\nPrefer matching only the specific error cases that can be recovered from.","range":{"start":{"line":3,"column":3},"end":{"line":5,"column":4}},"matched_source":"try risky() catch {\n    _ => recover()\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"async fn catches_everything(_) -> Unit {","is_match":false},{"line":3,"text":"  try risky() catch {","is_match":true},{"line":4,"text":"    _ => recover()","is_match":true},{"line":5,"text":"  }","is_match":true},{"line":6,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/boolean_if.mbt","rule_id":"moonbitlang/boolean_if","description":"Both if branches return opposite boolean literals.\nUse the condition directly, or negate it when the true branch returns false.","range":{"start":{"line":3,"column":3},"end":{"line":3,"column":39}},"matched_source":"if value > 0 { true } else { false }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn boolean_if(value : Int) -> Bool {","is_match":false},{"line":3,"text":"  if value > 0 { true } else { false }","is_match":true},{"line":4,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/match_option.mbt","rule_id":"moonbitlang/match_option","description":"Found an Option value handled with match over Some and None.\nPrefer if + is for simple Option checks.","range":{"start":{"line":3,"column":3},"end":{"line":11,"column":4}},"matched_source":"match value {\n    Some(inner) => {\n      let prepared = prepare(inner)\n      let validated = validate(prepared)\n      let normalized = normalize(validated)\n      finish(normalized)\n    }\n    None => false\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn option_match(value : Int?) -> Bool {","is_match":false},{"line":3,"text":"  match value {","is_match":true},{"line":4,"text":"    Some(inner) => {","is_match":true},{"line":5,"text":"      let prepared = prepare(inner)","is_match":true},{"line":6,"text":"      let validated = validate(prepared)","is_match":true},{"line":7,"text":"      let normalized = normalize(validated)","is_match":true},{"line":8,"text":"      finish(normalized)","is_match":true},{"line":9,"text":"    }","is_match":true},{"line":10,"text":"    None => false","is_match":true},{"line":11,"text":"  }","is_match":true},{"line":12,"text":"}","is_match":false}]}
@@ -193,6 +207,7 @@ $ moongrep lint --json ../testdata/builtin-rules-all
 {"type":"finding","file":"../testdata/builtin-rules-all/inspect_boolean.mbt","rule_id":"moonbitlang/inspect_boolean","description":"Found inspect(), debug_inspect(), or json_inspect() snapshots whose expected value is true or false.\nPrefer assert_true(...) or assert_false(...) for boolean checks.","range":{"start":{"line":3,"column":3},"end":{"line":3,"column":32}},"matched_source":"inspect(flag, content=\"true\")","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn boolean_snapshot(flag : Bool) -> Unit {","is_match":false},{"line":3,"text":"  inspect(flag, content=\"true\")","is_match":true},{"line":4,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/match_early_exit.mbt","rule_id":"moonbitlang/match_early_exit","description":"A let binding unwraps a value with a match whose fallback exits.\nPrefer guard value is Some(binding) else { ... }, preserving the exiting branch.","range":{"start":{"line":3,"column":3},"end":{"line":7,"column":8}},"matched_source":"let inner = match value {\n    Some(inner) => inner\n    _ => return 0\n  }\n  inner","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn match_early_exit(value : Int?) -> Int {","is_match":false},{"line":3,"text":"  let inner = match value {","is_match":true},{"line":4,"text":"    Some(inner) => inner","is_match":true},{"line":5,"text":"    _ => return 0","is_match":true},{"line":6,"text":"  }","is_match":true},{"line":7,"text":"  inner","is_match":true},{"line":8,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/unnecessary_else.mbt","rule_id":"moonbitlang/unnecessary_else","description":"Found an if expression whose else branch is empty or only returns ().\nPrefer omitting the unnecessary else branch.","range":{"start":{"line":3,"column":3},"end":{"line":6,"column":12}},"matched_source":"if flag {\n    prepare()\n    finish()\n  } else {}","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn unnecessary_empty_else(flag : Bool) -> Unit {","is_match":false},{"line":3,"text":"  if flag {","is_match":true},{"line":4,"text":"    prepare()","is_match":true},{"line":5,"text":"    finish()","is_match":true},{"line":6,"text":"  } else {}","is_match":true},{"line":7,"text":"}","is_match":false},{"line":8,"text":"///|","is_match":false}]}
+{"type":"finding","file":"../testdata/builtin-rules-all/match_single_case.mbt","rule_id":"moonbitlang/match_single_case","description":"Match handles one constructor and otherwise does nothing.\nPrefer if + is, keeping the complete constructor pattern and branch body.","range":{"start":{"line":3,"column":3},"end":{"line":6,"column":4}},"matched_source":"match value {\n    Some(inner) => consume(inner)\n    _ => ()\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn single_case_match(value : Int?) -> Unit {","is_match":false},{"line":3,"text":"  match value {","is_match":true},{"line":4,"text":"    Some(inner) => consume(inner)","is_match":true},{"line":5,"text":"    _ => ()","is_match":true},{"line":6,"text":"  }","is_match":true},{"line":7,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/simplifiable_assignment.mbt","rule_id":"moonbitlang/simplifiable_assignment","description":"Assignment repeats its target as the operand of a binary expression.\nPrefer the corresponding augmented assignment, such as foo += 1, foo.bar += 1, foo[i] +=1.\nNote: Apply this rewrite only when the target expression and any index expression\nare free of side effects. Augmented assignment may evaluate them a different\nnumber of times.","range":{"start":{"line":4,"column":3},"end":{"line":4,"column":19}},"matched_source":"foo = foo + step","source_context":[{"line":2,"text":"fn simplifiable_assignment(step : Int) -> Int {","is_match":false},{"line":3,"text":"  let mut foo = 0","is_match":false},{"line":4,"text":"  foo = foo + step","is_match":true},{"line":5,"text":"  foo","is_match":false},{"line":6,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/cstyle_forward_simple_forloop.mbt","rule_id":"moonbitlang/cstyle_forward_simple_forloop","description":"C-style forward for loops that can be rewritten as simple for-in loops.","range":{"start":{"line":3,"column":3},"end":{"line":5,"column":4}},"matched_source":"for i = 0; i < limit; i = i + 1 {\n    tick()\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn forward_simple_loop(limit : Int) -> Unit {","is_match":false},{"line":3,"text":"  for i = 0; i < limit; i = i + 1 {","is_match":true},{"line":4,"text":"    tick()","is_match":true},{"line":5,"text":"  }","is_match":true},{"line":6,"text":"}","is_match":false}]}
 {"type":"finding","file":"../testdata/builtin-rules-all/cstyle_backward_simple_forloop.mbt","rule_id":"moonbitlang/cstyle_backward_simple_forloop","description":"C-style backward for loops that can be rewritten as simple for-in loops.","range":{"start":{"line":3,"column":3},"end":{"line":5,"column":4}},"matched_source":"for i = limit; i > 0; i = i - 1 {\n    tick_back()\n  }","source_context":[{"line":1,"text":"///|","is_match":false},{"line":2,"text":"fn backward_simple_loop(limit : Int) -> Unit {","is_match":false},{"line":3,"text":"  for i = limit; i > 0; i = i - 1 {","is_match":true},{"line":4,"text":"    tick_back()","is_match":true},{"line":5,"text":"  }","is_match":true},{"line":6,"text":"}","is_match":false}]}
@@ -207,7 +222,7 @@ matches the fixture. The default human-readable output includes locations,
 rule metadata, and source context.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep lint ../testdata/builtin-rules
+$ moonx moonbit-community/moongrep lint ../testdata/builtin-rules
 ../testdata/builtin-rules/hit.mbt:3:3-3:26
 rule: moonbitlang/inspect_number
 description:

@@ -1,10 +1,5 @@
 # Windows junction traversal
 
-```mooncram-import
-grep : cli/grep@0.2.0
-wc : cli/wc@0.2.0
-```
-
 ## Scan-directory cycle
 
 The setup script prepares a directory junction back to the scan root.
@@ -12,14 +7,14 @@ Source traversal follows the junction, reports the cycle as
 skipped, and scans the source only once.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --verbose --pattern 'target()' fs-walk-scan.tmp | grep -x 'rule: target()' | wc -l
+$ moonx moonbit-community/moongrep scan --verbose --pattern 'target()' fs-walk-scan.tmp | moonx cli/grep@0.2.0 -x 'rule: target()' | moonx cli/wc@0.2.0 -l
 1
 ```
 
 The same traversal exposes its entering, skipping, and file events on stderr.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --verbose --pattern 'target()' fs-walk-scan.tmp
+$ moonx moonbit-community/moongrep scan --verbose --pattern 'target()' fs-walk-scan.tmp
 @STDOUT (ignore)
 @STDERR
 moongrep scan: loaded rule target()
@@ -35,7 +30,7 @@ Rule discovery follows the junction, stops at the already visited directory,
 and reports one finding with no stderr output.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules fs-walk-rules.tmp ../testdata/symlink/scan-dir-target/hit.mbt | grep -x 'rule: example' | wc -l
+$ moonx moonbit-community/moongrep scan --rules fs-walk-rules.tmp ../testdata/symlink/scan-dir-target/hit.mbt | moonx cli/grep@0.2.0 -x 'rule: example' | moonx cli/wc@0.2.0 -l
 @STDOUT
 1
 @STDERR (empty)

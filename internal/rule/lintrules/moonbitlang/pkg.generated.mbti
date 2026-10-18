@@ -24,6 +24,8 @@ pub let match_early_exit_yaml : String
 
 pub let match_option_yaml : String
 
+pub let match_single_case_yaml : String
+
 pub let simplifiable_assignment_yaml : String
 
 pub let unnecessary_else_yaml : String

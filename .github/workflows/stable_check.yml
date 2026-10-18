@@ -51,6 +51,9 @@ jobs:
       - name: setup e2e fixtures
         run: node scripts/setup-e2e.mjs
 
+      - name: check e2e syntax
+        run: moonx moonbit-community/mooncram@0.0.7 check e2etests
+
       - name: create e2e temp directory
         shell: bash
         env:
@@ -60,12 +63,12 @@ jobs:
           echo "E2E_TEMP=$E2E_TEMP" >> "$GITHUB_ENV"
 
       - name: common e2e tests
-        run: moonx moonbit-community/mooncram@0.0.6 test e2etests/common
+        run: moonx moonbit-community/mooncram@0.0.7 test e2etests/common
 
       - name: unix e2e tests
         if: runner.os != 'Windows'
-        run: moonx moonbit-community/mooncram@0.0.6 test e2etests/unix
+        run: moonx moonbit-community/mooncram@0.0.7 test e2etests/unix
 
       - name: windows e2e tests
         if: runner.os == 'Windows'
-        run: moonx moonbit-community/mooncram@0.0.6 test e2etests/windows
+        run: moonx moonbit-community/mooncram@0.0.7 test e2etests/windows

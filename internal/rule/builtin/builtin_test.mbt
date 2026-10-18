@@ -16,6 +16,7 @@ test "builtin rules load moonbitlang rules" {
       #|  "moonbitlang/boolean_if",
       #|  "moonbitlang/boolean_match",
       #|  "moonbitlang/match_early_exit",
+      #|  "moonbitlang/match_single_case",
       #|  "moonbitlang/unnecessary_else",
       #|  "moonbitlang/simplifiable_assignment",
       #|  "moonbitlang/cstyle_forward_simple_forloop",

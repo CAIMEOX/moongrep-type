@@ -7,7 +7,7 @@ target matches when its arguments repeat the wrapper prefix, including the
 empty prefix, and rejects a differing final argument.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/ellipsis/inside/rules ../testdata/ellipsis/inside/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/ellipsis/inside/rules ../testdata/ellipsis/inside/src
 ../testdata/ellipsis/inside/src/sample.mbt:2:3-2:20
 rule: ellipsis-inside
 description:
@@ -35,7 +35,7 @@ dirty values reach the variadic sink, while a variadic sanitizer removes the
 third candidate.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/ellipsis/taint/rules ../testdata/ellipsis/taint/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/ellipsis/taint/rules ../testdata/ellipsis/taint/src
 ../testdata/ellipsis/taint/src/sample.mbt:3:24-3:29
 rule: ellipsis-taint
 description:
@@ -64,7 +64,7 @@ select the call with the required prefix and suffix without admitting calls
 whose callee or prefix differs.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rules ../testdata/ellipsis/prefilter/rules ../testdata/ellipsis/prefilter/src
+$ moonx moonbit-community/moongrep scan --rules ../testdata/ellipsis/prefilter/rules ../testdata/ellipsis/prefilter/src
 ../testdata/ellipsis/prefilter/src/sample.mbt:2:3-2:34
 rule: ellipsis-prefilter
 description:
@@ -83,7 +83,7 @@ Its relative indentation is preserved without an extra line for the block
 scalar's trailing newline.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule ../testdata/ellipsis/invalid/shape.yaml ../testdata/ellipsis/sample.mbt
+$ moonx moonbit-community/moongrep scan --rule ../testdata/ellipsis/invalid/shape.yaml ../testdata/ellipsis/sample.mbt
 @STDOUT (ignore)
 @STDERR
 error: invalid rule
@@ -103,7 +103,7 @@ Reusing an inherited ellipsis with a different typed kind would change its
 capture contract and is rejected while loading the rule.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule ../testdata/ellipsis/invalid/inside-kind.yaml ../testdata/ellipsis/sample.mbt
+$ moonx moonbit-community/moongrep scan --rule ../testdata/ellipsis/invalid/inside-kind.yaml ../testdata/ellipsis/sample.mbt
 @STDOUT (ignore)
 @STDERR
 error: invalid rule
@@ -117,7 +117,7 @@ An inherited ellipsis also cannot be narrowed to a single-node metavariable in
 the target pattern.
 
 ```mooncram moonbit-community/moongrep
-$ moongrep scan --rule ../testdata/ellipsis/invalid/inside-single.yaml ../testdata/ellipsis/sample.mbt
+$ moonx moonbit-community/moongrep scan --rule ../testdata/ellipsis/invalid/inside-single.yaml ../testdata/ellipsis/sample.mbt
 @STDOUT (ignore)
 @STDERR
 error: invalid rule
