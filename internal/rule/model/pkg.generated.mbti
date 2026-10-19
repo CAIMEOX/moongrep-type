@@ -106,7 +106,7 @@ pub(all) struct RuleFinding {
   file : String
   rule_id : String
   description : String
-  pattern_index : Int
+  pattern_index : Int32
   loc : @basic.Location
 }
 
@@ -153,8 +153,8 @@ pub(all) struct TaintRuleSpec {
 
 pub(all) enum TaintTarget {
   Receiver
-  PositionalArg(Int)
-  LabelledArg(label~ : String, index~ : Int)
+  PositionalArg(Int32)
+  LabelledArg(label~ : String, index~ : Int32)
 }
 
 // Type aliases

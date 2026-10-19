@@ -31,7 +31,7 @@ pub(all) suberror CliError {
   ScanInput(diagnostic~ : CliDiagnostic)
   Output(diagnostic~ : CliDiagnostic)
 } derive(@debug.Debug)
-pub fn CliError::exit_code(Self) -> Int
+pub fn CliError::exit_code(Self) -> Int32
 pub fn CliError::internal(String) -> Self
 pub fn CliError::output(Self, &Logger) -> Unit
 pub fn CliError::output_error(String, String) -> Self

@@ -15,7 +15,7 @@ pub fn analyze_function_like(@node.CstNode, @model.TaintSpec) -> AnalysisResult 
 // Errors
 pub suberror TaintAnalysisError {
   UnsupportedFunctionLike(kind~ : String, loc~ : @basic.Location)
-  FixpointDidNotConverge(rule_id~ : String, loop_kind~ : String, loc~ : @basic.Location, budget~ : Int)
+  FixpointDidNotConverge(rule_id~ : String, loop_kind~ : String, loc~ : @basic.Location, budget~ : Int32)
 } derive(@debug.Debug)
 pub fn TaintAnalysisError::to_repr(Self) -> @debug.Repr
 

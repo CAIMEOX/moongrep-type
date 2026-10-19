@@ -27,7 +27,7 @@ pub fn expression_root(@node.CstNode) -> @node.CstNode
 
 pub fn first_recovery_node(@node.CstNode) -> @node.CstNode?
 
-pub fn int_payload(@node.CstNode) -> Int?
+pub fn int_payload(@node.CstNode) -> Int32?
 
 pub fn is_syntax_kind(@node.NodeKind) -> Bool
 
@@ -83,11 +83,11 @@ pub(all) enum ExprMatchCandidate {
 }
 
 pub(all) enum IdentifierBinding {
-  Lexical(Int?)
+  Lexical(Int32?)
   NonLexical
 } derive(Eq, Hash, @debug.Debug)
 pub fn IdentifierBinding::equal(Self, Self) -> Bool
-pub fn IdentifierBinding::hash(Self) -> Int
+pub fn IdentifierBinding::hash(Self) -> Int32
 pub fn IdentifierBinding::hash_combine(Self, Hasher) -> Unit
 pub fn IdentifierBinding::not_equal(Self, Self) -> Bool
 pub fn IdentifierBinding::to_repr(Self) -> @debug.Repr
@@ -97,7 +97,7 @@ pub(all) struct IdentifierSource {
   binding : IdentifierBinding
 } derive(Eq, Hash, @debug.Debug)
 pub fn IdentifierSource::equal(Self, Self) -> Bool
-pub fn IdentifierSource::hash(Self) -> Int
+pub fn IdentifierSource::hash(Self) -> Int32
 pub fn IdentifierSource::hash_combine(Self, Hasher) -> Unit
 pub fn IdentifierSource::not_equal(Self, Self) -> Bool
 pub fn IdentifierSource::to_repr(Self) -> @debug.Repr
@@ -111,45 +111,45 @@ pub(all) enum NodeVisitAction {
 pub struct SourceIndex {
   // private fields
 }
-pub fn SourceIndex::candidate(Self, Int) -> ExprMatchCandidate
-pub fn SourceIndex::children(Self, Int, full? : Bool) -> Int
-pub fn SourceIndex::continuation(Self, Int, Int) -> Int
-pub fn SourceIndex::direct(Self, Int) -> Int
+pub fn SourceIndex::candidate(Self, Int32) -> ExprMatchCandidate
+pub fn SourceIndex::children(Self, Int32, full? : Bool) -> Int32
+pub fn SourceIndex::continuation(Self, Int32, Int32) -> Int32
+pub fn SourceIndex::direct(Self, Int32) -> Int32
 pub fn SourceIndex::identifier_source(Self, @node.CstNode) -> IdentifierSource?
 pub fn SourceIndex::new(@node.CstNode) -> Self
-pub fn SourceIndex::node(Self, Int) -> @node.CstNode
-pub fn SourceIndex::node_id(Self, @node.CstNode) -> Int
-pub fn SourceIndex::resolve(Self, Int, String) -> Int?
-pub fn SourceIndex::roots(Self) -> Int
-pub fn SourceIndex::scan(Self, Int) -> Int
-pub fn SourceIndex::scope(Self, Int) -> Int
-pub fn SourceIndex::step(Self, Int) -> SourceStep
-pub fn SourceIndex::target(Self, Int) -> Int
-pub fn SourceIndex::visit(Self, Int, next? : Int) -> Int
-pub fn SourceIndex::walk(Self, Int, (Int) -> NodeVisitAction) -> Unit
+pub fn SourceIndex::node(Self, Int32) -> @node.CstNode
+pub fn SourceIndex::node_id(Self, @node.CstNode) -> Int32
+pub fn SourceIndex::resolve(Self, Int32, String) -> Int32?
+pub fn SourceIndex::roots(Self) -> Int32
+pub fn SourceIndex::scan(Self, Int32) -> Int32
+pub fn SourceIndex::scope(Self, Int32) -> Int32
+pub fn SourceIndex::step(Self, Int32) -> SourceStep
+pub fn SourceIndex::target(Self, Int32) -> Int32
+pub fn SourceIndex::visit(Self, Int32, next? : Int32) -> Int32
+pub fn SourceIndex::walk(Self, Int32, (Int32) -> NodeVisitAction) -> Unit
 
 pub(all) enum SourceStep {
   End
-  Visit(Int, Int)
-  Concat(Int, Int)
-  Scan(Int)
-  Finish(Int)
-  AfterContinue(Int, Int)
+  Visit(Int32, Int32)
+  Concat(Int32, Int32)
+  Scan(Int32)
+  Finish(Int32)
+  AfterContinue(Int32, Int32)
 } derive(Eq, Hash)
 pub fn SourceStep::equal(Self, Self) -> Bool
-pub fn SourceStep::hash(Self) -> Int
+pub fn SourceStep::hash(Self) -> Int32
 pub fn SourceStep::hash_combine(Self, Hasher) -> Unit
 pub fn SourceStep::not_equal(Self, Self) -> Bool
 
 // Type aliases
-pub type BindingId = Int
+pub type BindingId = Int32
 
-pub type CursorId = Int
+pub type CursorId = Int32
 
-pub type NodeId = Int
+pub type NodeId = Int32
 
-pub type RegionId = Int
+pub type RegionId = Int32
 
-pub type ScopeId = Int
+pub type ScopeId = Int32
 
 // Traits

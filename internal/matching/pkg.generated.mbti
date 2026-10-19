@@ -17,7 +17,7 @@ pub fn match_expr_pattern_candidate(CompiledExprPattern, @cst.ExprMatchCandidate
 
 pub fn match_expr_pattern_candidate_with_bindings(CompiledExprPattern, @cst.ExprMatchCandidate, @hashmap.HashMap[String, @model.BoundValue]) -> ExprMatch?
 
-pub fn match_indexed_expr_pattern(CompiledExprPattern, @cst.SourceIndex, Int, @hashmap.HashMap[String, @model.BoundValue], @hashmap.HashMap[String, IdentifierCaptureSource]) -> IndexedExprMatch?
+pub fn match_indexed_expr_pattern(CompiledExprPattern, @cst.SourceIndex, Int32, @hashmap.HashMap[String, @model.BoundValue], @hashmap.HashMap[String, IdentifierCaptureSource]) -> IndexedExprMatch?
 
 pub fn parse_metavar_syntax(String) -> MetavarSyntax
 
@@ -53,7 +53,7 @@ pub(all) enum IdentifierCaptureSource {
   MultipleIdentifiers(Array[@cst.IdentifierSource])
 } derive(Eq, Hash, @debug.Debug)
 pub fn IdentifierCaptureSource::equal(Self, Self) -> Bool
-pub fn IdentifierCaptureSource::hash(Self) -> Int
+pub fn IdentifierCaptureSource::hash(Self) -> Int32
 pub fn IdentifierCaptureSource::hash_combine(Self, Hasher) -> Unit
 pub fn IdentifierCaptureSource::not_equal(Self, Self) -> Bool
 pub fn IdentifierCaptureSource::to_repr(Self) -> @debug.Repr
@@ -129,13 +129,13 @@ pub(all) enum ResolvedMetavar {
 }
 
 pub(all) struct TargetRef {
-  region : Int
+  region : Int32
 }
 
 pub struct ValueInterner {
   // private fields
 }
-pub fn ValueInterner::intern(Self, @model.BoundValue) -> Int
+pub fn ValueInterner::intern(Self, @model.BoundValue) -> Int32
 pub fn ValueInterner::new() -> Self
 
 // Type aliases

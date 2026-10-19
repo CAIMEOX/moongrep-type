@@ -14,7 +14,7 @@ pub fn taint_tree_origins(Array[RelativeTaint]) -> Array[TaintOrigin]
 // Types and methods
 pub(all) enum PathSegment {
   Field(String)
-  TupleIndex(Int)
+  TupleIndex(Int32)
   ConstIndex(String)
   AnyIndex
 } derive(Eq, @debug.Debug)
@@ -40,7 +40,7 @@ pub fn SinkFinding::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SinkId {
   Named(String)
-  PatternIndex(Int)
+  PatternIndex(Int32)
 } derive(Eq, @debug.Debug)
 pub fn SinkId::equal(Self, Self) -> Bool
 pub fn SinkId::not_equal(Self, Self) -> Bool

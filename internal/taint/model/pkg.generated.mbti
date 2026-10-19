@@ -14,7 +14,7 @@ import {
 
 // Types and methods
 pub(all) struct CallArgument {
-  index : Int
+  index : Int32
   label : String?
   expr : @node.CstNode
   loc : @basic.Location
@@ -25,12 +25,12 @@ pub(all) struct CallArgument {
 
 pub(all) enum CallEffect {
   ReturnFreshSource(String, String?, Array[@domain.PathSegment])
-  PropagateArgToReturn(Int)
+  PropagateArgToReturn(Int32)
   PropagateReceiverToReturn
-  PropagateArgSubpathToReturn(Int, Array[@domain.PathSegment])
-  KillArg(Int)
+  PropagateArgSubpathToReturn(Int32, Array[@domain.PathSegment])
+  KillArg(Int32)
   KillReceiver
-  ReportSinkArg(@domain.SinkId, Int)
+  ReportSinkArg(@domain.SinkId, Int32)
   ReportSinkReceiver(@domain.SinkId)
 } derive(Eq, @debug.Debug)
 pub fn CallEffect::equal(Self, Self) -> Bool
@@ -47,7 +47,7 @@ pub(all) struct CallInfo {
   receiver_taint : Array[@domain.RelativeTaint]
   arguments : Array[CallArgument]
 }
-pub fn CallInfo::argument_at(Self, Int) -> CallArgument?
+pub fn CallInfo::argument_at(Self, Int32) -> CallArgument?
 
 pub(all) enum CallKind {
   Apply
@@ -98,7 +98,7 @@ pub(all) struct TaintSpec {
   sources : Array[SourceModel]
   call_models : Array[CallModel]
   unknown_call_policy : UnknownCallPolicy
-  max_fixpoint_iterations : Int
+  max_fixpoint_iterations : Int32
   custom_transfer_call : (CallInfo) -> CallTransfer?
 }
 
