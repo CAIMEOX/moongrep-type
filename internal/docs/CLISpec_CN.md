@@ -33,12 +33,13 @@ moonrun path/to/moongrep.wasm -- <command> [arguments]
 
 ### 顶层命令
 
-moongrep 提供五个命令：
+moongrep 提供六个命令：
 
 - `scan` 使用显式选择或默认规则扫描 MoonBit 源码。
 - `lint` 默认启用内嵌 builtin 规则扫描 MoonBit 源码。
 - `docs` 列出或打印内嵌文档。
 - `semantics` 校验并导出编译器语义索引 JSON。
+- `map-fusion` 从语义索引中报告 Array.map 融合候选。
 - `dump` 解析一个 MoonBit 实现项或表达式，并打印 CST 调试输出、写出结构化 dump
   记录，或通过退出状态报告校验是否成功。
 
@@ -57,6 +58,7 @@ moongrep 提供五个命令：
 - `docs` 打印 `docs` 帮助并以状态码 0 退出。
 - `dump` 打印 `dump` 帮助并以状态码 0 退出。
 - `semantics` 打印 `semantics` 帮助并以状态码 0 退出。
+- `map-fusion` 打印 `map-fusion` 帮助并以状态码 0 退出。
 
 帮助文本写入标准输出。
 
@@ -349,10 +351,10 @@ description 末尾的换行字符会被移除，剩余每一行前面缩进两�
 
 ### 协议和模式识别
 
-对于 `scan`、`lint`、`dump` 和 `semantics`，`--json` 会选择结构化诊断。该选项必须
+对于 `scan`、`lint`、`dump`、`semantics` 和 `map-fusion`，`--json` 会选择结构化诊断。该选项必须
 作为独立参数出现在选项终止符之前，例如 `scan -- --json` 和
 `dump -- --json` 都不会启用 JSON 模式。首个命令必须是 `scan`、`lint`、
-`dump` 或 `semantics`。
+`dump`、`semantics` 或 `map-fusion`。
 
 对于 `scan` 和 `lint`，两个标准流中的每个非空应用输出行都是一个紧凑 JSON
 object。对于 `dump`，成功且未启用 exit-code 模式时，会向标准输出写出一个紧凑
@@ -542,6 +544,26 @@ shell。
 缺少参数或未选择 reader 使用状态码 2。编译器或 reader 不可用、检查失败、索引
 不兼容或格式错误、源码已变化时，使用既有 `scan_input` 类别和状态码 6，且不输出
 语义索引。该命令不添加或运行 lint 规则。
+
+## `map-fusion`
+
+```text
+moongrep map-fusion --index <semantic-index.json> [--json]
+```
+
+这个 POC 读取 `semantics` 导出的索引，独立核对当前编译器版本，并要求索引内的
+源码仍与磁盘一致。它识别相邻的标准库 `Array::map` 点调用，并检查回调与元素类型。
+
+默认报告复用 `scan` 的 finding 布局、源码上下文、高亮和 `NO_COLOR=1` 行为，
+同时显示候选与跳过数量、类型流及可读的跳过原因。候选仍需检查回调副作用与终止性；
+命令不会修改源码。
+
+`--json` 输出一个完整报告对象，保留事实 ID、类型 ID、符号身份、源码范围和跳过
+原因；致命诊断沿用既有 JSON Lines error 格式。该报告不是 scan finding 记录流。
+
+用法错误使用状态码 2；输入不可读、不兼容或过期使用 `scan_input` 和状态码 6。
+输入失败不会输出部分报告。原来的 `moon run cmd/map-fusion -- ...` 入口也转调
+这套 CLI，诊断与退出码完全一致。
 
 ## 诊断和退出状态
 

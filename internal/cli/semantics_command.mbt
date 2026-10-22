@@ -87,10 +87,9 @@ async fn collect_semantics_process(
 }
 
 ///|
-async fn semantic_index_output(
-  options : SemanticsOptions,
+async fn semantic_compiler_version(
   run_process : async (String, Array[String]) -> (Int, String, String),
-) -> (String, String) {
+) -> String {
   let (version_status, version_output, version_error) = run_process("moonc", [
     "-v",
   ]) catch {
@@ -112,6 +111,15 @@ async fn semantic_index_output(
       "moonc", "compiler version command returned no version",
     )
   }
+  compiler_version
+}
+
+///|
+async fn semantic_index_output(
+  options : SemanticsOptions,
+  run_process : async (String, Array[String]) -> (Int, String, String),
+) -> (String, String) {
+  let compiler_version = semantic_compiler_version(run_process)
   let args = ["--project", options.project]
   if options.target is Some(target) {
     args.push("--target")
@@ -140,6 +148,12 @@ async fn semantic_index_output(
         "invalid reader output: \{err}",
       )
   }
+  require_current_semantic_sources(index)
+  (index.raw_json().stringify(), diagnostics)
+}
+
+///|
+async fn require_current_semantic_sources(index : @semantic.Index) -> Unit {
   for source in index.sources() {
     let current = @fs.read_file(source.path).text() catch {
       err =>
@@ -156,7 +170,6 @@ async fn semantic_index_output(
         )
     }
   }
-  (index.raw_json().stringify(), diagnostics)
 }
 
 ///|

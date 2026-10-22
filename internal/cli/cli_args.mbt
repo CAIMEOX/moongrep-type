@@ -83,6 +83,7 @@ pub(all) enum CliCommand {
   DocsList
   DocsShow(String)
   Semantics(SemanticsOptions)
+  MapFusion(MapFusionOptions)
   DumpImpl(
     source~ : String,
     strict_check~ : Bool,
@@ -109,7 +110,7 @@ pub fn runtime_cli_args(argv : Array[String]) -> Array[String] {
 ///|
 /// Reports whether command-line failures should use the JSON Lines protocol.
 ///
-/// Only a standalone `--json` for an initial `scan`, `lint`, `dump`, or `semantics`
+/// Only a standalone `--json` for an initial `scan`, `lint`, `dump`, `semantics`, or `map-fusion`
 /// command enables the protocol. Arguments after the `--` option terminator
 /// are not interpreted as options.
 pub fn output_json_requested(argv : Array[String]) -> Bool {
@@ -118,7 +119,8 @@ pub fn output_json_requested(argv : Array[String]) -> Bool {
       argv[0] != "scan" &&
       argv[0] != "lint" &&
       argv[0] != "dump" &&
-      argv[0] != "semantics"
+      argv[0] != "semantics" &&
+      argv[0] != "map-fusion"
     ) {
     return false
   }
@@ -265,7 +267,7 @@ let moongrep_command : @argparse.Command = Command(
   "moongrep",
   about="Scan MoonBit source files with structural and taint rules.",
   subcommands=[
-    scan_command, lint_command, docs_command, dump_command, semantics_command,
+    scan_command, lint_command, docs_command, dump_command, semantics_command, map_fusion_command,
   ],
   subcommand_required=true,
 )
@@ -531,6 +533,8 @@ pub fn parse_cli_command(
     Some(("dump", dump_matches)) => dump_cli_command(dump_matches)
     Some(("semantics", semantics_matches)) =>
       Semantics(semantics_cli_options(semantics_matches))
+    Some(("map-fusion", fusion_matches)) =>
+      MapFusion(map_fusion_cli_options(fusion_matches, env))
     _ => raise new_usage_error("missing required command")
   }
 }

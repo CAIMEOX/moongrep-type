@@ -10,13 +10,15 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const reader = path.resolve(process.argv[2] || path.join(root, '_build/semantic-reader/moonc-reader'));
 const executable = path.join(root, '_build/native/debug/build/moonbit-community/moongrep/cmd/map-fusion/map-fusion.exe');
+const moongrep = path.join(root, '_build/native/debug/build/moonbit-community/moongrep/moongrep.exe');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'moongrep-map-fusion-'));
 const project = path.join(temp, 'project');
 const indexPath = path.join(temp, 'index.json');
 
-function run(command, args, success = true) {
+function run(command, args, success = true, env = {}) {
   const result = spawnSync(command, args, {
     cwd: root, encoding: 'utf8', timeout: 90000, maxBuffer: 32 * 1024 * 1024,
+    env: {...process.env, NO_COLOR: '1', ...env},
   });
   if (success) assert.equal(result.status, 0, result.error?.message || result.stderr);
   return result;
@@ -29,7 +31,7 @@ function extract() {
 }
 
 function analyze() {
-  return JSON.parse(run(executable, ['--index', indexPath]).stdout);
+  return JSON.parse(run(moongrep, ['map-fusion', '--index', indexPath, '--json']).stdout);
 }
 
 function sourceSlice(snapshot, location) {
@@ -52,13 +54,30 @@ function enclosingFunction(text, location) {
 
 try {
   fs.cpSync(path.join(here, 'fixture'), project, {recursive: true});
-  run('moon', ['build', 'cmd/map-fusion', '--target', 'native']);
+  run('moon', ['build', '--target', 'native']);
   const snapshot = extract();
   const output = analyze();
   assert.equal(output.compiler_version, snapshot.compiler_version);
   assert.equal(output.position_encoding, 'unicode-scalar');
   const source = snapshot.sources.find(source => source.path.endsWith('/maps.mbt'));
   const report = output.files.find(file => file.file === source.path).report;
+  const readable = run(moongrep, ['map-fusion', '--index', indexPath]).stdout;
+  assert.match(readable, /^Array\.map fusion: 8 candidates, 4 skipped\n/);
+  assert.ok(readable.includes('xs.map(to_text).map(text_length)'));
+  assert.ok(readable.includes('Types: Array[Int] -> Array[String] -> Array[Int]'));
+  assert.ok(readable.includes('Types: Array[A] -> Array[B] -> Array[C]'));
+  assert.ok(readable.includes('Callbacks must be synchronous, take one argument, and have no checked error effect.'));
+  assert.ok(readable.includes('No source edits were made.'));
+  assert.ok(!readable.includes('schema_version') && !readable.includes('fact_id'));
+  assert.equal(run(executable, ['--index', indexPath]).stdout, readable);
+  assert.deepEqual(JSON.parse(run(executable, ['--json', '--index', indexPath]).stdout), output);
+  assert.deepEqual(JSON.parse(run(moongrep, ['map-fusion', `--index=${indexPath}`, '--json']).stdout), output);
+  assert.match(run(executable, ['--help']).stdout, /Usage: moongrep map-fusion/);
+  assert.ok(readable.includes('rule: array-map-fusion\ndescription:'));
+  assert.ok(readable.includes('source:\n'));
+  assert.ok(!readable.includes('\x1b['));
+  const colored = run(moongrep, ['map-fusion', '--index', indexPath], true, {NO_COLOR: '0'}).stdout;
+  assert.ok(colored.includes('\x1b['), 'reuse the existing highlighted source renderer');
   const names = report.candidates.map(candidate => enclosingFunction(source.text, candidate.location));
   assert.deepEqual(names, ['lambdas', 'generic', 'named', 'multiline', 'triple', 'triple', 'effects', 'factories']);
   assert.deepEqual(report.skipped.map(skipped => [enclosingFunction(source.text, skipped.location), skipped.reason]), [
@@ -98,17 +117,24 @@ try {
   const multiline = report.candidates[names.indexOf('multiline')];
   const firstLine = source.text.split('\n')[multiline.location.start.line - 1];
   assert.equal(multiline.location.start.column, Array.from(firstLine.slice(0, firstLine.indexOf('xs.map'))).length + 1);
+  assert.ok(readable.includes(`${source.path}:${multiline.location.start.line}:${multiline.location.start.column}-`));
+  assert.ok(readable.includes(`${multiline.location.start.line} > ${firstLine}\n${multiline.location.end.line} >     .map(text_length)`));
+  assert.ok(readable.includes('pub fn multiline(xs : Array[Int])'), 'reuse surrounding source context');
 
   // The command must reject a snapshot when either its compiler or source differs.
   fs.writeFileSync(indexPath, JSON.stringify({...snapshot, compiler_version: 'incompatible-nightly'}));
   const incompatible = run(executable, ['--index', indexPath], false);
-  assert.equal(incompatible.status, 2);
+  assert.equal(incompatible.status, 6);
   assert.equal(incompatible.stdout, '');
   assert.match(incompatible.stderr, /compiler mismatch/);
+  const incompatibleJson = run(moongrep, ['map-fusion', '--index', indexPath, '--json'], false);
+  assert.equal(incompatibleJson.status, 6);
+  assert.equal(incompatibleJson.stdout, '');
+  assert.equal(JSON.parse(incompatibleJson.stderr).category, 'scan_input');
   fs.writeFileSync(indexPath, JSON.stringify(snapshot));
   fs.appendFileSync(path.join(project, 'maps.mbt'), '\n// edited after typechecking\n');
   const stale = run(executable, ['--index', indexPath], false);
-  assert.equal(stale.status, 2);
+  assert.equal(stale.status, 6);
   assert.equal(stale.stdout, '');
   assert.match(stale.stderr, /source differs/);
 
@@ -121,7 +147,10 @@ try {
   assert.equal(ambiguous.candidates.length, 0);
   assert.equal(ambiguous.skipped.length, 12);
   assert.ok(ambiguous.skipped.every(skipped => skipped.reason === 'ambiguous_semantics'));
-  console.log(`map-fusion nightly integration passed: ${report.candidates.length} candidates, ${report.skipped.length} rejected chains; source mapping, stale input, and package ambiguity checked`);
+  const ambiguousText = run(executable, ['--index', indexPath]).stdout;
+  assert.match(ambiguousText, /^Array\.map fusion: 0 candidates, 12 skipped\n/);
+  assert.ok(ambiguousText.includes('Source association is ambiguous'));
+  console.log(`map-fusion nightly integration passed: ${report.candidates.length} candidates, ${report.skipped.length} rejected chains; readable/JSON output, source mapping, stale input, and package ambiguity checked`);
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }

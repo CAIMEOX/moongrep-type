@@ -12,13 +12,21 @@ installed moonc
   → semantic.Index (validated types, symbols, source snapshots)
   → semantic_source.Source (original CST + exact source ranges)
   → semantic_rules.find_map_fusion (candidates + evidence + skipped reasons)
-  → cmd/map-fusion (JSON output)
+  → moongrep map-fusion (existing CLI renderers, or --json)
 ```
 
 The compiler adapter owns the version-specific wire format. Rules depend on the
 semantic index and the existing CST traversal, with no compiler source or library
 dependency. The rule accepts a checked source and returns data; it performs no
-I/O and never edits source. The command owns file freshness checks and output.
+I/O and never edits source. The CLI shares compiler-version and file-freshness
+checks with `semantics`. Candidates adapt to `RuleFinding` and `ScanHit` and use
+the existing source-context renderer, highlighting, and `NO_COLOR` behavior.
+The command also shares argparse, diagnostics, output errors, and exit codes.
+`cmd/map-fusion` is a thin compatibility entrypoint to that same CLI.
+
+JSON values and parsing use MoonBit's standard library. Fixed report structures
+use `derive(ToJson)`, and fixed display metadata uses `derive(FromJson)`.
+Semantic graph validation and rendering MoonBit type names remain domain logic.
 
 This POC uses one concrete rule, not a new rule language or registration system.
 The existing syntax-only YAML rules stay independent. A later semantic predicate
@@ -31,8 +39,7 @@ interface can be extracted when a second rule demonstrates what it needs.
    `function_body` metadata does not compete with actual typed expression nodes.
    Missing, ambiguous, or multiple typed expression facts produce a skipped
    result. This includes source files represented by multiple package/test views;
-   the POC does not guess a
-   view or select an enclosing expression.
+   the POC does not guess a view or select an enclosing expression.
 3. Require both calls to resolve to the same global method identity:
    `moonbitlang/core/builtin.Array::map`. A user method named `map`, `Option::map`,
    `Iter::map`, and indirect calls do not qualify.
@@ -82,10 +89,40 @@ From the repository root, using the nightly supported by the reader:
 ```sh
 node scripts/build-moonc-reader.mjs
 _build/semantic-reader/moonc-reader --project tools/map-fusion/fixture > /tmp/map-index.json
-moon run cmd/map-fusion -- --index /tmp/map-index.json
+moon run . -- map-fusion --index /tmp/map-index.json
+```
+
+The default output is a terminal report with source ranges, numbered code
+snippets, readable type flow, review notes, and explanations for skipped chains:
+
+```text
+Array.map fusion: 8 candidates, 4 skipped
+Pattern: xs.map(g).map(f) => xs.map(x => f(g(x)))
+
+.../maps.mbt:19:3-19:35
+rule: array-map-fusion
+description:
+  Array.map fusion candidate; review required.
+  Types: Array[Int] -> Array[String] -> Array[Int]
+source:
+17 | ///|
+18 | pub fn named(xs : Array[Int]) -> Array[Int] {
+19 >   xs.map(to_text).map(text_length)
+20 | }
+21 |
+```
+
+This example uses `NO_COLOR=1`. Without it, matched source is highlighted using
+the same colors as `scan` and `lint`.
+
+Use `--json` for the structured report, or run the integration checks:
+
+```sh
+moon run . -- map-fusion --index /tmp/map-index.json --json
 node tools/map-fusion/test.mjs
 ```
 
 The command checks the installed `moonc -v` independently, validates the index,
 and checks the source files before analysis and before emitting the report.
 It fails on stale snapshots rather than returning a misleading empty report.
+Input failures use `scan_input` and exit code 6; usage errors use exit code 2.

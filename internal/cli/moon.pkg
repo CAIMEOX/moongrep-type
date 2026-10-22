@@ -4,6 +4,8 @@ import {
   "moonbit-community/moongrep/internal/fs_walk",
   "moonbit-community/moongrep/internal/cst",
   "moonbit-community/moongrep/semantic",
+  "moonbit-community/moongrep/internal/semantic_source",
+  "moonbit-community/moongrep/internal/semantic_rules",
   "moonbit-community/moongrep/internal/rule/apply" @rule_apply,
   "moonbit-community/moongrep/internal/rule/builtin" @rule_builtin,
   "moonbit-community/moongrep/internal/rule/compile" @rule_compile,
@@ -15,6 +17,7 @@ import {
   "moonbitlang/async/process",
   "moonbitlang/async/stdio",
   "moonbitlang/core/argparse",
+  "moonbitlang/core/json",
   "moonbitlang/lexer/basic",
   "moonbitlang/parser/untyped_cst",
   "moonbitlang/x/path",
@@ -23,7 +26,6 @@ import {
 
 import {
   "moonbitlang/async",
-  "moonbitlang/core/json",
 } for "wbtest"
 
 supported_targets = "+wasm+native"

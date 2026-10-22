@@ -1,11 +1,6 @@
 import {
-  "moonbit-community/moongrep/semantic",
-  "moonbit-community/moongrep/internal/semantic_source",
-  "moonbit-community/moongrep/internal/semantic_rules",
+  "moonbit-community/moongrep/internal/cli",
   "moonbitlang/async",
-  "moonbitlang/async/fs",
-  "moonbitlang/async/stdio",
-  "moonbitlang/async/process",
   "moonbitlang/core/env",
 }
 

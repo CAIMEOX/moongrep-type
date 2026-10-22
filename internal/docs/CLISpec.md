@@ -36,12 +36,13 @@ behavior.
 
 ### Top-Level Commands
 
-moongrep provides five commands:
+moongrep provides six commands:
 
 - `scan` scans MoonBit source with explicitly selected or default rules.
 - `lint` scans MoonBit source with embedded builtin rules enabled by default.
 - `docs` lists or prints embedded documentation.
 - `semantics` exports a validated compiler semantic index as JSON.
+- `map-fusion` reports Array.map fusion candidates from a semantic index.
 - `dump` parses one MoonBit implementation item or expression and either
   prints CST debug output, writes a structured dump record, or reports
   validation success through its exit status.
@@ -63,6 +64,7 @@ With no additional arguments, each command behaves as follows:
 - `docs` prints `docs` help and exits with status 0.
 - `dump` prints `dump` help and exits with status 0.
 - `semantics` prints `semantics` help and exits with status 0.
+- `map-fusion` prints `map-fusion` help and exits with status 0.
 
 Help text is written to standard output.
 
@@ -410,10 +412,10 @@ while nonmatching context rows use ` | `.
 
 ### Protocol and Mode Detection
 
-For `scan`, `lint`, `dump`, and `semantics`, `--json` selects structured diagnostics. The
+For `scan`, `lint`, `dump`, `semantics`, and `map-fusion`, `--json` selects structured diagnostics. The
 option must be a standalone argument before an option terminator. For example,
 `scan -- --json` and `dump -- --json` do not enable JSON mode.
-The initial command must be `scan`, `lint`, `dump`, or `semantics`.
+The initial command must be `scan`, `lint`, `dump`, `semantics`, or `map-fusion`.
 
 For `scan` and `lint`, every nonempty application-output line on both standard
 streams is a compact JSON object. For `dump`, a successful non-exit-code dump
@@ -636,6 +638,31 @@ Missing arguments or a missing reader selection use status 2. An unavailable
 compiler or reader, a failed check, an incompatible or malformed index, or a
 changed source uses the existing `scan_input` category and status 6. No semantic
 index is printed on failure. The command does not add or run lint rules.
+
+## `map-fusion`
+
+```text
+moongrep map-fusion --index <semantic-index.json> [--json]
+```
+
+This POC reads the index exported by `semantics`, independently checks the
+installed compiler version, and requires the indexed source files to be current.
+It recognizes adjacent dot calls to the standard library's `Array::map` and
+checks their callback and element types.
+
+The default report uses the same finding layout, source context, highlighting,
+and `NO_COLOR=1` behavior as `scan`. It includes a count of candidates and skipped
+chains, type flow, and readable skip reasons. Candidates require review of
+callback effects and termination; the command does not edit source.
+
+`--json` emits one full report object, preserving fact IDs, type IDs, symbol
+identities, source ranges, and skipped reasons. Fatal diagnostics use the common
+JSON Lines error schema. This report is not a stream of scan finding records.
+
+Usage failures use status 2; unreadable, incompatible, or stale input uses
+`scan_input` and status 6. No partial report is emitted on an input failure.
+The original `moon run cmd/map-fusion -- ...` entrypoint delegates to this same
+CLI, including its diagnostics and exit codes.
 
 ## Diagnostics and Exit Status
 
