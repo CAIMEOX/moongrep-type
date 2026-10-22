@@ -1,0 +1,8 @@
+id: result_bind_map
+description: |
+  This Result.bind callback only wraps its result in Ok.
+  Use map and remove that outer Ok, keeping the callback body and effects.
+semantic:
+  check: result-bind-map
+  patterns:
+    - shape: $(value:exp).bind($(callback:exp))

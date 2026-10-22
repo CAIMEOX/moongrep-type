@@ -35,6 +35,54 @@ dev_build(
 
 dev_build(
   rule: "embed",
+  input: "option_map_fusion.yaml",
+  output: "option_map_fusion.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "result_map_fusion.yaml",
+  output: "result_map_fusion.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "result_map_err_fusion.yaml",
+  output: "result_map_err_fusion.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "option_bind_map.yaml",
+  output: "option_bind_map.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "result_bind_map.yaml",
+  output: "result_bind_map.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "result_map_flatten.yaml",
+  output: "result_map_flatten.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "option_filter_fusion.yaml",
+  output: "option_filter_fusion.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "option_map_default.yaml",
+  output: "option_map_default.mbt",
+)
+
+dev_build(
+  rule: "embed",
   input: "prefer_array_comprehension.yaml",
   output: "prefer_array_comprehension.mbt",
 )

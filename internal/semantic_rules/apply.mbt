@@ -123,6 +123,17 @@ fn evaluate_semantic_check(
         IterFilterNext => check_iter_filter_next(context, node)
         IterFindFirstExists => check_iter_find_first_exists(context, node)
         IterMapFlatten => check_iter_map_flatten(context, node)
+        OptionMapFusion =>
+          check_optional_map_fusion(context, node, "Option", "map")
+        ResultMapFusion =>
+          check_optional_map_fusion(context, node, "Result", "map")
+        ResultMapErrFusion =>
+          check_optional_map_fusion(context, node, "Result", "map_err")
+        OptionBindMap => check_bind_map(context, node, "Option")
+        ResultBindMap => check_bind_map(context, node, "Result")
+        ResultMapFlatten => check_result_map_flatten(context, node)
+        OptionFilterFusion => check_option_filter_fusion(context, node)
+        OptionMapDefault => check_option_map_default(context, node)
         DiscardedArrayMap => check_discarded_map(context, node)
         ConsumedIterator => check_consumed_iterator(context, node)
         ArrayMapFusion => {

@@ -1,0 +1,9 @@
+id: result_map_fusion
+description: |
+  Adjacent standard-library Result.map calls can share one map.
+  Use value.map(x => second(first(x))), retaining the original callbacks.
+  The error value and callback order stay the same.
+semantic:
+  check: result-map-fusion
+  patterns:
+    - shape: $(value:exp).map($(first:exp)).map($(second:exp))

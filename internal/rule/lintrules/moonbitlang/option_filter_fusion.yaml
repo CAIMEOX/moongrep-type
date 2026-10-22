@@ -1,0 +1,9 @@
+id: option_filter_fusion
+description: |
+  Adjacent standard-library Option.filter calls can share one filter.
+  Use value.filter(x => first(x) && second(x)), retaining both callbacks.
+  The second predicate still runs only when the first returns true.
+semantic:
+  check: option-filter-fusion
+  patterns:
+    - shape: $(value:exp).filter($(first:exp)).filter($(second:exp))

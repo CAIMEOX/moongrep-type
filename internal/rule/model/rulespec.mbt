@@ -155,6 +155,14 @@ pub(all) enum SemanticCheck {
   IterFilterNext
   IterFindFirstExists
   IterMapFlatten
+  OptionMapFusion
+  ResultMapFusion
+  ResultMapErrFusion
+  OptionBindMap
+  ResultBindMap
+  ResultMapFlatten
+  OptionFilterFusion
+  OptionMapDefault
 }
 
 ///|

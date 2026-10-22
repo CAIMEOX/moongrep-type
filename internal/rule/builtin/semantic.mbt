@@ -20,6 +20,14 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("iter_filter_next", @moonbitlang_rules.iter_filter_next_yaml),
     ("iter_find_first_exists", @moonbitlang_rules.iter_find_first_exists_yaml),
     ("iter_map_flatten", @moonbitlang_rules.iter_map_flatten_yaml),
+    ("option_map_fusion", @moonbitlang_rules.option_map_fusion_yaml),
+    ("result_map_fusion", @moonbitlang_rules.result_map_fusion_yaml),
+    ("result_map_err_fusion", @moonbitlang_rules.result_map_err_fusion_yaml),
+    ("option_bind_map", @moonbitlang_rules.option_bind_map_yaml),
+    ("result_bind_map", @moonbitlang_rules.result_bind_map_yaml),
+    ("result_map_flatten", @moonbitlang_rules.result_map_flatten_yaml),
+    ("option_filter_fusion", @moonbitlang_rules.option_filter_fusion_yaml),
+    ("option_map_default", @moonbitlang_rules.option_map_default_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

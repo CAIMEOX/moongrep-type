@@ -1,0 +1,9 @@
+id: result_map_err_fusion
+description: |
+  Adjacent standard-library Result.map_err calls can share one map_err.
+  Use value.map_err(error => second(first(error))), retaining both callbacks.
+  The success value and callback order stay the same.
+semantic:
+  check: result-map-err-fusion
+  patterns:
+    - shape: $(value:exp).map_err($(first:exp)).map_err($(second:exp))

@@ -17,27 +17,7 @@ fn CheckContext::option_constructor(
   node : @untyped_cst.CstNode,
   name : String,
 ) -> Bool raise {
-  let node = if node.kind is Expr_Apply {
-    guard @cst.child(node, "func") is Some(callee) && callee.kind is Expr_Constr else {
-      return false
-    }
-    callee
-  } else {
-    node
-  }
-  let fact = self.expression(node)
-  guard fact.symbol_id is Some(id) &&
-    self.source.index().symbol(id) is Some(symbol) else {
-    return false
-  }
-  symbol.kind == "constructor" &&
-  symbol.name == name &&
-  symbol.identity
-  is {
-    "kind": "constructor",
-    "owner_type": { "kind": "builtin", "name": "Option", .. },
-    ..
-  }
+  self.constructor_is(node, "Option", name)
 }
 
 ///|

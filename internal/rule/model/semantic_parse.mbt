@@ -20,6 +20,14 @@ fn expect_semantic_rule(
     Some(String("iter-filter-next")) => IterFilterNext
     Some(String("iter-find-first-exists")) => IterFindFirstExists
     Some(String("iter-map-flatten")) => IterMapFlatten
+    Some(String("option-map-fusion")) => OptionMapFusion
+    Some(String("result-map-fusion")) => ResultMapFusion
+    Some(String("result-map-err-fusion")) => ResultMapErrFusion
+    Some(String("option-bind-map")) => OptionBindMap
+    Some(String("result-bind-map")) => ResultBindMap
+    Some(String("result-map-flatten")) => ResultMapFlatten
+    Some(String("option-filter-fusion")) => OptionFilterFusion
+    Some(String("option-map-default")) => OptionMapDefault
     Some(String(name)) =>
       raise invalid_rule(path~, info="unknown semantic.check: \{name}")
     _ =>

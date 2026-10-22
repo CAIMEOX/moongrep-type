@@ -1,0 +1,8 @@
+id: option_map_default
+description: |
+  Option.map followed by unwrap_or_else is map_or_else.
+  Use value.map_or_else(default, transform); the default stays lazy.
+semantic:
+  check: option-map-default
+  patterns:
+    - shape: $(value:exp).map($(transform:exp)).unwrap_or_else($(default:exp))

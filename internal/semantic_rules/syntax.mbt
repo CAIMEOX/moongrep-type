@@ -107,3 +107,23 @@ fn CheckContext::statement_call(
     None
   }
 }
+
+///|
+/// A literal one-argument lambda. Do not erase a callback expression that may
+/// run a factory, or a lambda with extra statements before its result.
+fn unary_lambda_parts(
+  node : @untyped_cst.CstNode,
+) -> (@untyped_cst.CstNode, @untyped_cst.CstNode)? {
+  guard node.kind is Expr_Function &&
+    @cst.child(node, "params") is Some(params) &&
+    @cst.items(params) is [parameter] &&
+    parameter.kind is Parameter_Positional &&
+    @cst.child(parameter, "pattern") is Some(pattern) &&
+    pattern.kind is Pattern_Var &&
+    @cst.raw_child(pattern, "semantic_name") is Some(binder) &&
+    binder.kind is Name_Binder &&
+    @cst.child(node, "body") is Some(body) else {
+    return None
+  }
+  Some((binder, ungroup(body)))
+}

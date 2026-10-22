@@ -1,0 +1,8 @@
+id: option_bind_map
+description: |
+  This Option.bind callback only wraps its result in Some.
+  Use map and remove that outer Some, keeping the callback body and effects.
+semantic:
+  check: option-bind-map
+  patterns:
+    - shape: $(value:exp).bind($(callback:exp))

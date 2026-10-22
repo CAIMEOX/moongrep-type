@@ -1,0 +1,8 @@
+id: result_map_flatten
+description: |
+  Mapping a Result to another Result and flattening is bind.
+  Use value.bind(callback); callback evaluation and both error paths are preserved.
+semantic:
+  check: result-map-flatten
+  patterns:
+    - shape: $(value:exp).map($(callback:exp)).flatten()
