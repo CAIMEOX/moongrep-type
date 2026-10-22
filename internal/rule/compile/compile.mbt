@@ -76,6 +76,19 @@ fn compile_rule(raw : RawRuleSpec) -> CompiledRule raise {
         compile_structural_rule(raw.path, spec),
       )
     Taint(spec) => Taint(compile_taint_rule(raw.path, spec))
+    Semantic(spec) =>
+      Semantic({
+        check: spec.check,
+        patterns: spec.patterns.mapi(fn(index, pattern) raise {
+          let context = pattern_compile_context(
+            raw.path,
+            "semantic.patterns[\{index}]",
+            pattern.shape,
+          )
+          let compiled = compile_structural_expr_pattern(context)
+          compile_rule_pattern(pattern, compiled, context)
+        }),
+      })
   }
   {
     rule_id: raw.rule_id,

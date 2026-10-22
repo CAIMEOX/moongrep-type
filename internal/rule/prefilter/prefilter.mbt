@@ -100,6 +100,10 @@ pub fn compile_rule_prefilter(
   match definition {
     Structural(rule) => compile_structural_prefilter(rule)
     Taint(rule) => compile_taint_prefilter(rule)
+    Semantic(rule) =>
+      {
+        alternatives: rule.patterns.map(required_literals_from_compiled_pattern),
+      }
   }
 }
 

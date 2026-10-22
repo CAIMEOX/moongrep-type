@@ -58,18 +58,7 @@ priv struct JsonMapFusionOutput {
 
 ///|
 async fn run_map_fusion_command(options : MapFusionOptions) -> Unit {
-  let compiler_version = semantic_compiler_version(collect_semantics_process)
-  let input = @fs.read_file(options.index_file).text() catch {
-    err =>
-      raise new_semantics_input_error(
-        options.index_file,
-        "could not read index: \{err}",
-      )
-  }
-  let index = @semantic.Index::parse(input, compiler_version~) catch {
-    err => raise new_semantics_input_error(options.index_file, "\{err}")
-  }
-  require_current_semantic_sources(index)
+  let index = load_semantic_index(options.index_file)
   let reports : Array[(String, @semantic_rules.MapFusionReport)] = []
   for file in index.sources() {
     let source = @semantic_source.Source::parse(

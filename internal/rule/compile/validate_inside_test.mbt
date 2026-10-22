@@ -56,7 +56,7 @@ test "validate allows inherited then metavars with matching inline forms" {
         content="[\"arg\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -88,7 +88,7 @@ test "validate compiles then id and const guards" {
         content="[\"lit\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -116,7 +116,7 @@ test "validate compiles inside toplevel function shape" {
         content="[\"param\", \"name\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -154,7 +154,7 @@ test "validate resolves inside toplevel match modes per alternative" {
       assert_true(compiled_ignores_field(partial_fn, "quantifier"))
       assert_true(rule.inside_toplevel[3].compiled.ignored_fields.is_empty())
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -202,7 +202,7 @@ test "validate compiles inside toplevel let guards" {
         content="[\"lit\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -219,7 +219,7 @@ test "validate compiles inside toplevel test shape" {
   let rules = compile_one(source)
   match rules[0].definition {
     Structural(rule) => assert_eq(rule.inside_toplevel.length(), 1)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -251,7 +251,7 @@ test "validate compiles patterns-not metavars and guards" {
         content="[\"lit\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -281,7 +281,7 @@ test "validate patterns-not inherits then metavars without positive patterns" {
         content="[\"name\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -306,7 +306,7 @@ test "validate patterns-not inherits inside toplevel metavars without positive p
         content="[\"name\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -404,7 +404,7 @@ test "validate then constant metavars use matching inline forms" {
         ),
         content="[\"lit\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -458,7 +458,7 @@ test "validate then counts only bindable target expressions" {
   let rules = compile_one(pattern_and_expression)
   match rules[0].definition {
     Structural(rule) => assert_eq(rule.group.patterns.length(), 1)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -512,7 +512,7 @@ test "validate inside toplevel counts only bindable target expressions" {
   let rules = compile_one(binder_and_expression)
   match rules[0].definition {
     Structural(rule) => assert_eq(rule.inside_toplevel.length(), 1)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -532,7 +532,7 @@ test "validate ordinary patterns reject only bindable target expressions" {
       assert_eq(rule.group.patterns.length(), 1)
       assert_eq(rule.group.patterns_not.length(), 1)
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
   let expression_target =
     #|id: example
@@ -595,7 +595,7 @@ test "validate allows inner guard to reference then id and const captures" {
         content="[\"lit\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -631,7 +631,7 @@ test "validate allows inner guard to reference inside toplevel id and const capt
         content="[\"lit\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -741,7 +741,7 @@ test "validate compiles ordered then alternatives independently" {
         content="[\"name\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -769,7 +769,7 @@ test "validate compiles ordered inside toplevel alternatives independently" {
         content="[\"name\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -882,7 +882,7 @@ test "validate merges bare ellipsis kinds across compatible inside reuse" {
         Some(Ellipsis(ExpItem)),
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -903,7 +903,7 @@ test "validate allows unreferenced outer captures to differ by alternative" {
   let rules = compile_one(source)
   match rules[0].definition {
     Structural(rule) => assert_eq(rule.group.patterns.length(), 2)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 

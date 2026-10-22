@@ -77,9 +77,10 @@ Rule ids must be unique.
 ### Top-Level Keys
 
 Allowed root keys are `id`, `description`, `patterns`, `patterns-not`,
-`inside-toplevel`, and `taint`. A structural rule requires positive `patterns`,
+`inside-toplevel`, `taint`, and `semantic`. A structural rule requires positive `patterns`,
 unless it has `inside-toplevel` and `patterns-not`. Present pattern arrays must
 be non-empty. `taint` is mutually exclusive with structural fields.
+`semantic` is mutually exclusive with both structural fields and `taint`.
 `inside-toplevel` is an ordered array of shape/guard objects with optional
 `match-mode`. `then` belongs to positive pattern objects, never the rule root.
 
@@ -107,6 +108,54 @@ taint clauses.
 Taint `sources`, `sinks`, and `sanitizers` use the same `shape` key. A `guard`
 is invalid in these entries.
 
+### Semantic Rules
+
+Semantic rules use the same loader, rule-id derivation, matcher, regex guards,
+and prefilter. They require a checked index supplied through `--semantic-index`.
+
+```yaml
+id: avoid_collect_for_count
+description: Prefer count() when the collected array is used only for its length.
+semantic:
+  check: collect-count
+  patterns:
+    - shape: $(iterator:id).collect().length()
+      guard:
+        $iterator: '^it$'
+```
+
+`semantic` accepts exactly `check` and `patterns`. `check` must name one of:
+
+- `array-comprehension`: a fresh-array binding, one loop that pushes once per
+  selected element, and the final array value, with no other accumulator uses.
+- `filter-map-comprehension`: a simple synchronous, non-raising Array.filter_map
+  lambda returning standard Option constructors through `if` or an exhaustive match.
+- `iter-comprehension`: filter/map over an already-bound immutable Iter, optionally
+  immediately collected, with simple synchronous, non-raising callbacks.
+- `collect-count`: standard Iter.collect / to_array followed by Array.length.
+- `discarded-array-map`: standard ignore applied to the result of Array.map.
+- `consumed-iterator`: adjacent statements consuming the same immutable iterator
+  binding with count, collect / to_array, or last.
+- `array-map-fusion`: the type-compatible Array.map fusion candidate, still requiring
+  review of purity, termination, and expression evaluation.
+
+`patterns` is a nonempty array of ordinary `shape` / `guard` objects. A structural
+match and all regex guards must succeed before the selected check runs. Semantic
+evidence can reject a match; YAML cannot bypass that validation. Unknown checks
+or keys are errors. These entries do not support `then`, `patterns-not`,
+`inside-toplevel`, or `match-mode`.
+
+Checks use the original whole-file CST and exact compiler ranges, resolved method
+identities, normalized types, and binding identities. Missing, ambiguous, or
+unresolved evidence produces a semantic warning instead of a definite finding.
+First successful alternatives at one range are deduplicated. Iter-comprehension
+prefers the enclosing immediately-collected form over its nested lazy pipeline.
+
+YAML configures the id, description, structural alternatives, and regex guards;
+new semantic analyses are implemented in MoonBit. All findings are advisory and
+do not edit source. See [the runnable examples](../../examples/semantic-rules/README.md)
+for the check-specific restrictions and current-nightly contract.
+
 ## Shapes
 
 An ordinary `shape` must be a single MoonBit expression snippet. Each
@@ -133,10 +182,11 @@ Shapes are structural:
 - source locations, comments (including docstrings), and whitespace formatting
   do not participate in matching in any mode
 
-The scanner does not type-check shapes and does not resolve names semantically.
+Structural matching does not type-check shapes or resolve names semantically.
 For example, two imported names that refer to the same definition compare as
 equal only when their parsed source spelling matches or a metavariable captures
-them.
+them. Semantic rules validate compiler identities only after this structural
+candidate match succeeds.
 
 ### Function Bodies and Explicit Blocks
 

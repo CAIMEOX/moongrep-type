@@ -21,7 +21,7 @@ fn compile_expr_pattern_through_rule(
       }
       pattern.pattern.compiled
     }
-    Taint(_) => fail("expected a structural rule")
+    Taint(_) | Semantic(_) => fail("expected a structural rule")
   }
 }
 

@@ -1,0 +1,9 @@
+id: avoid_collect_for_count
+description: |
+  The collected array is used only for its length.
+  Prefer iterator.count() to consume the same iterator without materializing an array.
+semantic:
+  check: collect-count
+  patterns:
+    - shape: $(iterator:exp).collect().length()
+    - shape: $(iterator:exp).to_array().length()

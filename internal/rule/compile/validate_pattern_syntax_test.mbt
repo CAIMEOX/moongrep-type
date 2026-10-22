@@ -104,7 +104,7 @@ test "validate compiles bare and typed ellipsis metavars" {
         content="[\"values\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -126,7 +126,7 @@ test "validate typed ellipsis occurrence determines bare occurrence kind" {
         content="[\"items\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -168,7 +168,7 @@ test "validate keeps mixed metavar kinds in first occurrence order" {
       debug_inspect(metavar_names(metavars, Pattern), content="[\"pattern\"]")
       debug_inspect(metavar_names(metavars, Type), content="[\"T\"]")
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -271,7 +271,7 @@ test "validate keeps ellipsis in true tuple lists" {
         Some(Ellipsis(TypeItem)),
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -349,7 +349,7 @@ test "validate accepts all-underscore metavar names" {
         metavar_names(rule.group.patterns[0].pattern.compiled.metavars, Expr),
         content="[\"__\", \"___\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -394,7 +394,7 @@ test "validate does not collect $_ ignore placeholders" {
         content="[]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 

@@ -1,0 +1,8 @@
+id: custom_count
+description: Prefer count() when the collected array is used only for its length.
+semantic:
+  check: collect-count
+  patterns:
+    - shape: $(iterator:id).collect().length()
+      guard:
+        $iterator: '^it$'

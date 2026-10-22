@@ -10,6 +10,8 @@ fn stream_event_scan_options() -> CliOptions {
     verbose: true,
     no_color: true,
     output_json: false,
+    semantic_index: None,
+    semantic_view: "normal",
   }
 }
 
@@ -25,6 +27,8 @@ fn stream_order_scan_options() -> CliOptions {
     verbose: false,
     no_color: true,
     output_json: false,
+    semantic_index: None,
+    semantic_view: "normal",
   }
 }
 
@@ -40,6 +44,8 @@ fn no_match_stream_options(output_json : Bool) -> CliOptions {
     verbose: false,
     no_color: true,
     output_json,
+    semantic_index: None,
+    semantic_view: "normal",
   }
 }
 
@@ -55,6 +61,8 @@ fn parse_warning_stream_options() -> CliOptions {
     verbose: true,
     no_color: true,
     output_json: false,
+    semantic_index: None,
+    semantic_view: "normal",
   }
 }
 
@@ -74,6 +82,8 @@ fn stream_options_with_format(
     verbose,
     no_color: true,
     output_json,
+    semantic_index: None,
+    semantic_view: "normal",
   }
 }
 
@@ -83,6 +93,7 @@ fn scan_event_summary(event : ScanEvent) -> String {
     Trace(trace) => "trace:\{render_scan_trace(trace)}"
     Warning(Parse(warning)) => "warning:\{warning.file}"
     Warning(InvalidMoongrepSkipPayload(file, _)) => "warning:\{file}"
+    Warning(Semantic(file~, ..)) => "warning:\{file}"
     Hit(hit) =>
       "hit:\{hit.finding.file}:\{hit.finding.rule_id}:\{hit.finding.loc.start.lnum}"
   }

@@ -39,6 +39,7 @@ pub struct Index {
 pub fn Index::compiler_version(Self) -> String
 pub fn Index::enclosing_facts(Self, Range) -> Array[Fact]
 pub fn Index::facts(Self) -> ArrayView[Fact]
+pub fn Index::facts_for_file(Self, String) -> Array[Fact]
 pub fn Index::facts_for_range(Self, Range) -> Array[Fact]
 pub fn Index::from_json(Json, compiler_version~ : String) -> Self raise SemanticError
 pub fn Index::parse(String, compiler_version~ : String) -> Self raise SemanticError

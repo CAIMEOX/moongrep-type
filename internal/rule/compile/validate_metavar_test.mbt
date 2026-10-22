@@ -42,7 +42,7 @@ test "validate accepts bare inline expression metavars" {
         content="[]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -93,7 +93,7 @@ test "validate accepts keyword names for non-type single-node metavars" {
         content="[\"if\"]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -139,7 +139,7 @@ test "validate accepts inline pattern metavars" {
         content="[]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -176,7 +176,7 @@ test "validate infers bare binder and expression metavars" {
         content="[]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -211,7 +211,7 @@ test "validate infers bare binders in foreach parameters and let mut" {
           ).length(),
           1,
         )
-      Taint(_) => fail("expected structural rule")
+      Taint(_) | Semantic(_) => fail("expected structural rule")
     }
   }
 }
@@ -287,7 +287,7 @@ test "validate allows explicit identifier kind to disambiguate bare pattern meta
         ),
         content="[\"item\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -371,7 +371,7 @@ test "validate allows matcher-local-looking metavar names" {
         metavar_names(rule.group.patterns[0].pattern.compiled.metavars, Expr),
         content="[\"file\", \"hits\", \"loc\", \"__moongrep_value\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -393,7 +393,7 @@ test "validate records inline constant metavars" {
         ),
         content="[\"value\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -434,7 +434,7 @@ test "validate records inline argument metavars" {
         content="[]",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -454,7 +454,7 @@ test "validate accepts explicit type metavars in annotations" {
         metavar_names(rule.group.patterns[0].pattern.compiled.metavars, Type),
         content="[\"T\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -508,7 +508,7 @@ test "validate accepts spaced and bare type metavars in annotations" {
         metavar_names(rule.group.patterns[0].pattern.compiled.metavars, Type),
         content="[\"T\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
   let bare_source =
     #|id: example
@@ -524,7 +524,7 @@ test "validate accepts spaced and bare type metavars in annotations" {
         metavar_names(rule.group.patterns[0].pattern.compiled.metavars, Type),
         content="[\"T\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -649,7 +649,7 @@ test "validate records constructor identifier metavars" {
         ),
         content="[\"Ctor\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -671,7 +671,7 @@ test "validate records constructor extra info identifier metavars" {
         ),
         content="[\"TypeName\", \"Ctor\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -693,7 +693,7 @@ test "validate records qualified function identifier metavars" {
         ),
         content="[\"callee\"]",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 

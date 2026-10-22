@@ -47,6 +47,6 @@ test "validate compiles taint source target metadata" {
       assert_true(rule.sinks[0].target is PositionalArg(0))
       assert_true(rule.sinks[1].target is Receiver)
     }
-    Structural(_) => fail("expected taint rule")
+    Structural(_) | Semantic(_) => fail("expected taint rule")
   }
 }

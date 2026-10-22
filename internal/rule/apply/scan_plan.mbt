@@ -18,6 +18,7 @@ priv struct PlannedTaintRule {
 pub struct ScanPlan {
   priv structural_entries : Array[CstStructuralRuleEntry]
   priv taint_entries : Array[PlannedTaintRule]
+  priv semantic_entries : Array[CompiledRule]
   priv groups : Array[PlannedStructuralGroup]
   priv capture_names : Array[String]
 }
@@ -26,6 +27,7 @@ pub struct ScanPlan {
 pub fn ScanPlan::from_rules(rules : Array[CompiledRule]) -> ScanPlan {
   let structural_entries : Array[CstStructuralRuleEntry] = []
   let taint_entries : Array[PlannedTaintRule] = []
+  let semantic_entries : Array[CompiledRule] = []
   let groups : Array[PlannedStructuralGroup] = []
   let capture_names : Array[String] = []
   for rule in rules {
@@ -40,9 +42,16 @@ pub fn ScanPlan::from_rules(rules : Array[CompiledRule]) -> ScanPlan {
           sink_count: taint_rule.sinks.length(),
           spec: lower_compiled_taint_rule(rule, taint_rule),
         })
+      Semantic(_) => semantic_entries.push(rule)
     }
   }
-  { structural_entries, taint_entries, groups, capture_names, }
+  {
+    structural_entries,
+    taint_entries,
+    semantic_entries,
+    groups,
+    capture_names,
+  }
 }
 
 ///|
@@ -53,6 +62,7 @@ pub fn ScanPlan::filter_source(
   let literal_cache : Map[String, Bool] = Map([])
   let structural_entries : Array[CstStructuralRuleEntry] = []
   let taint_entries : Array[PlannedTaintRule] = []
+  let semantic_entries : Array[CompiledRule] = []
   for entry in self.structural_entries {
     if scan_plan_rule_matches_source(entry.rule, source, literal_cache) {
       structural_entries.push(entry)
@@ -63,12 +73,29 @@ pub fn ScanPlan::filter_source(
       taint_entries.push(entry)
     }
   }
-  { ..self, structural_entries, taint_entries, }
+  for rule in self.semantic_entries {
+    if scan_plan_rule_matches_source(rule, source, literal_cache) {
+      semantic_entries.push(rule)
+    }
+  }
+  { ..self, structural_entries, taint_entries, semantic_entries, }
 }
 
 ///|
 pub fn ScanPlan::is_empty(self : ScanPlan) -> Bool {
-  self.structural_entries.is_empty() && self.taint_entries.is_empty()
+  self.structural_entries.is_empty() &&
+  self.taint_entries.is_empty() &&
+  self.semantic_entries.is_empty()
+}
+
+///|
+pub fn ScanPlan::semantic_rules(self : ScanPlan) -> ArrayView[CompiledRule] {
+  self.semantic_entries[:]
+}
+
+///|
+pub fn ScanPlan::without_semantic_rules(self : ScanPlan) -> ScanPlan {
+  { ..self, semantic_entries: [], }
 }
 
 ///|

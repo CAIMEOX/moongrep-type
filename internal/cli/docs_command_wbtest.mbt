@@ -40,6 +40,8 @@ test "docs rejects unreachable command state as internal" {
     verbose: false,
     no_color: false,
     output_json: false,
+    semantic_index: None,
+    semantic_view: "normal",
   }
   try render_docs_command(Scan(options)) catch {
     CliError::Internal(..) as err => assert_eq(err.exit_code(), 1)

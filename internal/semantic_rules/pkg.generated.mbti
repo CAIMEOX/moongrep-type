@@ -2,12 +2,17 @@
 package "moonbit-community/moongrep/internal/semantic_rules"
 
 import {
+  "moonbit-community/moongrep/internal/rule/model",
   "moonbit-community/moongrep/internal/semantic_source",
   "moonbit-community/moongrep/semantic",
   "moonbitlang/core/debug",
+  "moonbitlang/lexer/basic",
+  "moonbitlang/parser/untyped_cst/node",
 }
 
 // Values
+pub fn apply_rules(@semantic_source.Source, ArrayView[@model.CompiledRule], roots? : Array[@node.CstNode]) -> RuleReport raise
+
 pub fn find_map_fusion(@semantic_source.Source) -> MapFusionReport raise
 
 // Errors
@@ -39,6 +44,17 @@ pub(all) struct MapFusionReport {
 } derive(@debug.Debug)
 pub fn MapFusionReport::to_json(Self) -> Json
 pub fn MapFusionReport::to_repr(Self) -> @debug.Repr
+
+pub(all) struct RuleReport {
+  findings : Array[@model.RuleFinding]
+  warnings : Array[RuleWarning]
+}
+
+pub(all) struct RuleWarning {
+  rule_id : String
+  loc : @basic.Location
+  reason : String
+}
 
 pub(all) struct SkippedCandidate {
   location : @semantic.Range

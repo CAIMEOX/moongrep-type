@@ -1,4 +1,49 @@
-rule(name: "embed", command: "moonx moonbit-community/embed $input -o $output")
+rule(
+  name: "embed",
+  command: "moonx moonbit-community/embed@0.1.1 $input -o $output",
+)
+
+dev_build(
+  rule: "embed",
+  input: "prefer_array_comprehension.yaml",
+  output: "prefer_array_comprehension.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "prefer_filter_map_comprehension.yaml",
+  output: "prefer_filter_map_comprehension.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "prefer_iter_comprehension.yaml",
+  output: "prefer_iter_comprehension.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "avoid_collect_for_count.yaml",
+  output: "avoid_collect_for_count.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "discarded_array_map.yaml",
+  output: "discarded_array_map.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "consumed_iterator.yaml",
+  output: "consumed_iterator.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "array_map_fusion.yaml",
+  output: "array_map_fusion.mbt",
+)
 
 dev_build(rule: "embed", input: "catch_all.yaml", output: "catch_all.mbt")
 

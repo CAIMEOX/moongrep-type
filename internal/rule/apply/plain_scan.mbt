@@ -1,5 +1,5 @@
 ///|
-fn match_plain_rule_pattern(
+pub fn match_plain_rule_pattern(
   pattern : CompiledRulePattern,
   candidate : @cst.ExprMatchCandidate,
 ) -> @matching.ExprMatch? {

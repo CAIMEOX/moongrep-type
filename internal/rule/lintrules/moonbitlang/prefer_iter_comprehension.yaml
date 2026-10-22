@@ -1,0 +1,12 @@
+id: prefer_iter_comprehension
+description: |
+  This filter/map pipeline operates on an already-bound Iter.
+  Prefer [| for x in it if predicate(x) => transform(x) |].
+  If immediately collected, use [for x in it if predicate(x) => transform(x)].
+  Preserve iterator construction, callback evaluation, and captured bindings.
+semantic:
+  check: iter-comprehension
+  patterns:
+    - shape: $(source:exp).filter($(predicate:exp)).map($(transform:exp)).collect()
+    - shape: $(source:exp).filter($(predicate:exp)).map($(transform:exp)).to_array()
+    - shape: $(source:exp).filter($(predicate:exp)).map($(transform:exp))

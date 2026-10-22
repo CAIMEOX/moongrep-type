@@ -2,6 +2,8 @@
 package "moonbit-community/moongrep/internal/rule/apply"
 
 import {
+  "moonbit-community/moongrep/internal/cst",
+  "moonbit-community/moongrep/internal/matching",
   "moonbit-community/moongrep/internal/rule/model",
   "moonbitlang/parser/untyped_cst/node",
 }
@@ -10,6 +12,8 @@ import {
 pub fn apply_structural_scan_plan_to_node(String, @node.CstNode, ScanPlan) -> Array[@model.RuleFinding]
 
 pub fn apply_taint_scan_plan_to_node(String, @node.CstNode, ScanPlan) -> Array[@model.RuleFinding] raise
+
+pub fn match_plain_rule_pattern(@model.CompiledRulePattern, @cst.ExprMatchCandidate) -> @matching.ExprMatch?
 
 // Errors
 
@@ -20,6 +24,8 @@ pub struct ScanPlan {
 pub fn ScanPlan::filter_source(Self, StringView) -> Self
 pub fn ScanPlan::from_rules(Array[@model.CompiledRule]) -> Self
 pub fn ScanPlan::is_empty(Self) -> Bool
+pub fn ScanPlan::semantic_rules(Self) -> ArrayView[@model.CompiledRule]
+pub fn ScanPlan::without_semantic_rules(Self) -> Self
 
 // Type aliases
 

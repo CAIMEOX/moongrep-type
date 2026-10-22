@@ -1,0 +1,10 @@
+id: discarded_array_map
+description: |
+  The result of Array.map is explicitly discarded.
+  Prefer a for loop or Array.each when only callback effects are wanted.
+  If the callback returns a value, discard it inside the loop or each callback.
+  Preserve evaluation of the receiver and callback expressions.
+semantic:
+  check: discarded-array-map
+  patterns:
+    - shape: ignore($(source:exp).map($(callback:exp)))

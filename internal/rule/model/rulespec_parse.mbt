@@ -32,7 +32,7 @@ pub fn RawRuleSpec::from_str(
   }
   ensure_allowed_keys(path, "top-level rule", doc, [
     "id", "description", "patterns", "patterns-not", "inside-expr", "inside-toplevel",
-    "taint",
+    "taint", "semantic",
   ])
   let id = expect_rule_id(doc, path)
   let description = expect_yaml_string(doc, path, "description")
@@ -55,6 +55,19 @@ fn expect_rule_definition(
   let has_taint = doc.contains("taint")
   let has_inside_expr = doc.contains("inside-expr")
   let has_inside_toplevel = doc.contains("inside-toplevel")
+  if doc.contains("semantic") {
+    if has_patterns ||
+      has_patterns_not ||
+      has_taint ||
+      has_inside_expr ||
+      has_inside_toplevel {
+      raise invalid_rule(
+        path~,
+        info="semantic cannot be combined with structural or taint fields",
+      )
+    }
+    return Semantic(expect_semantic_rule(doc, path))
+  }
   if has_inside_expr {
     raise invalid_rule(
       path~,
@@ -86,7 +99,7 @@ fn expect_rule_definition(
   } else {
     raise invalid_rule(
       path~,
-      info="rule must contain patterns, patterns-not with inside-toplevel, or taint",
+      info="rule must contain patterns, patterns-not with inside-toplevel, taint, or semantic",
     )
   }
 }

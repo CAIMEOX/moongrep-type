@@ -1,0 +1,11 @@
+id: consumed_iterator
+description: |
+  This iterator was already consumed by the immediately preceding statement.
+  Its state has advanced; a second consumption may return no elements.
+  Obtain a fresh iterator when another traversal is intended.
+semantic:
+  check: consumed-iterator
+  patterns:
+    - shape: $(iterator:id).$(operation:id)()
+      guard:
+        $operation: '^(count|collect|to_array|last)$'

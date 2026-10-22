@@ -41,10 +41,15 @@
 
 1. structural rule 走 `compile_structural_rule`
 2. taint rule 走 `compile_taint_rule`
-3. `compile_rule_prefilter(definition)` 从编译后的 CST 推导必需源码字面量
+3. semantic rule 保留已校验的 check，每个 semantic.patterns 条目复用普通表达式与 regex guard 编译器
+4. `compile_rule_prefilter(definition)` 从编译后的 CST 推导必需源码字面量
 
 prefilter 必须基于编译后的 definition。此时 metavar 已经完成分类，可以从字面量
 收集中排除。原始 YAML 不具备这个条件。
+
+语义条件由 `internal/semantic_rules` 在全文件 semantic source 上执行。规则编译器
+不读取编译器产物，也不判断候选的语义条件。初版 semantic schema 不接受 then、
+patterns-not 或顶层上下文。
 
 `compile_expr_pattern` 会创建与单个匿名 `patterns[0]` 条目相同的上下文，并调用
 `compile_structural_expr_pattern`。这个 helper 仅供单表达式入口使用，负责解析表达式、

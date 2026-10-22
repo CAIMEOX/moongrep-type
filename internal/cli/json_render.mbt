@@ -95,6 +95,14 @@ fn render_scan_warning_json(warning : ScanWarning) -> String {
       record["file"] = Json::string(file)
       record["range"] = ToJson::to_json(json_scan_range(loc))
     }
+    Semantic(file~, rule_id~, loc~, reason~) => {
+      record["category"] = Json::string("semantic")
+      record["message"] = Json::string(scan_warning_message(warning))
+      record["file"] = Json::string(file)
+      record["rule_id"] = Json::string(rule_id)
+      record["reason"] = Json::string(reason)
+      record["range"] = ToJson::to_json(json_scan_range(loc))
+    }
   }
   Json::object(record).stringify()
 }

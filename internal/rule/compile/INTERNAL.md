@@ -45,12 +45,19 @@ with `compile_rule`.
 
 1. structural rules go through `compile_structural_rule`
 2. taint rules go through `compile_taint_rule`
-3. `compile_rule_prefilter(definition)` derives required source literals from
+3. semantic rules retain their validated check selector and compile each
+   `semantic.patterns` entry through the ordinary expression and regex-guard compiler
+4. `compile_rule_prefilter(definition)` derives required source literals from
    the compiled CST
 
 The prefilter must be built from the compiled definition, not from raw YAML,
 because metavars have already been classified and can be excluded from literal
 collection.
+
+Semantic checks are evaluated by `internal/semantic_rules` against a whole-file
+semantic source. The compiler does not read compiler artifacts or decide whether
+a candidate's semantic conditions hold. `then`, `patterns-not`, and top-level
+contexts are not part of the initial semantic-rule schema.
 
 `compile_expr_pattern` creates the same context as one anonymous
 `patterns[0]` entry and calls `compile_structural_expr_pattern`. This helper is

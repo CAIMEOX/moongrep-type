@@ -57,16 +57,58 @@ rules/security/nested/raw.yml with id: unsafe-html -> security/nested/unsafe-htm
 
 ## YAML Schema
 
-根字段仅接受 id、description、patterns、patterns-not、inside-toplevel、taint。
+根字段仅接受 id、description、patterns、patterns-not、inside-toplevel、taint、semantic。
 id 为不含斜杠的非空字符串，description 为字符串。结构规则要求正向 patterns，
 除非同时有 inside-toplevel 和 patterns-not。所有出现的结构模式数组必须非空。
 taint 与结构字段互斥。
+semantic 与结构字段、taint 均互斥。
 
 正向条目接受 shape、guard、then。负向条目接受 shape、guard。
 inside-toplevel 条目接受 shape、guard、match-mode（exact 或 partial）。
 taint 子句仅接受 shape。then 不是根字段，也不接受 match-mode。
 shape 必须是字符串；guard 是带 $ 前缀的捕获名到正则字符串的映射。
 未知字段和错误类型均被拒绝。
+
+### 语义规则
+
+语义规则复用既有加载器、规则 id、结构 matcher、regex guard 和 prefilter，
+运行时需要 `--semantic-index` 指定已检查的索引：
+
+```yaml
+id: avoid_collect_for_count
+description: Prefer count() when the collected array is used only for its length.
+semantic:
+  check: collect-count
+  patterns:
+    - shape: $(iterator:id).collect().length()
+      guard:
+        $iterator: '^it$'
+```
+
+`semantic` 只接受 `check` 和非空的 `patterns` 数组。check 可选：
+
+- `array-comprehension`：新数组绑定、每个选中元素仅 push 一次的循环、最终数组值，
+  且累加器没有其他引用或逃逸。
+- `filter-map-comprehension`：同步、不抛 checked error 的 Array.filter_map lambda，
+  通过简单 if 或穷尽 Option match 返回 Some/None。
+- `iter-comprehension`：已绑定且不可重绑定的 Iter 上的 filter/map，可紧跟 collect；
+  回调须简单、同步且不抛 checked error。
+- `collect-count`：标准库 Iter.collect/to_array 后立即调用 Array.length。
+- `discarded-array-map`：标准库 ignore 丢弃 Array.map 的结果。
+- `consumed-iterator`：相邻语句通过 count、collect/to_array、last 消费同一不可变绑定。
+- `array-map-fusion`：类型可组合的 Array.map 融合候选，仍需检查纯性、终止性与求值顺序。
+
+patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
+YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、
+inside-toplevel、match-mode 都会报错。
+
+语义检查使用原始全文件 CST、精确源码范围、编译器方法身份、归一化类型与绑定身份。
+证据缺失、歧义或未解析时输出 semantic warning，不生成确定命中。同范围的多个
+成功 alternative 只报告一次。Iter comprehension 优先报告最外层立即 collect 的形式。
+
+YAML 可配置 id、描述、结构 alternative 和正则 guard；新的语义分析需要 MoonBit
+实现。所有结果均为建议，不修改源码。具体限制和当前 nightly 的行为见
+[可运行示例](../../examples/semantic-rules/README.md)。
 
 ## Shapes
 
@@ -85,7 +127,7 @@ shape 是结构性的：
 - 匹配语法中出现的类型注解和类型名必须匹配
 - 源码位置、注释（包括 docstring）和空白排版在任何模式下都不参与匹配
 
-扫描器不会对 shape 做类型检查，也不会按语义解析名称。例如，两个指向同一定义的导入名称只在解析后的源码拼写一致或被元变量捕获时视为相同。
+结构匹配不会对 shape 做类型检查，也不会按语义解析名称。例如，两个指向同一定义的导入名称只在解析后的源码拼写一致或被元变量捕获时视为相同。语义规则在结构候选匹配成功之后才校验编译器身份。
 
 ### 函数体与显式 block
 

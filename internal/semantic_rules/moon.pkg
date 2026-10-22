@@ -2,5 +2,8 @@ import {
   "moonbit-community/moongrep/semantic",
   "moonbit-community/moongrep/internal/semantic_source",
   "moonbit-community/moongrep/internal/cst",
+  "moonbit-community/moongrep/internal/rule/model" @rule_model,
+  "moonbit-community/moongrep/internal/rule/apply" @rule_apply,
+  "moonbitlang/lexer/basic",
   "moonbitlang/parser/untyped_cst",
 }

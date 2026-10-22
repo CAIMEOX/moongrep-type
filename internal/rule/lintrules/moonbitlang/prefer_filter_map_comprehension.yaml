@@ -1,0 +1,9 @@
+id: prefer_filter_map_comprehension
+description: |
+  This filter_map callback is a simple Some/None selection.
+  Prefer [for x in xs if condition => value], or use an `is Some(value)` guard.
+  Keep the callback's per-element evaluation order and binding scopes.
+semantic:
+  check: filter-map-comprehension
+  patterns:
+    - shape: $(source:exp).filter_map($(callback:exp))

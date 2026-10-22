@@ -84,6 +84,9 @@ moongrep lint [options] [scan-root]
 - `--guard <yaml>`：为前面的匿名模式附加 YAML guard 映射。
 - `--exclude <name-or-path>`：跳过匹配的文件或目录条目。
 - `--disable <rule-id>`：禁用一个已加载规则 id。
+- `--semantic-index <file>`：为语义 YAML 规则加载已检查的索引。
+- `--semantic-view <view>`：选择 normal（默认）、wbtest 或 bbtest，
+  必须同时提供 `--semantic-index`。
 - `--verbose`：把规则加载和遍历事件写入标准错误。
 - `--json`：以 JSON Lines 格式输出命中。
 - `-h` 或 `--help`：打印命令帮助。
@@ -93,6 +96,22 @@ moongrep lint [options] [scan-root]
 
 带值的长选项同时接受 `--option value` 和 `--option=value`。其中，`--rules` 也有
 短形式。`NO_COLOR` 环境变量按下文规则控制颜色。
+
+### 语义分析
+
+指定 `--semantic-index` 后，`lint` 额外加载七条内嵌语义 YAML 规则；`scan` 通过
+既有规则文件或目录选项选择语义规则，继续使用 `--disable`。不提供索引时普通 lint
+行为不变；显式加载已启用的语义规则却不提供索引，属于状态码 2 的用法错误。
+
+索引必须匹配当前编译器版本及磁盘源码。索引不兼容、源码过期或扫描文件不在索引中，
+使用 `scan_input` 和状态码 6。应选择索引覆盖的扫描范围，或排除其他模块。
+选定视图只过滤事实，不删除索引中的其他视图。
+
+语义规则对相关文件进行一次全文件解析，保留原始 CST 身份和位置，遵守
+`#moongrep.skip`，并沿用 finding 输出与源码展示。同一文件内先输出语义命中，
+按配置的规则顺序排列，再输出普通 structural/taint 命中。候选缺失事实或存在歧义时，
+输出含 file、rule_id、range、reason 的 semantic warning。沿用流式扫描行为：
+后续文件校验失败不会撤回已经输出的记录。
 
 ### 扫描根
 

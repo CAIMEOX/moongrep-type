@@ -142,7 +142,7 @@ test "model parses structural rule and prefixes yaml id with rule directory" {
       assert_eq(spec.group.patterns_not.length(), 0)
       assert_true(spec.inside_toplevel.is_empty())
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -164,7 +164,7 @@ test "model preserves metavar shape text" {
         spec.group.patterns[0].pattern.shape,
         content="$(counter:id) + $(body:exp)",
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -291,7 +291,7 @@ test "model parses taint rule and defaults sanitizers to empty" {
       assert_eq(spec.sinks.length(), 1)
       assert_eq(spec.sanitizers.length(), 0)
     }
-    Structural(_) => fail("expected taint rule")
+    Structural(_) | Semantic(_) => fail("expected taint rule")
   }
 }
 
@@ -378,7 +378,7 @@ test "model parses structural pattern guard map" {
         content="danger|raw",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -409,7 +409,7 @@ test "model parses structural patterns-not shape and guard map" {
       inspect(spec.group.patterns_not[0].guards["$callee"], content="^allow_")
       inspect(spec.group.patterns_not[0].guards["$literal"], content="^ok$")
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -428,7 +428,7 @@ test "model parses root positives and negatives" {
   )
   match rule.definition {
     Structural(spec) => assert_eq(spec.group.patterns_not.length(), 1)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -453,7 +453,7 @@ test "model parses then positives and negatives" {
         spec.group.patterns[0].then_body.unwrap().patterns_not.length(),
         1,
       )
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -484,7 +484,7 @@ test "model parses inside toplevel shape and guard map" {
       inspect(inside_toplevel.guards["$name"], content="^safe_")
       assert_true(inside_toplevel.match_mode is Default)
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -510,7 +510,7 @@ test "model parses explicit inside toplevel match modes" {
       assert_true(spec.inside_toplevel[0].match_mode is Exact)
       assert_true(spec.inside_toplevel[1].match_mode is Partial)
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -599,7 +599,7 @@ test "model derives reject-uncovered-negative for inside toplevel positives and 
   )
   match rule.definition {
     Structural(spec) => assert_eq(spec.group.patterns_not.length(), 1)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -646,7 +646,7 @@ test "model allows then with only patterns-not" {
         content="block($(name:id))",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -674,7 +674,7 @@ test "model allows inside toplevel with only patterns-not" {
       assert_eq(spec.group.patterns_not.length(), 1)
       inspect(spec.group.patterns_not[0].shape, content="block($(name:id))")
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -705,7 +705,7 @@ test "model parses then shape and guard map" {
       inspect(inside_expr.guards["$name"], content="^safe_")
       inspect(inside_expr.guards["$lit"], content="^ok$")
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -1052,7 +1052,7 @@ test "model rejects multi document and missing required keys" {
     #|description: Example.
     #|
   expect_invalid_rule_info(
-    missing_definition, "rule must contain patterns, patterns-not with inside-toplevel, or taint",
+    missing_definition, "rule must contain patterns, patterns-not with inside-toplevel, taint, or semantic",
   )
 }
 
@@ -1147,7 +1147,7 @@ test "model parses ordered then alternatives" {
       inspect(spec.group.patterns[1].pattern.guards["$name"], content="^safe_")
       assert_true(spec.inside_toplevel.is_empty())
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -1177,7 +1177,7 @@ test "model parses ordered inside toplevel alternatives" {
         content="let $(name:id) = wrapper(__TARGET__)",
       )
     }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 

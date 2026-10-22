@@ -72,6 +72,8 @@ pub(all) struct CliOptions {
   verbose : Bool
   no_color : Bool
   output_json : Bool
+  semantic_index : String?
+  semantic_view : String
 }
 
 pub(all) struct MapFusionOptions {

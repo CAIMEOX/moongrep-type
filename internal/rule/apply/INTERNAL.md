@@ -1,5 +1,11 @@
 # Structural scan sessions
 
+Semantic YAML entries are retained and prefiltered by `ScanPlan`, exposed through
+`semantic_rules()`, and dispatched by the CLI to `internal/semantic_rules` with a
+checked whole-file source. `without_semantic_rules()` selects the existing
+block-oriented structural/taint path. Semantic candidate matching reuses
+`match_plain_rule_pattern`, including the same regex-guard evaluator.
+
 `ScanPlan` contains rule metadata only. Groups use stable array indices; an
 entry is identified by its group, positive/negative side, and pattern index.
 Capture names have stable integer IDs. Planning uses a work list and computes

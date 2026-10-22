@@ -2,11 +2,17 @@
 package "moonbit-community/moongrep/internal/rule/lintrules/moonbitlang"
 
 // Values
+pub let array_map_fusion_yaml : String
+
+pub let avoid_collect_for_count_yaml : String
+
 pub let boolean_if_yaml : String
 
 pub let boolean_match_yaml : String
 
 pub let catch_all_yaml : String
+
+pub let consumed_iterator_yaml : String
 
 pub let cstyle_backward_array_iteration_yaml : String
 
@@ -15,6 +21,8 @@ pub let cstyle_backward_simple_forloop_yaml : String
 pub let cstyle_forward_array_iteration_yaml : String
 
 pub let cstyle_forward_simple_forloop_yaml : String
+
+pub let discarded_array_map_yaml : String
 
 pub let inspect_boolean_yaml : String
 
@@ -25,6 +33,12 @@ pub let match_early_exit_yaml : String
 pub let match_option_yaml : String
 
 pub let match_single_case_yaml : String
+
+pub let prefer_array_comprehension_yaml : String
+
+pub let prefer_filter_map_comprehension_yaml : String
+
+pub let prefer_iter_comprehension_yaml : String
 
 pub let simplifiable_assignment_yaml : String
 

@@ -1,4 +1,17 @@
-# Semantic rule POC
+# Semantic rules
+
+The YAML-driven checks run through `scan` and `lint` with `--semantic-index`.
+See [the examples](../../examples/semantic-rules/README.md) for configuration,
+commands, and each check's scope. Rule loading, compilation, regex guards,
+structural matching, prefiltering, disables, source display, and diagnostics use
+the existing MoonGrep infrastructure.
+
+`semantic.check` selects one of seven built-in analyses. Its `patterns` narrow
+the candidates using the same surface-syntax matcher as structural rules.
+Semantic checks confirm compiler identities, normalized types, binding uses,
+and the required control-flow shape. Incomplete evidence remains explicit.
+
+The standalone map-fusion command below remains a compatibility/demo entrypoint.
 
 The first rule recognizes `xs.map(g).map(f)` when both calls resolve to the
 standard library's `Array::map`. The map law is
@@ -28,9 +41,8 @@ JSON values and parsing use MoonBit's standard library. Fixed report structures
 use `derive(ToJson)`, and fixed display metadata uses `derive(FromJson)`.
 Semantic graph validation and rendering MoonBit type names remain domain logic.
 
-This POC uses one concrete rule, not a new rule language or registration system.
-The existing syntax-only YAML rules stay independent. A later semantic predicate
-interface can be extracted when a second rule demonstrates what it needs.
+The common checks and source-view selection are shared by the YAML analyses.
+The existing syntax-only YAML rules still run without compiler artifacts.
 
 ## Recognition contract
 

@@ -27,9 +27,20 @@ async fn scan_source_file(
   file : String,
   scan_plan : @rule_apply.ScanPlan,
   receive : async (ScanEvent) -> Unit,
+  semantic_context~ : SemanticScanContext? = None,
 ) -> Unit {
   let source = read_text_file(file)
   let file_plan = scan_plan.filter_source(source)
+  if file_plan.is_empty() {
+    return
+  }
+  if !file_plan.semantic_rules().is_empty() {
+    guard semantic_context is Some(context) else {
+      raise new_usage_error("semantic rules require --semantic-index")
+    }
+    scan_semantic_source(file, source, context, file_plan, receive)
+  }
+  let file_plan = file_plan.without_semantic_rules()
   if file_plan.is_empty() {
     return
   }

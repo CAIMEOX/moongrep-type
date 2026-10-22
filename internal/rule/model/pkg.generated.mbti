@@ -32,6 +32,7 @@ pub(all) struct CompiledRule {
 pub(all) enum CompiledRuleDefinition {
   Structural(CompiledStructuralRule)
   Taint(CompiledTaintRule)
+  Semantic(CompiledSemanticRule)
 }
 
 pub(all) struct CompiledRuleGuard {
@@ -45,6 +46,11 @@ pub(all) struct CompiledRulePattern {
   source : RulePatternSpec
   compiled : @matching.CompiledExprPattern
   guards : Array[CompiledRuleGuard]
+}
+
+pub(all) struct CompiledSemanticRule {
+  check : SemanticCheck
+  patterns : Array[CompiledRulePattern]
 }
 
 pub(all) struct CompiledStructuralPattern {
@@ -100,6 +106,7 @@ pub fn RawRuleSpec::from_str(String, String, String) -> Self raise
 pub(all) enum RuleDefinitionSpec {
   Structural(StructuralRuleSpec)
   Taint(TaintRuleSpec)
+  Semantic(SemanticRuleSpec)
 }
 
 pub(all) struct RuleFinding {
@@ -123,6 +130,21 @@ pub(all) struct RulePatternSpec {
 
 pub(all) struct RulePrefilter {
   alternatives : Array[Array[String]]
+}
+
+pub(all) enum SemanticCheck {
+  ArrayComprehension
+  FilterMapComprehension
+  IterComprehension
+  CollectCount
+  DiscardedArrayMap
+  ConsumedIterator
+  ArrayMapFusion
+}
+
+pub(all) struct SemanticRuleSpec {
+  check : SemanticCheck
+  patterns : Array[RulePatternSpec]
 }
 
 pub(all) struct StructuralPatternGroupSpec {

@@ -161,6 +161,15 @@ pub fn Index::facts_for_range(self : Index, range : Range) -> Array[Fact] {
 }
 
 ///|
+/// Located facts in one indexed source, in compiler traversal order.
+pub fn Index::facts_for_file(self : Index, file : String) -> Array[Fact] {
+  match self.file_facts.get(file) {
+    Some(indices) => indices.map(id => self.fact_entries[id])
+    None => []
+  }
+}
+
+///|
 /// Explicitly query containing ranges. Results retain compiler traversal order.
 pub fn Index::enclosing_facts(self : Index, range : Range) -> Array[Fact] {
   let result : Array[Fact] = []

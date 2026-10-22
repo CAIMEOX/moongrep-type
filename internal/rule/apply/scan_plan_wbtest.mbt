@@ -73,6 +73,7 @@ fn prefilter_rule_ids(
       match rule.definition {
         Structural(_) => ids.push("S:\{rule.rule_id}")
         Taint(_) => ids.push("T:\{rule.rule_id}")
+        Semantic(_) => ids.push("M:\{rule.rule_id}")
       }
     }
   }

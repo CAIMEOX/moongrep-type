@@ -24,7 +24,7 @@ fn compile_single_taint_rule(
   guard rules is [rule] else { fail("expected one compiled rule") }
   match rule.definition {
     Taint(taint_rule) => (rule, taint_rule)
-    Structural(_) => fail("expected taint rule")
+    Structural(_) | Semantic(_) => fail("expected taint rule")
   }
 }
 

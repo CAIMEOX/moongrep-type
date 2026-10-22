@@ -8,6 +8,8 @@ import {
 // Values
 pub fn load_rules() -> Array[@model.RawRuleSpec] raise
 
+pub fn load_semantic_rules() -> Array[@model.RawRuleSpec] raise
+
 // Errors
 
 // Types and methods

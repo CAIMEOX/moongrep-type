@@ -31,6 +31,7 @@ pub struct Source {
   priv file : String
   priv cst_root : @untyped_cst.CstNode
   priv nodes : Map[(Int, Int), Array[@untyped_cst.CstNode]]
+  priv view : String?
 }
 
 ///|
@@ -38,7 +39,11 @@ pub fn Source::parse(
   index : @semantic.Index,
   file~ : String,
   text~ : String,
+  view? : String,
 ) -> Source raise {
+  if view is Some(name) && !["normal", "wbtest", "bbtest"].contains(name) {
+    raise InvalidSource("unknown package view: \{name}")
+  }
   index.require_source(file, text)
   let parsed = @untyped_cst.parse_structure(text, name=file)
   let reports = parsed.diagnostics_view()
@@ -61,7 +66,21 @@ pub fn Source::parse(
       pending.push(child)
     }
   }
-  { index, file, cst_root: root, nodes, }
+  { index, file, cst_root: root, nodes, view, }
+}
+
+///|
+fn Source::includes_fact(self : Source, fact : @semantic.Fact) -> Bool {
+  match self.view {
+    None => true
+    Some(view) => fact.package_name.has_suffix(":\{view}")
+  }
+}
+
+///|
+/// Located facts for this source in its explicitly selected package view.
+pub fn Source::facts(self : Source) -> Array[@semantic.Fact] {
+  self.index.facts_for_file(self.file).filter(fact => self.includes_fact(fact))
 }
 
 ///|
@@ -139,7 +158,9 @@ pub fn Source::facts_for_node(
   node : @untyped_cst.CstNode,
 ) -> Association raise SourceError {
   let range = self.range_for_node(node)
-  let facts = self.index.facts_for_range(range)
+  let facts = self.index
+    .facts_for_range(range)
+    .filter(fact => self.includes_fact(fact))
   if facts.is_empty() {
     return Unmatched
   }

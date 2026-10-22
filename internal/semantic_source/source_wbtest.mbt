@@ -64,6 +64,34 @@ fn association_ids(value : Association) -> (String, Array[Int]) {
 }
 
 ///|
+test "an explicit package view keeps source identity and separates test facts" {
+  let text = "fn f(x : Int) -> Int {\n  let s = \"😀\"; x\n}\n"
+  let index = source_fixture(text, [
+    x_fact(0, "expression", "demo@wasm:normal", 0),
+    x_fact(1, "expression", "demo@wasm:wbtest", 1),
+  ])
+  let all = Source::parse(index, file="/demo/main.mbt", text~)
+  assert_true(all.facts_for_node(x_reference(all.root())) is Ambiguous(_))
+  let normal = Source::parse(index, file="/demo/main.mbt", text~, view="normal")
+  let whitebox = Source::parse(
+    index,
+    file="/demo/main.mbt",
+    text~,
+    view="wbtest",
+  )
+  debug_inspect(
+    association_ids(normal.facts_for_node(x_reference(normal.root()))),
+    content="(\"associated\", [0])",
+  )
+  debug_inspect(
+    association_ids(whitebox.facts_for_node(x_reference(whitebox.root()))),
+    content="(\"associated\", [1])",
+  )
+  inspect(normal.facts().length(), content="1")
+  inspect(index.facts().length(), content="2")
+}
+
+///|
 test "whole-file CST facts retain implicit types and Unicode scalar CRLF ranges" {
   let text = "fn f(x : Int) -> Int {\r\n  let s = \"😀\"; x\r\n}\r\n"
   let index = source_fixture(text, [

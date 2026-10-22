@@ -136,6 +136,32 @@ pub(all) struct TaintRuleSpec {
 pub(all) enum RuleDefinitionSpec {
   Structural(StructuralRuleSpec)
   Taint(TaintRuleSpec)
+  Semantic(SemanticRuleSpec)
+}
+
+///|
+/// Versioned, built-in semantic checks. YAML selects the check and narrows its
+/// candidates with ordinary structural patterns and regex guards.
+pub(all) enum SemanticCheck {
+  ArrayComprehension
+  FilterMapComprehension
+  IterComprehension
+  CollectCount
+  DiscardedArrayMap
+  ConsumedIterator
+  ArrayMapFusion
+}
+
+///|
+pub(all) struct SemanticRuleSpec {
+  check : SemanticCheck
+  patterns : Array[RulePatternSpec]
+}
+
+///|
+pub(all) struct CompiledSemanticRule {
+  check : SemanticCheck
+  patterns : Array[CompiledRulePattern]
 }
 
 ///|
@@ -243,6 +269,7 @@ pub(all) struct CompiledTaintRule {
 pub(all) enum CompiledRuleDefinition {
   Structural(CompiledStructuralRule)
   Taint(CompiledTaintRule)
+  Semantic(CompiledSemanticRule)
 }
 
 ///|

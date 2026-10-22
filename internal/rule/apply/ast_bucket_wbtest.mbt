@@ -27,7 +27,7 @@ fn compile_bucket_structural_patterns(
 ) -> Array[CompiledRulePattern] raise {
   match compile_bucket_rule_source(source).definition {
     Structural(structural) => structural.group.patterns.map(p => p.pattern)
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 
@@ -40,7 +40,7 @@ fn compile_bucket_inside_pattern(source : String) -> CompiledRulePattern raise {
       } else {
         fail("expected then pattern")
       }
-    Taint(_) => fail("expected structural rule")
+    Taint(_) | Semantic(_) => fail("expected structural rule")
   }
 }
 

@@ -48,15 +48,17 @@ Arguments:
   scan-root  Directory or .mbt file to scan.
 
 Options:
-  -h, --help           Show help information.
-  --verbose            Write loaded rule ids and traversal progress to stderr.
-  --json               Write JSON Lines findings to stdout and diagnostics to stderr.
-  -r, --rules <rules>  Directory containing YAML rules.
-  --rule <rule>        Single YAML rule file.
-  --pattern <pattern>  Anonymous structural pattern to match.
-  --guard <guard>      YAML guard map for the preceding anonymous pattern.
-  --exclude <exclude>  File or directory name or path to skip while recursively scanning. May be repeated.
-  --disable <disable>  Rule id to disable after loading rules. May be repeated.
+  -h, --help                         Show help information.
+  --verbose                          Write loaded rule ids and traversal progress to stderr.
+  --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
+  -r, --rules <rules>                Directory containing YAML rules.
+  --rule <rule>                      Single YAML rule file.
+  --pattern <pattern>                Anonymous structural pattern to match.
+  --guard <guard>                    YAML guard map for the preceding anonymous pattern.
+  --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
+  --disable <disable>                Rule id to disable after loading rules. May be repeated.
+  --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
+  --semantic-view <semantic-view>    Package view: normal (default), wbtest, or bbtest.
 ```
 
 ## moongrep scan --help
@@ -74,15 +76,17 @@ Arguments:
   scan-root  Directory or .mbt file to scan.
 
 Options:
-  -h, --help           Show help information.
-  --verbose            Write loaded rule ids and traversal progress to stderr.
-  --json               Write JSON Lines findings to stdout and diagnostics to stderr.
-  -r, --rules <rules>  Directory containing YAML rules. [default: ./.moongrep/rules]
-  --rule <rule>        Single YAML rule file.
-  --pattern <pattern>  Anonymous structural pattern to match.
-  --guard <guard>      YAML guard map for the preceding anonymous pattern.
-  --exclude <exclude>  File or directory name or path to skip while recursively scanning. May be repeated.
-  --disable <disable>  Rule id to disable after loading rules. May be repeated.
+  -h, --help                         Show help information.
+  --verbose                          Write loaded rule ids and traversal progress to stderr.
+  --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
+  -r, --rules <rules>                Directory containing YAML rules. [default: ./.moongrep/rules]
+  --rule <rule>                      Single YAML rule file.
+  --pattern <pattern>                Anonymous structural pattern to match.
+  --guard <guard>                    YAML guard map for the preceding anonymous pattern.
+  --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
+  --disable <disable>                Rule id to disable after loading rules. May be repeated.
+  --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
+  --semantic-view <semantic-view>    Package view: normal (default), wbtest, or bbtest.
 ```
 
 ## moongrep dump --help

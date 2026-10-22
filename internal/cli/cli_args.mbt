@@ -64,6 +64,8 @@ pub(all) struct CliOptions {
   verbose : Bool
   no_color : Bool
   output_json : Bool
+  semantic_index : String?
+  semantic_view : String
 }
 
 ///|
@@ -195,6 +197,16 @@ fn scan_like_command(
         "disable",
         action=Append,
         about="Rule id to disable after loading rules. May be repeated.",
+      ),
+      OptionArg(
+        "semantic-index",
+        action=Set,
+        about="Checked semantic index for type-aware YAML rules.",
+      ),
+      OptionArg(
+        "semantic-view",
+        action=Set,
+        about="Package view: normal (default), wbtest, or bbtest.",
       ),
     ],
     positionals=[
@@ -354,6 +366,19 @@ fn scan_cli_options(
   let verbose = cli_flag_enabled(scan_matches.flags, "verbose")
   let output_json = cli_flag_enabled(scan_matches.flags, "json")
   let no_color = no_color_enabled(env)
+  let semantic_index = last_cli_value(scan_matches.values, "semantic-index")
+  let semantic_view = last_cli_value(scan_matches.values, "semantic-view").unwrap_or(
+    "normal",
+  )
+  if semantic_index is Some(path) && path.trim().is_empty() {
+    raise new_usage_error("--semantic-index must not be empty")
+  }
+  if !["normal", "wbtest", "bbtest"].contains(semantic_view) {
+    raise new_usage_error("--semantic-view must be normal, wbtest, or bbtest")
+  }
+  if scan_matches.values.contains("semantic-view") && semantic_index is None {
+    raise new_usage_error("--semantic-view requires --semantic-index")
+  }
   let parsed_rules_root = last_cli_value(scan_matches.values, "rules")
   let rule_file = last_cli_value(scan_matches.values, "rule")
   let patterns = parse_scan_pattern_specs(argv)
@@ -383,6 +408,8 @@ fn scan_cli_options(
     verbose,
     no_color,
     output_json,
+    semantic_index,
+    semantic_view,
   }
 }
 

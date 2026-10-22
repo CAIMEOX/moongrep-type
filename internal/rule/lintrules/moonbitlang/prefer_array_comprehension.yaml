@@ -1,0 +1,24 @@
+id: prefer_array_comprehension
+description: |
+  A fresh array is built only by pushing once per selected loop element.
+  Prefer an array comprehension: [for x in xs if keep(x) => transform(x)].
+  Preserve the existing iteration order and result type.
+semantic:
+  check: array-comprehension
+  patterns:
+    - shape: |
+        let $(out:id) = []
+        for $(item:id) in $(source:exp) { $(body:exp) }
+        $(out:id)
+    - shape: |
+        let $(out:id) : $(T:type) = []
+        for $(item:id) in $(source:exp) { $(body:exp) }
+        $(out:id)
+    - shape: |
+        let $(out:id) = []
+        for $(index:id), $(item:id) in $(source:exp) { $(body:exp) }
+        $(out:id)
+    - shape: |
+        let $(out:id) : $(T:type) = []
+        for $(index:id), $(item:id) in $(source:exp) { $(body:exp) }
+        $(out:id)

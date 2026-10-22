@@ -14,6 +14,8 @@ fn scan_warning_message(warning : ScanWarning) -> String {
       }
     InvalidMoongrepSkipPayload(file, loc) =>
       "\{format_location(file, loc)}: #moongrep.skip does not accept a payload; use bare #moongrep.skip"
+    Semantic(file~, rule_id~, loc~, reason~) =>
+      "\{format_location(file, loc)}: \{rule_id}: \{reason}"
   }
 }
 

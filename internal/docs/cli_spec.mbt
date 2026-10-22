@@ -95,6 +95,9 @@ let _embed_clispec_md : String =
   #|- `--guard <yaml>`: attach a YAML guard map to a preceding anonymous pattern.
   #|- `--exclude <name-or-path>`: skip matching file or directory entries.
   #|- `--disable <rule-id>`: disable a loaded rule id.
+  #|- `--semantic-index <file>`: load a checked semantic index for semantic YAML rules.
+  #|- `--semantic-view <view>`: select `normal` (default), `wbtest`, or `bbtest`;
+  #|  requires `--semantic-index`.
   #|- `--verbose`: write rule-loading and traversal events to standard error.
   #|- `--json`: write findings as JSON Lines records.
   #|- `-h` or `--help`: print command help.
@@ -105,6 +108,27 @@ let _embed_clispec_md : String =
   #|Long options that take values accept both `--option value` and
   #|`--option=value`. Among these options, `--rules` also has a short form. The
   #|`NO_COLOR` environment variable controls color as described below.
+  #|
+  #|### Semantic Analysis
+  #|
+  #|With `--semantic-index`, `lint` also loads the seven semantic builtin YAML rules.
+  #|`scan` runs semantic rules selected through its ordinary rule-file or directory
+  #|options. The same `--disable` mechanism applies. Without an index, ordinary lint
+  #|is unchanged; explicitly loading an enabled semantic rule without an index is a
+  #|usage error (status 2).
+  #|
+  #|The index must match the installed compiler and the exact current source text.
+  #|Input incompatibility, stale text, or scanned files absent from the index use
+  #|`scan_input` and status 6. Use a scan scope covered by the index, or exclude other
+  #|modules. The selected view filters facts without modifying the stored index.
+  #|
+  #|Semantic rules parse each relevant source once as a whole file. They preserve
+  #|original CST identity and ranges, honor `#moongrep.skip`, and emit ordinary finding
+  #|records through the existing renderer. Within each file, semantic findings precede
+  #|ordinary structural/taint findings and follow configured rule order.
+  #|Missing or ambiguous facts at a candidate produce a `semantic` warning containing
+  #|`file`, `rule_id`, `range`, and `reason`. Existing streaming behavior still applies;
+  #|earlier records are not withdrawn if a later input fails validation.
   #|
   #|### Scan Root
   #|
