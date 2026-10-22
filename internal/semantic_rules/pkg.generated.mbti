@@ -1,0 +1,51 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/moongrep/internal/semantic_rules"
+
+import {
+  "moonbit-community/moongrep/internal/semantic_source",
+  "moonbit-community/moongrep/semantic",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn find_map_fusion(@semantic_source.Source) -> MapFusionReport raise
+
+// Errors
+
+// Types and methods
+pub(all) struct ExpressionEvidence {
+  location : @semantic.Range
+  text : String
+  fact_id : Int
+  type_id : Int
+} derive(@debug.Debug)
+pub fn ExpressionEvidence::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MapFusionCandidate {
+  package_name : String
+  map_symbol : @semantic.SymbolInfo
+  receiver : ExpressionEvidence
+  inner_call : ExpressionEvidence
+  outer_call : ExpressionEvidence
+  first_callback : ExpressionEvidence
+  second_callback : ExpressionEvidence
+  type_flow : Json
+} derive(@debug.Debug)
+pub fn MapFusionCandidate::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MapFusionReport {
+  candidates : Array[MapFusionCandidate]
+  skipped : Array[SkippedCandidate]
+} derive(@debug.Debug)
+pub fn MapFusionReport::to_json(Self) -> Json
+pub fn MapFusionReport::to_repr(Self) -> @debug.Repr
+
+pub(all) struct SkippedCandidate {
+  location : @semantic.Range
+  reason : String
+} derive(@debug.Debug)
+pub fn SkippedCandidate::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

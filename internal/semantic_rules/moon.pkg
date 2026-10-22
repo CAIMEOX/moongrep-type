@@ -1,0 +1,6 @@
+import {
+  "moonbit-community/moongrep/semantic",
+  "moonbit-community/moongrep/internal/semantic_source",
+  "moonbit-community/moongrep/internal/cst",
+  "moonbitlang/parser/untyped_cst",
+}

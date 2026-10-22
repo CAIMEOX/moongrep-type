@@ -100,6 +100,11 @@ must match the snapshot. A node from another parse is rejected. `Associated`,
 `Ambiguous`, and `Unmatched` are explicit; an enclosing location is never silently
 substituted for an exact match.
 
+The [map-fusion POC](../../internal/semantic_rules/README.md) uses this index and
+the original CST to recognize adjacent standard-library `Array::map` calls. It
+checks resolved method identities and type composition, and returns source
+evidence and review obligations without editing code.
+
 ## Boundaries
 
 The index covers the selected source packages. External references retain their
