@@ -124,7 +124,7 @@ semantic:
         $iterator: '^it$'
 ```
 
-`semantic` accepts exactly `check` and `patterns`. `check` must name one of:
+`semantic` accepts exactly `check` and `patterns`. The original checks are:
 
 - `array-comprehension`: a fresh-array binding, one loop that pushes once per
   selected element, and the final array value, with no other accumulator uses.
@@ -138,6 +138,12 @@ semantic:
   binding with count, collect / to_array, or last.
 - `array-map-fusion`: the type-compatible Array.map fusion candidate, still requiring
   review of purity, termination, and expression evaluation.
+
+There are also 20 checks for collection terminal operations, Option/Result
+fusion, identities, and constructor elimination. Their exact check names,
+equations, and required evidence are listed in the
+[semantic theorem catalogue](../../examples/semantic-theorems/README.md#catalogue).
+They use the same YAML schema and cannot skip their semantic side conditions.
 
 `patterns` is a nonempty array of ordinary `shape` / `guard` objects. A structural
 match and all regex guards must succeed before the selected check runs. Semantic

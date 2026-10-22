@@ -85,7 +85,7 @@ semantic:
         $iterator: '^it$'
 ```
 
-`semantic` 只接受 `check` 和非空的 `patterns` 数组。check 可选：
+`semantic` 只接受 `check` 和非空的 `patterns` 数组。原有 check 包括：
 
 - `array-comprehension`：新数组绑定、每个选中元素仅 push 一次的循环、最终数组值，
   且累加器没有其他引用或逃逸。
@@ -97,6 +97,11 @@ semantic:
 - `discarded-array-map`：标准库 ignore 丢弃 Array.map 的结果。
 - `consumed-iterator`：相邻语句通过 count、collect/to_array、last 消费同一不可变绑定。
 - `array-map-fusion`：类型可组合的 Array.map 融合候选，仍需检查纯性、终止性与求值顺序。
+
+另有 20 条集合终结操作、Option/Result 融合、恒等式及构造器消去规则。
+完整 check 名称、等式和所需证据见
+[semantic theorem 清单](../../examples/semantic-theorems/README.md#catalogue)。
+它们沿用相同的 YAML schema，配置不能跳过语义前提。
 
 patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
 YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、

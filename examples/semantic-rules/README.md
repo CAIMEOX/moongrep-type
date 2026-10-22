@@ -19,10 +19,13 @@ There are 18 semantic findings in this example, plus any ordinary lint findings.
 
 ## YAML configuration
 
-All seven checks have YAML rule files in
+The seven checks demonstrated here have YAML rule files in
 [`internal/rule/lintrules/moonbitlang`](../../internal/rule/lintrules/moonbitlang).
 `lint --semantic-index` enables these builtins alongside the ordinary rules.
 `lint` without an index keeps its existing syntax-only behavior.
+
+The additional [20 semantic theorems](../semantic-theorems/README.md) use the
+same pipeline and have separate runnable examples.
 
 `custom-count.yaml` demonstrates a user-authored semantic rule:
 
