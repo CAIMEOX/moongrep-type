@@ -157,6 +157,11 @@ unresolved evidence produces a semantic warning instead of a definite finding.
 First successful alternatives at one range are deduplicated. Iter-comprehension
 prefers the enclosing immediately-collected form over its nested lazy pipeline.
 
+Semantic rule evidence excludes compiler-generated top-level bodies, including
+derive implementations, using `details.generated_top_level: true` before source
+association. Generated-only candidates are skipped quietly; handwritten impls
+remain eligible. Raw semantic queries still retain the generated facts.
+
 YAML configures the id, description, structural alternatives, and regex guards;
 new semantic analyses are implemented in MoonBit. All findings are advisory and
 do not edit source. See [the runnable examples](../../examples/semantic-rules/README.md)

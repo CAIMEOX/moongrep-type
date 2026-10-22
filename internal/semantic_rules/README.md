@@ -45,6 +45,14 @@ Semantic graph validation and rendering MoonBit type names remain domain logic.
 The common checks and source-view selection are shared by the YAML analyses.
 The existing syntax-only YAML rules still run without compiler artifacts.
 
+Rule evidence excludes facts with `details.generated_top_level == true`,
+including compiler-derived implementations and their child nodes. The check
+uses compiler provenance rather than names or source ranges, which can overlap
+authored declarations. Source association and symbol-use indexing apply this
+filter before checking roles or package ambiguity; generated-only candidates
+are skipped quietly. The original Index and default Source queries retain all
+facts, and handwritten impls and implicit expression conversions remain eligible.
+
 ## Recognition contract
 
 1. Find adjacent dot calls with one positional callback each.

@@ -14,7 +14,7 @@ priv struct CheckContext {
 ///|
 fn CheckContext::new(source : @semantic_source.Source) -> CheckContext raise {
   let facts_by_symbol : Map[String, Array[@semantic.Fact]] = Map([])
-  for fact in source.facts() {
+  for fact in source.facts(include_generated=false) {
     if fact.symbol_id is Some(id) {
       if facts_by_symbol.get(id) is Some(facts) {
         facts.push(fact)
@@ -57,7 +57,7 @@ fn CheckContext::facts(
   self : CheckContext,
   node : @untyped_cst.CstNode,
 ) -> Array[@semantic.Fact] raise {
-  match self.source.facts_for_node(node) {
+  match authored_facts_for_node(self.source, node) {
     Associated(facts) => facts
     Unmatched =>
       raise Unavailable("No exact compiler facts in the selected package view.")

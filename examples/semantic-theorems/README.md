@@ -75,6 +75,15 @@ Raw semantic queries still retain both types and all facts. Explicit casts,
 unknown implicit nodes, multiple actual expressions, and mixed package views
 are not collapsed. No conversion is removed from the program.
 
+Compiler-generated top-level bodies, including derived implementations, are
+excluded from rule evidence using `details.generated_top_level: true`. They may
+share a declaration's range, so filtering happens before checking association
+ambiguity. Handwritten impls and ordinary implicit conversions remain eligible.
+Generated-only candidates are skipped without missing-evidence warnings.
+The raw index and default source queries retain every generated fact; explicit
+queries can use `source.facts(include_generated=false)` or
+`source.facts_for_node(node, include_generated=false)` to select authored facts.
+
 The count laws unfold to the same full traversal and predicate call sequence.
 The search laws stop at the same successful pull, or at the same exhaustion
 pull. Iter map/flatten and flat_map create the same nested lazy traversal. These
@@ -144,6 +153,7 @@ waive semantic evidence or declare a callback pure. See the [rule specification]
 moon -C examples/semantic-theorems test --target wasm
 moon -C examples/semantic-theorems test --target native
 node tools/semantic-rules/theorems.mjs
+node tools/semantic-rules/generated.mjs
 ```
 
 The runtime tests compare values, mutation traces, error paths, receiver/callback
@@ -151,3 +161,5 @@ factory evaluation, iterator pulls and remaining position, and mutable payload
 aliases. The integration test covers all 20 checks through builtin and custom
 YAML, exact source slices, Unicode columns, negative cases, disables, selected
 normal/wbtest/bbtest views, missing evidence, and stale sources.
+The generated-code regression checks seven derives, handwritten impls,
+overlapping ranges, implicit conversions, and both analysis entrypoints.

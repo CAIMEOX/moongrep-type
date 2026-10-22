@@ -113,6 +113,13 @@ Compiler-generated nodes can share ranges or have no source location. Copied
 constraints whose defining base is unavailable have no invented caller range.
 Opaque auxiliary metadata is not presented as a resolved semantic node.
 
+`details.generated_top_level` records compiler-generated top-level bodies and
+is inherited by their child facts. It identifies derived implementations even
+when they reuse the authored type declaration's range. Handwritten impls remain
+unmarked. The reader preserves these facts; semantic rules exclude them while
+default Index/Source queries remain complete. This provenance is distinct from
+`details.implicit`, which can describe conversions inside handwritten code.
+
 Packed compiler positions have limits. The runner rejects lines over 65,535
 Unicode scalars and delimiter-free blocks over 16,383 lines, rather than using
 truncated positions. The block check is conservative when `///|` separators are

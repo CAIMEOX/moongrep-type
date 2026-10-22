@@ -32,7 +32,7 @@ fn expression_fact(
   source : @semantic_source.Source,
   node : @untyped_cst.CstNode,
 ) -> @semantic.Fact raise {
-  let facts = match source.facts_for_node(node) {
+  let facts = match authored_facts_for_node(source, node) {
     Unmatched => raise Skip("missing_exact_semantics")
     Ambiguous(_) => raise Skip("ambiguous_semantics")
     Associated(facts) => source_expression_facts(facts)

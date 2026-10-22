@@ -70,7 +70,14 @@ pub fn Source::parse(
 }
 
 ///|
-fn Source::includes_fact(self : Source, fact : @semantic.Fact) -> Bool {
+fn Source::includes_fact(
+  self : Source,
+  fact : @semantic.Fact,
+  include_generated~ : Bool,
+) -> Bool {
+  if !include_generated && fact.details is { "generated_top_level": true, .. } {
+    return false
+  }
   match self.view {
     None => true
     Some(view) => fact.package_name.has_suffix(":\{view}")
@@ -79,8 +86,14 @@ fn Source::includes_fact(self : Source, fact : @semantic.Fact) -> Bool {
 
 ///|
 /// Located facts for this source in its explicitly selected package view.
-pub fn Source::facts(self : Source) -> Array[@semantic.Fact] {
-  self.index.facts_for_file(self.file).filter(fact => self.includes_fact(fact))
+/// Generated top-level bodies remain queryable by default.
+pub fn Source::facts(
+  self : Source,
+  include_generated~ : Bool = true,
+) -> Array[@semantic.Fact] {
+  self.index
+  .facts_for_file(self.file)
+  .filter(fact => self.includes_fact(fact, include_generated~))
 }
 
 ///|
@@ -156,11 +169,12 @@ fn compatible_role(node : @untyped_cst.CstNode, fact : @semantic.Fact) -> Bool {
 pub fn Source::facts_for_node(
   self : Source,
   node : @untyped_cst.CstNode,
+  include_generated~ : Bool = true,
 ) -> Association raise SourceError {
   let range = self.range_for_node(node)
   let facts = self.index
     .facts_for_range(range)
-    .filter(fact => self.includes_fact(fact))
+    .filter(fact => self.includes_fact(fact, include_generated~))
   if facts.is_empty() {
     return Unmatched
   }

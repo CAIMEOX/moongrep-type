@@ -31,9 +31,9 @@ pub fn Association::to_repr(Self) -> @debug.Repr
 pub struct Source {
   // private fields
 }
-pub fn Source::facts(Self) -> Array[@semantic.Fact]
+pub fn Source::facts(Self, include_generated? : Bool) -> Array[@semantic.Fact]
 pub fn Source::facts_for_capture(Self, @model.BoundValue) -> Array[Association] raise SourceError
-pub fn Source::facts_for_node(Self, @node.CstNode) -> Association raise SourceError
+pub fn Source::facts_for_node(Self, @node.CstNode, include_generated? : Bool) -> Association raise SourceError
 pub fn Source::file(Self) -> String
 pub fn Source::index(Self) -> @semantic.Index
 pub fn Source::parse(@semantic.Index, file~ : String, text~ : String, view? : String) -> Self raise

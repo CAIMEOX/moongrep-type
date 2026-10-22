@@ -111,6 +111,10 @@ inside-toplevel、match-mode 都会报错。
 证据缺失、歧义或未解析时输出 semantic warning，不生成确定命中。同范围的多个
 成功 alternative 只报告一次。Iter comprehension 优先报告最外层立即 collect 的形式。
 
+规则取证会在源码关联前排除 `details.generated_top_level: true` 的编译器生成节点，
+包括 derive 实现及其子节点。只有生成事实的候选会直接跳过，手写 impl 仍正常分析。
+原始语义索引和默认查询保留全部事实，不按函数名或源码位置猜测是否为生成代码。
+
 YAML 可配置 id、描述、结构 alternative 和正则 guard；新的语义分析需要 MoonBit
 实现。所有结果均为建议，不修改源码。具体限制和当前 nightly 的行为见
 [可运行示例](../../examples/semantic-rules/README.md)。
