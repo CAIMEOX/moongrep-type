@@ -1,0 +1,8 @@
+id: option_map_identity
+description: |
+  Option.map with an identity lambda preserves the same optional value.
+  Simplify value.map(x => x) to value; the lambda must return its own binder.
+semantic:
+  check: option-map-identity
+  patterns:
+    - shape: $(value:exp).map($(callback:exp))

@@ -163,6 +163,13 @@ pub(all) enum SemanticCheck {
   ResultMapFlatten
   OptionFilterFusion
   OptionMapDefault
+  OptionMapIdentity
+  ResultMapIdentity
+  OptionBindIdentity
+  ResultBindIdentity
+  OptionUnwrapSome
+  ResultUnwrapOk
+  ResultUnwrapErr
 }
 
 ///|

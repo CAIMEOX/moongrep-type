@@ -1,0 +1,8 @@
+id: result_unwrap_err
+description: |
+  Unwrapping a freshly constructed standard Err yields its error payload.
+  Simplify Err(value).unwrap_err() to value, evaluating value exactly once.
+semantic:
+  check: result-unwrap-err
+  patterns:
+    - shape: $(value:exp).unwrap_err()

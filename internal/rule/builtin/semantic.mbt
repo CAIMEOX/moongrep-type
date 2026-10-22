@@ -28,6 +28,13 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("result_map_flatten", @moonbitlang_rules.result_map_flatten_yaml),
     ("option_filter_fusion", @moonbitlang_rules.option_filter_fusion_yaml),
     ("option_map_default", @moonbitlang_rules.option_map_default_yaml),
+    ("option_map_identity", @moonbitlang_rules.option_map_identity_yaml),
+    ("result_map_identity", @moonbitlang_rules.result_map_identity_yaml),
+    ("option_bind_identity", @moonbitlang_rules.option_bind_identity_yaml),
+    ("result_bind_identity", @moonbitlang_rules.result_bind_identity_yaml),
+    ("option_unwrap_some", @moonbitlang_rules.option_unwrap_some_yaml),
+    ("result_unwrap_ok", @moonbitlang_rules.result_unwrap_ok_yaml),
+    ("result_unwrap_err", @moonbitlang_rules.result_unwrap_err_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

@@ -28,6 +28,13 @@ fn expect_semantic_rule(
     Some(String("result-map-flatten")) => ResultMapFlatten
     Some(String("option-filter-fusion")) => OptionFilterFusion
     Some(String("option-map-default")) => OptionMapDefault
+    Some(String("option-map-identity")) => OptionMapIdentity
+    Some(String("result-map-identity")) => ResultMapIdentity
+    Some(String("option-bind-identity")) => OptionBindIdentity
+    Some(String("result-bind-identity")) => ResultBindIdentity
+    Some(String("option-unwrap-some")) => OptionUnwrapSome
+    Some(String("result-unwrap-ok")) => ResultUnwrapOk
+    Some(String("result-unwrap-err")) => ResultUnwrapErr
     Some(String(name)) =>
       raise invalid_rule(path~, info="unknown semantic.check: \{name}")
     _ =>

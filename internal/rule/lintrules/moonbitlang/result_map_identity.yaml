@@ -1,0 +1,8 @@
+id: result_map_identity
+description: |
+  Result.map with an identity lambda preserves both success and error types.
+  Simplify value.map(x => x) to value; the lambda must return its own binder.
+semantic:
+  check: result-map-identity
+  patterns:
+    - shape: $(value:exp).map($(callback:exp))

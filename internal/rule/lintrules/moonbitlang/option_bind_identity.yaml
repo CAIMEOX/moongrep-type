@@ -1,0 +1,8 @@
+id: option_bind_identity
+description: |
+  Option.bind that wraps its own payload in Some preserves the optional value.
+  Simplify value.bind(x => Some(x)) to value.
+semantic:
+  check: option-bind-identity
+  patterns:
+    - shape: $(value:exp).bind($(callback:exp))

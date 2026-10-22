@@ -44,6 +44,8 @@ pub let match_option_yaml : String
 
 pub let match_single_case_yaml : String
 
+pub let option_bind_identity_yaml : String
+
 pub let option_bind_map_yaml : String
 
 pub let option_filter_fusion_yaml : String
@@ -52,11 +54,17 @@ pub let option_map_default_yaml : String
 
 pub let option_map_fusion_yaml : String
 
+pub let option_map_identity_yaml : String
+
+pub let option_unwrap_some_yaml : String
+
 pub let prefer_array_comprehension_yaml : String
 
 pub let prefer_filter_map_comprehension_yaml : String
 
 pub let prefer_iter_comprehension_yaml : String
+
+pub let result_bind_identity_yaml : String
 
 pub let result_bind_map_yaml : String
 
@@ -65,6 +73,12 @@ pub let result_map_err_fusion_yaml : String
 pub let result_map_flatten_yaml : String
 
 pub let result_map_fusion_yaml : String
+
+pub let result_map_identity_yaml : String
+
+pub let result_unwrap_err_yaml : String
+
+pub let result_unwrap_ok_yaml : String
 
 pub let simplifiable_assignment_yaml : String
 

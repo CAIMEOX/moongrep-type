@@ -1,0 +1,8 @@
+id: result_unwrap_ok
+description: |
+  Unwrapping a freshly constructed standard Ok yields its payload.
+  Simplify Ok(value).unwrap() to value, evaluating value exactly once.
+semantic:
+  check: result-unwrap-ok
+  patterns:
+    - shape: $(value:exp).unwrap()

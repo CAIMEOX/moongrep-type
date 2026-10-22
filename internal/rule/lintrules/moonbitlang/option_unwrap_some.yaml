@@ -1,0 +1,8 @@
+id: option_unwrap_some
+description: |
+  Unwrapping a freshly constructed standard Some yields its payload.
+  Simplify Some(value).unwrap() to value, evaluating value exactly once.
+semantic:
+  check: option-unwrap-some
+  patterns:
+    - shape: $(value:exp).unwrap()

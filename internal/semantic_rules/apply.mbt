@@ -134,6 +134,16 @@ fn evaluate_semantic_check(
         ResultMapFlatten => check_result_map_flatten(context, node)
         OptionFilterFusion => check_option_filter_fusion(context, node)
         OptionMapDefault => check_option_map_default(context, node)
+        OptionMapIdentity => check_map_identity(context, node, "Option")
+        ResultMapIdentity => check_map_identity(context, node, "Result")
+        OptionBindIdentity => check_bind_identity(context, node, "Option")
+        ResultBindIdentity => check_bind_identity(context, node, "Result")
+        OptionUnwrapSome =>
+          check_constructor_unwrap(context, node, "Option", "Some", "unwrap")
+        ResultUnwrapOk =>
+          check_constructor_unwrap(context, node, "Result", "Ok", "unwrap")
+        ResultUnwrapErr =>
+          check_constructor_unwrap(context, node, "Result", "Err", "unwrap_err")
         DiscardedArrayMap => check_discarded_map(context, node)
         ConsumedIterator => check_consumed_iterator(context, node)
         ArrayMapFusion => {

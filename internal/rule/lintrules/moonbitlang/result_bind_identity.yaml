@@ -1,0 +1,8 @@
+id: result_bind_identity
+description: |
+  Result.bind that wraps its own payload in Ok preserves the result.
+  Simplify value.bind(x => Ok(x)) to value, preserving the error type.
+semantic:
+  check: result-bind-identity
+  patterns:
+    - shape: $(value:exp).bind($(callback:exp))
