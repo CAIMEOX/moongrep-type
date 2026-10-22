@@ -67,12 +67,22 @@ pub(all) struct CliOptions {
 }
 
 ///|
+/// Input and reader selected for compiler-backed semantic export.
+pub(all) struct SemanticsOptions {
+  project : String
+  reader : String
+  target : String?
+  output_json : Bool
+}
+
+///|
 /// One validated command accepted by the command-line frontend.
 pub(all) enum CliCommand {
   Scan(CliOptions)
   Lint(CliOptions)
   DocsList
   DocsShow(String)
+  Semantics(SemanticsOptions)
   DumpImpl(
     source~ : String,
     strict_check~ : Bool,
@@ -99,12 +109,17 @@ pub fn runtime_cli_args(argv : Array[String]) -> Array[String] {
 ///|
 /// Reports whether command-line failures should use the JSON Lines protocol.
 ///
-/// Only a standalone `--json` for an initial `scan`, `lint`, or `dump`
+/// Only a standalone `--json` for an initial `scan`, `lint`, `dump`, or `semantics`
 /// command enables the protocol. Arguments after the `--` option terminator
 /// are not interpreted as options.
 pub fn output_json_requested(argv : Array[String]) -> Bool {
   if argv.is_empty() ||
-    (argv[0] != "scan" && argv[0] != "lint" && argv[0] != "dump") {
+    (
+      argv[0] != "scan" &&
+      argv[0] != "lint" &&
+      argv[0] != "dump" &&
+      argv[0] != "semantics"
+    ) {
     return false
   }
   for index in 1..<argv.length() {
@@ -249,7 +264,9 @@ let dump_command : @argparse.Command = Command(
 let moongrep_command : @argparse.Command = Command(
   "moongrep",
   about="Scan MoonBit source files with structural and taint rules.",
-  subcommands=[scan_command, lint_command, docs_command, dump_command],
+  subcommands=[
+    scan_command, lint_command, docs_command, dump_command, semantics_command,
+  ],
   subcommand_required=true,
 )
 
@@ -512,6 +529,8 @@ pub fn parse_cli_command(
       Lint(scan_cli_options(lint_matches, env, argv))
     Some(("docs", docs_matches)) => docs_cli_command(docs_matches)
     Some(("dump", dump_matches)) => dump_cli_command(dump_matches)
+    Some(("semantics", semantics_matches)) =>
+      Semantics(semantics_cli_options(semantics_matches))
     _ => raise new_usage_error("missing required command")
   }
 }

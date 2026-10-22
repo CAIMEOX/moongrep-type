@@ -2,6 +2,7 @@
 package "moonbit-community/moongrep/query"
 
 import {
+  "moonbit-community/moongrep/internal/semantic_source",
   "moonbit-community/moongrep/model",
   "moonbitlang/parser/untyped_cst/node",
 }
@@ -15,8 +16,13 @@ type ExprQuery
 pub fn ExprQuery::ExprQuery(String) -> Self raise
 pub fn ExprQuery::captures(Self, source_name~ : String, String) -> ArrayView[Map[String, @model.BoundValue]] raise
 pub fn ExprQuery::captures_from_cst(Self, cst~ : @node.CstNode) -> ArrayView[Map[String, @model.BoundValue]]
+pub fn ExprQuery::captures_from_semantic_source(Self, @semantic_source.Source) -> ArrayView[Map[String, @model.BoundValue]]
 
 // Type aliases
 pub using @model {type BoundValue}
+
+pub using @semantic_source {type Association as SemanticAssociation}
+
+pub using @semantic_source {type Source as SemanticSource}
 
 // Traits

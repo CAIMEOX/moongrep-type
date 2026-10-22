@@ -33,11 +33,12 @@ moonrun path/to/moongrep.wasm -- <command> [arguments]
 
 ### 顶层命令
 
-moongrep 提供四个命令：
+moongrep 提供五个命令：
 
 - `scan` 使用显式选择或默认规则扫描 MoonBit 源码。
 - `lint` 默认启用内嵌 builtin 规则扫描 MoonBit 源码。
 - `docs` 列出或打印内嵌文档。
+- `semantics` 校验并导出编译器语义索引 JSON。
 - `dump` 解析一个 MoonBit 实现项或表达式，并打印 CST 调试输出、写出结构化 dump
   记录，或通过退出状态报告校验是否成功。
 
@@ -55,6 +56,7 @@ moongrep 提供四个命令：
 - `lint` 使用扫描根 `.` 并启用 builtin 规则开始正常扫描。
 - `docs` 打印 `docs` 帮助并以状态码 0 退出。
 - `dump` 打印 `dump` 帮助并以状态码 0 退出。
+- `semantics` 打印 `semantics` 帮助并以状态码 0 退出。
 
 帮助文本写入标准输出。
 
@@ -347,10 +349,10 @@ description 末尾的换行字符会被移除，剩余每一行前面缩进两�
 
 ### 协议和模式识别
 
-对于 `scan`、`lint` 和 `dump`，`--json` 会选择结构化输出。该选项必须
+对于 `scan`、`lint`、`dump` 和 `semantics`，`--json` 会选择结构化诊断。该选项必须
 作为独立参数出现在选项终止符之前，例如 `scan -- --json` 和
-`dump -- --json` 都不会启用 JSON 模式。首个命令必须是 `scan`、`lint`
-或 `dump`。
+`dump -- --json` 都不会启用 JSON 模式。首个命令必须是 `scan`、`lint`、
+`dump` 或 `semantics`。
 
 对于 `scan` 和 `lint`，两个标准流中的每个非空应用输出行都是一个紧凑 JSON
 object。对于 `dump`，成功且未启用 exit-code 模式时，会向标准输出写出一个紧凑
@@ -516,6 +518,31 @@ match-mode 选项。
 未提供输入时输出 JSON usage error 并以状态码 2 退出；`dump --json --help` 仍打印
 普通帮助并以状态码 0 退出。
 
+## `semantics`
+
+```text
+moongrep semantics <project-or-file> [--reader <executable>] [--target <target>] [--json]
+```
+
+该命令通过独立 reader 导入类型、符号和源码映射。在 `tools/moonc-reader` 中为当前
+MoonBit 编译器构建 reader，然后通过 `--reader` 或 `MOONGREP_SEMANTIC_READER`
+环境变量选择它；命令行选项优先。reader 参数是可执行文件路径或命令名，不是包含
+其他参数的 shell 命令。
+
+位置参数指定 MoonBit 项目目录或源码文件，`--target` 原样传给 reader。reader 先
+运行 `moon check` 再导出语义产物。CLI 独立调用 `moonc -v`，要求编译器版本完全
+一致，并在校验索引后逐一比较当前源码与索引内的源码。子进程参数直接传递，不经过
+shell。
+
+成功时标准输出始终是一个紧凑的语义索引 JSON 对象，包含 schema 版本、编译器
+版本、源码、类型、符号和事实。这是索引导出，不是 finding 记录。reader 诊断写入
+标准错误；指定 `--json` 时包装成 category 为 `semantic_reader` 的 warning 记录，
+致命错误沿用 error schema。未指定时诊断为纯文本；帮助始终是纯文本。
+
+缺少参数或未选择 reader 使用状态码 2。编译器或 reader 不可用、检查失败、索引
+不兼容或格式错误、源码已变化时，使用既有 `scan_input` 类别和状态码 6，且不输出
+语义索引。该命令不添加或运行 lint 规则。
+
 ## 诊断和退出状态
 
 moongrep 为每个可处置的失败类别使用固定状态码：
@@ -557,7 +584,7 @@ error: <摘要>
 | 3 | 无效 `dump` 输入 |
 | 4 | 规则来源错误 |
 | 5 | 规则内容或严格 dump pattern 错误 |
-| 6 | 扫描输入错误 |
+| 6 | 扫描或语义输入错误 |
 | 7 | 输出错误 |
 
 ### 退出状态 0

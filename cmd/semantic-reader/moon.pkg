@@ -1,0 +1,14 @@
+import {
+  "moonbit-community/moongrep/internal/ocaml_marshal" @marshal,
+  "moonbit-community/moongrep/internal/typedtree",
+  "moonbit-community/moongrep/semantic",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/stdio",
+  "moonbitlang/core/env",
+  "moonbitlang/core/json",
+}
+
+supported_targets = "+wasm+native"
+
+pkgtype(kind: "executable")

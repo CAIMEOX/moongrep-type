@@ -19,6 +19,8 @@ pub async fn run_lint_command(CliOptions) -> Unit
 
 pub async fn run_scan_command(CliOptions) -> Unit
 
+pub async fn run_semantics_command(SemanticsOptions) -> Unit
+
 pub fn runtime_cli_args(Array[String]) -> Array[String]
 
 // Errors
@@ -46,6 +48,7 @@ pub(all) enum CliCommand {
   Lint(CliOptions)
   DocsList
   DocsShow(String)
+  Semantics(SemanticsOptions)
   DumpImpl(source~ : String, strict_check~ : Bool, exit_code~ : Bool, output_json~ : Bool)
   DumpExpr(source~ : String, strict_check~ : Bool, exit_code~ : Bool, output_json~ : Bool)
 }
@@ -65,6 +68,13 @@ pub(all) struct CliOptions {
   disabled_rules : Array[String]
   verbose : Bool
   no_color : Bool
+  output_json : Bool
+}
+
+pub(all) struct SemanticsOptions {
+  project : String
+  reader : String
+  target : String?
   output_json : Bool
 }
 

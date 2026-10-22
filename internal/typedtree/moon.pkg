@@ -1,0 +1,4 @@
+import {
+  "moonbit-community/moongrep/internal/ocaml_marshal" @marshal,
+  "moonbitlang/x/path",
+}

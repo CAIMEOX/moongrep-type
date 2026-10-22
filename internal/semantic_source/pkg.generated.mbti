@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/moongrep/internal/semantic_source"
+
+import {
+  "moonbit-community/moongrep/model",
+  "moonbit-community/moongrep/semantic",
+  "moonbitlang/core/debug",
+  "moonbitlang/parser/untyped_cst/node",
+}
+
+// Values
+
+// Errors
+pub(all) suberror SourceError {
+  InvalidSource(String)
+  ForeignNode
+} derive(@debug.Debug)
+pub fn SourceError::output(Self, &Logger) -> Unit
+pub fn SourceError::to_repr(Self) -> @debug.Repr
+pub fn SourceError::to_string(Self) -> String
+pub impl Show for SourceError
+
+// Types and methods
+pub(all) enum Association {
+  Unmatched
+  Associated(Array[@semantic.Fact])
+  Ambiguous(Array[@semantic.Fact])
+} derive(@debug.Debug)
+pub fn Association::to_repr(Self) -> @debug.Repr
+
+pub struct Source {
+  // private fields
+}
+pub fn Source::facts_for_capture(Self, @model.BoundValue) -> Array[Association] raise SourceError
+pub fn Source::facts_for_node(Self, @node.CstNode) -> Association raise SourceError
+pub fn Source::file(Self) -> String
+pub fn Source::index(Self) -> @semantic.Index
+pub fn Source::parse(@semantic.Index, file~ : String, text~ : String) -> Self raise
+pub fn Source::range_for_node(Self, @node.CstNode) -> @semantic.Range raise SourceError
+pub fn Source::root(Self) -> @node.CstNode
+
+// Type aliases
+
+// Traits

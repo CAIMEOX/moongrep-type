@@ -63,6 +63,7 @@ async fn run_cli(argv : Array[String]) -> Unit {
   match command {
     Scan(options) => @cli.run_scan_command(options)
     Lint(options) => @cli.run_lint_command(options)
+    Semantics(options) => @cli.run_semantics_command(options)
     DocsList | DocsShow(_) =>
       write_cli_stdout(@cli.render_docs_command(command))
     DumpImpl(..) | DumpExpr(..) =>

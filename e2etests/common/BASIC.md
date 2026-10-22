@@ -12,11 +12,12 @@ Usage: moongrep <command>
 Scan MoonBit source files with structural and taint rules.
 
 Commands:
-  scan  Scan MoonBit source files.
-  lint  Scan MoonBit source files with embedded builtin rules.
-  docs  Print embedded moongrep documentation.
-  dump  Parse a MoonBit impl or expression and print untyped CST debug output.
-  help  Print help for the subcommand(s).
+  scan       Scan MoonBit source files.
+  lint       Scan MoonBit source files with embedded builtin rules.
+  docs       Print embedded moongrep documentation.
+  dump       Parse a MoonBit impl or expression and print untyped CST debug output.
+  semantics  Export compiler types, symbols, and source mappings as JSON.
+  help       Print help for the subcommand(s).
 
 Options:
   -h, --help  Show help information.

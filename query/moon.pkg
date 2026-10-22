@@ -5,6 +5,7 @@ import {
   "moonbit-community/moongrep/internal/rule/model" @rule_model,
   "moonbit-community/moongrep/internal/rule/prefilter" @rule_prefilter,
   "moonbit-community/moongrep/model",
+  "moonbit-community/moongrep/internal/semantic_source",
   "moonbitlang/core/hashmap",
   "moonbitlang/lexer/basic",
   "moonbitlang/parser/untyped_cst",
@@ -12,4 +13,5 @@ import {
 
 import {
   "moonbitlang/core/bench",
+  "moonbit-community/moongrep/semantic",
 } for "test"

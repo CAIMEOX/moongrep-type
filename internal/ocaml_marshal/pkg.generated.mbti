@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/moongrep/internal/ocaml_marshal"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn decode(Bytes) -> Graph raise DecodeError
+
+// Errors
+pub(all) suberror DecodeError {
+  Invalid(offset~ : Int, reason~ : String)
+} derive(@debug.Debug)
+pub fn DecodeError::output(Self, &Logger) -> Unit
+pub fn DecodeError::to_repr(Self) -> @debug.Repr
+pub fn DecodeError::to_string(Self) -> String
+pub impl Show for DecodeError
+
+// Types and methods
+pub struct Graph {
+  // private fields
+}
+pub fn Graph::get(Self, Int) -> Value raise DecodeError
+pub fn Graph::length(Self) -> Int
+pub fn Graph::root(Self) -> Int
+pub fn Graph::shared_objects(Self) -> Int
+pub fn Graph::text(Self, Int) -> String raise DecodeError
+
+pub(all) enum Value {
+  Integer(Int64)
+  Block(tag~ : Int, fields~ : Array[Int])
+  ByteString(Bytes)
+  FloatBits(Int64)
+  FloatArray(Array[Int64])
+  Custom(name~ : String, value~ : Int64)
+} derive(@debug.Debug)
+pub fn Value::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

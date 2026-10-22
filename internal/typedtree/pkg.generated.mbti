@@ -1,0 +1,36 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbit-community/moongrep/internal/typedtree"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn extract(String, Array[Source], Array[Package]) -> Json raise
+
+// Errors
+pub(all) suberror SchemaError {
+  Invalid(String)
+} derive(@debug.Debug)
+pub fn SchemaError::output(Self, &Logger) -> Unit
+pub fn SchemaError::to_repr(Self) -> @debug.Repr
+pub fn SchemaError::to_string(Self) -> String
+pub impl Show for SchemaError
+
+// Types and methods
+pub(all) struct Package {
+  key : String
+  name : String
+  source_root : String
+  artifact : Bytes
+  source_aliases : Array[(String, String)]
+}
+
+pub(all) struct Source {
+  path : String
+  text : String
+}
+
+// Type aliases
+
+// Traits

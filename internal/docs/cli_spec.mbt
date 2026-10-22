@@ -40,11 +40,12 @@ let _embed_clispec_md : String =
   #|
   #|### Top-Level Commands
   #|
-  #|moongrep provides four commands:
+  #|moongrep provides five commands:
   #|
   #|- `scan` scans MoonBit source with explicitly selected or default rules.
   #|- `lint` scans MoonBit source with embedded builtin rules enabled by default.
   #|- `docs` lists or prints embedded documentation.
+  #|- `semantics` exports a validated compiler semantic index as JSON.
   #|- `dump` parses one MoonBit implementation item or expression and either
   #|  prints CST debug output, writes a structured dump record, or reports
   #|  validation success through its exit status.
@@ -65,6 +66,7 @@ let _embed_clispec_md : String =
   #|- `lint` starts a normal scan with scan root `.` and builtin rules enabled.
   #|- `docs` prints `docs` help and exits with status 0.
   #|- `dump` prints `dump` help and exits with status 0.
+  #|- `semantics` prints `semantics` help and exits with status 0.
   #|
   #|Help text is written to standard output.
   #|
@@ -412,10 +414,10 @@ let _embed_clispec_md : String =
   #|
   #|### Protocol and Mode Detection
   #|
-  #|For `scan`, `lint`, and `dump`, `--json` selects structured output. The
+  #|For `scan`, `lint`, `dump`, and `semantics`, `--json` selects structured diagnostics. The
   #|option must be a standalone argument before an option terminator. For example,
   #|`scan -- --json` and `dump -- --json` do not enable JSON mode.
-  #|The initial command must be `scan`, `lint`, or `dump`.
+  #|The initial command must be `scan`, `lint`, `dump`, or `semantics`.
   #|
   #|For `scan` and `lint`, every nonempty application-output line on both standard
   #|streams is a compact JSON object. For `dump`, a successful non-exit-code dump
@@ -606,6 +608,39 @@ let _embed_clispec_md : String =
   #|runs. `dump --json` without an input is a JSON usage error with status 2.
   #|`dump --json --help` still prints ordinary help and exits with status 0.
   #|
+  #|## `semantics`
+  #|
+  #|```text
+  #|moongrep semantics <project-or-file> [--reader <executable>] [--target <target>] [--json]
+  #|```
+  #|
+  #|This command imports compiler types, symbols, and source mappings through a
+  #|separate semantic reader. Build the reader under `tools/moonc-reader` for the
+  #|active MoonBit compiler, then select it with `--reader` or the
+  #|`MOONGREP_SEMANTIC_READER` environment variable. An explicit option takes
+  #|precedence over the environment. The reader value is an executable path or
+  #|command name, not a shell command with embedded arguments.
+  #|
+  #|The project argument names a MoonBit project directory or one source file.
+  #|`--target` is forwarded to the reader. The reader performs `moon check` and
+  #|exports the resulting semantic artifacts. The CLI invokes `moonc -v`
+  #|independently, requires an exact compiler version match, validates the index,
+  #|and compares each indexed source with the current file before writing output.
+  #|Reader and compiler arguments are passed directly without a shell.
+  #|
+  #|Success always writes one compact semantic-index JSON object to standard
+  #|output, including the schema version, compiler version, sources, types,
+  #|symbols, and facts. This is an index export, not a finding record. Reader
+  #|diagnostics go to standard error. With `--json`, those diagnostics are
+  #|`warning` records with category `semantic_reader`; fatal errors use the usual
+  #|error-record schema. Without `--json`, diagnostics are plain text. Help remains
+  #|plain text in either mode.
+  #|
+  #|Missing arguments or a missing reader selection use status 2. An unavailable
+  #|compiler or reader, a failed check, an incompatible or malformed index, or a
+  #|changed source uses the existing `scan_input` category and status 6. No semantic
+  #|index is printed on failure. The command does not add or run lint rules.
+  #|
   #|## Diagnostics and Exit Status
   #|
   #|moongrep uses one fixed status for each actionable failure category:
@@ -653,7 +688,7 @@ let _embed_clispec_md : String =
   #|| 3 | Invalid `dump` input |
   #|| 4 | Rule-source failure |
   #|| 5 | Invalid rule content or strict dump pattern |
-  #|| 6 | Scan-input failure |
+  #|| 6 | Scan-input or semantic-input failure |
   #|| 7 | Output failure |
   #|
   #|### Exit Status 0
@@ -662,6 +697,7 @@ let _embed_clispec_md : String =
   #|
   #|- help output;
   #|- successful `docs` listing or lookup;
+  #|- a validated semantic-index export;
   #|- a successful CST dump or `dump --exit-code` check, including requested
   #|  strict pattern validation;
   #|- scans with findings;
@@ -715,6 +751,9 @@ let _embed_clispec_md : String =
   #|directory traversal failures, and MoonBit source-file reading failures. A
   #|MoonBit source parse failure encountered during scanning remains a warning and
   #|returns status 0.
+  #|
+  #|Semantic-input failures also use status 6, including reader failures, compiler
+  #|version mismatches, invalid indices, and source changes since compilation.
   #|
   #|### Exit Status 7
   #|
