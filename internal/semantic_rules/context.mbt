@@ -71,11 +71,7 @@ fn CheckContext::expression(
   self : CheckContext,
   node : @untyped_cst.CstNode,
 ) -> @semantic.Fact raise {
-  let facts = self
-    .facts(node)
-    .filter(fact => {
-      fact.kind == "expression" && fact.node_kind.has_prefix("Texpr_")
-    })
+  let facts = source_expression_facts(self.facts(node))
   guard facts is [fact] else {
     raise Unavailable("No unique typed expression at this exact source range.")
   }

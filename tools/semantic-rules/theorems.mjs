@@ -143,12 +143,83 @@ try {
   assert.equal(bb.stderr, '');
   assert.deepEqual(hits(bb).map(f => f.rule_id), ['moonbitlang/option_map_identity']);
 
+  // Compiler-inserted conversions share the source call's exact range. Keep
+  // them in the index while selecting the operation's pre-conversion evidence.
+  fs.appendFileSync(path.join(project, 'moon.pkg'), '\nimport { "moonbitlang/core/debug" }\n');
+  const coercions = 'coercions.mbt';
+  fs.writeFileSync(path.join(project, coercions), `
+///|
+pub fn implicit_option(value : Int?) -> Unit raise {
+  @debug.debug_inspect(value.map(x => x), content="unused")
+}
+///|
+pub fn implicit_result(value : Result[Int, String]) -> Unit raise {
+  @debug.debug_inspect(value.map(x => x), content="unused")
+}
+///|
+pub fn implicit_array_trait(xs : Array[Int]) -> Unit raise {
+  @debug.debug_inspect(xs.map(x => x + 1).map(x => x * 2), content="unused")
+}
+///|
+pub fn view_size(xs : ArrayView[Int]) -> Int { xs.length() }
+///|
+pub fn implicit_array_view(xs : Array[Int]) -> Int {
+  view_size(xs.map(x => x + 1).map(x => x * 2))
+}
+///|
+pub fn explicit_trait(value : Int?) -> &@debug.Debug {
+  value.map(x => x) as &@debug.Debug
+}
+///|
+pub fn actual_view_method(xs : ArrayView[Int]) -> Array[Int] {
+  xs.map(x => x + 1).map(x => x * 2)
+}
+`);
+  snapshot = extract();
+  for (const view of ['normal', 'wbtest']) {
+    const result = lint(coercions, ['--semantic-view', view]);
+    assert.equal(result.stderr, '', 'implicit conversions are not ambiguous source operations');
+    const findings = records(result.stdout).filter(r => r.type === 'finding');
+    assert.deepEqual(findings.map(f => [functionAt(snapshot, f), f.rule_id]).sort(), [
+      ['implicit_option', 'moonbitlang/option_map_identity'],
+      ['implicit_result', 'moonbitlang/result_map_identity'],
+      ['implicit_array_trait', 'moonbitlang/array_map_fusion'],
+      ['implicit_array_view', 'moonbitlang/array_map_fusion'],
+      ['explicit_trait', 'moonbitlang/option_map_identity'],
+    ].sort());
+    for (const finding of findings) {
+      assert.equal(finding.matched_source, slice(snapshot, finding));
+      if (functionAt(snapshot, finding) === 'explicit_trait') continue;
+      const exact = snapshot.facts.filter(f => f.location?.file === fs.realpathSync(finding.file)
+        && f.package.endsWith(':' + view) && f.kind === 'expression' && f.node_kind.startsWith('Texpr_')
+        && JSON.stringify({start: f.location.start, end: f.location.end}) === JSON.stringify(finding.range));
+      const wrapper = functionAt(snapshot, finding) === 'implicit_array_view' ? 'Texpr_array_as_view' : 'Texpr_as';
+      assert.deepEqual(exact.map(f => f.node_kind).sort(), ['Texpr_apply', wrapper].sort());
+      assert.equal(exact.find(f => f.node_kind === wrapper).details.implicit, true);
+      assert.notEqual(exact[0].type_id, exact[1].type_id, 'raw converted and original types remain distinct');
+    }
+  }
+  assert.ok(snapshot.facts.some(f => f.location?.file.endsWith('/coercions.mbt')
+    && f.node_kind === 'Texpr_as' && f.details.implicit === false), 'explicit conversions remain explicit');
+
+  // The standalone map-fusion entrypoint uses the same evidence selection.
+  const normalSnapshot = {...snapshot, facts: snapshot.facts.filter(f => f.package.endsWith(':normal'))};
+  fs.writeFileSync(indexPath, JSON.stringify(normalSnapshot));
+  const fusion = JSON.parse(run(cli, ['map-fusion', '--index', indexPath, '--json']).stdout);
+  const report = fusion.files.find(f => f.file.endsWith('/coercions.mbt')).report;
+  assert.equal(report.candidates.length, 2);
+  assert.deepEqual(report.skipped.map(s => s.reason), ['not_standard_array_map']);
+  for (const candidate of report.candidates) {
+    assert.equal(snapshot.facts.find(f => f.id === candidate.outer_call.fact_id).node_kind, 'Texpr_apply');
+  }
+  fs.writeFileSync(indexPath, JSON.stringify(snapshot));
+
   fs.appendFileSync(path.join(project, 'collections.mbt'), '\n// changed after indexing\n');
   const stale = run(cli, ['lint', path.join(project, 'collections.mbt'), '--semantic-index', indexPath, '--json'], false);
   assert.equal(stale.status, 6);
   assert.equal(stale.stdout, '');
   assert.equal(JSON.parse(stale.stderr).category, 'scan_input');
-  console.log('theorem integration passed: 20 checks, 33 findings, negative cases, YAML, source mapping, three views, missing evidence, stale sources');
+  console.log('theorem integration passed: 20 checks, 33 findings, implicit trait/view conversions, explicit casts, both rule entrypoints, negative cases, YAML, source mapping, three views, missing evidence, stale sources');
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }

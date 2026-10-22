@@ -35,12 +35,7 @@ fn expression_fact(
   let facts = match source.facts_for_node(node) {
     Unmatched => raise Skip("missing_exact_semantics")
     Ambiguous(_) => raise Skip("ambiguous_semantics")
-    // `function_body` is auxiliary function metadata at the lambda's range.
-    // Only actual typed expression nodes compete for this CST expression.
-    Associated(facts) =>
-      facts.filter(fact => {
-        fact.kind == "expression" && fact.node_kind.has_prefix("Texpr_")
-      })
+    Associated(facts) => source_expression_facts(facts)
   }
   guard facts is [fact] && fact.type_id is Some(_) else {
     raise Skip("non_unique_expression_type")

@@ -68,6 +68,13 @@ ambiguous facts produce diagnostics instead of definite findings. Method syntax
 must have the expected positional arguments; cascade calls and extra arguments
 do not qualify. All callbacks must be synchronous.
 
+An implicit trait conversion or Array-to-ArrayView conversion can share the
+call's source range. The checks select the unique source operation before these
+known conversions, requiring the compiler's explicit `implicit: true` metadata.
+Raw semantic queries still retain both types and all facts. Explicit casts,
+unknown implicit nodes, multiple actual expressions, and mixed package views
+are not collapsed. No conversion is removed from the program.
+
 The count laws unfold to the same full traversal and predicate call sequence.
 The search laws stop at the same successful pull, or at the same exhaustion
 pull. Iter map/flatten and flat_map create the same nested lazy traversal. These

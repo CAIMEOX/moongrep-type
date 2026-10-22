@@ -50,8 +50,13 @@ The existing syntax-only YAML rules still run without compiler artifacts.
 1. Find adjacent dot calls with one positional callback each.
 2. Join the original CST nodes to exact expression ranges. Auxiliary
    `function_body` metadata does not compete with actual typed expression nodes.
-   Missing, ambiguous, or multiple typed expression facts produce a skipped
-   result. This includes source files represented by multiple package/test views;
+   Rules select the source operation before compiler-inserted `Texpr_as` and
+   `Texpr_array_as_view` conversions, only when their `implicit` flag is true.
+   The index and source API still expose every fact and converted type. This
+   selection does not remove conversions or treat them as semantically inert.
+   Missing evidence or multiple remaining source expressions produce a skipped
+   result, as do facts from multiple package/test views. Explicit conversions,
+   unrecognized implicit nodes, and duplicate actual expressions are not merged;
    the POC does not guess a view or select an enclosing expression.
 3. Require both calls to resolve to the same global method identity:
    `moonbitlang/core/builtin.Array::map`. A user method named `map`, `Option::map`,
