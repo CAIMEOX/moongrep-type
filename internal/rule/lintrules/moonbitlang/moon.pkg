@@ -5,6 +5,36 @@ rule(
 
 dev_build(
   rule: "embed",
+  input: "array_filter_count.yaml",
+  output: "array_filter_count.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "iter_filter_count.yaml",
+  output: "iter_filter_count.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "iter_filter_next.yaml",
+  output: "iter_filter_next.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "iter_find_first_exists.yaml",
+  output: "iter_find_first_exists.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "iter_map_flatten.yaml",
+  output: "iter_map_flatten.mbt",
+)
+
+dev_build(
+  rule: "embed",
   input: "prefer_array_comprehension.yaml",
   output: "prefer_array_comprehension.mbt",
 )

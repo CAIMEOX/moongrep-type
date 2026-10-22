@@ -173,3 +173,39 @@ fn callback_arrow(shape : Json) -> (Json, Json)? {
     _ => None
   }
 }
+
+///|
+/// Preserve nominal type paths and generic owners. Only built-in sum types
+/// qualify; an unrelated user type named Option or Result is not evidence.
+fn builtin_type_arguments(shape : Json, name : String) -> Array[Json]? {
+  match shape {
+    {
+      "kind": "named",
+      "named_kind": "Normal",
+      "path": { "kind": "builtin", "name": String(found), .. },
+      "arguments": Array(arguments),
+      ..
+    } if found == name => Some(arguments)
+    _ => None
+  }
+}
+
+///|
+/// A resolved synchronous unary arrow, including its checked error effect.
+/// This is type evidence only, not evidence of purity or termination.
+fn unary_callback(shape : Json) -> (Json, Json)? {
+  match shape {
+    {
+      "kind": "function",
+      "parameters": [input],
+      "return_type": output,
+      "async": "sync",
+      "error": error,
+      ..
+    } if error
+      is ({ "kind": "none", .. }
+      | { "kind": "typed", .. }
+      | { "kind": "parameter", .. }) => Some((input, output))
+    _ => None
+  }
+}

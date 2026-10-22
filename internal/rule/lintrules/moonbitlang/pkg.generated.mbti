@@ -2,6 +2,8 @@
 package "moonbit-community/moongrep/internal/rule/lintrules/moonbitlang"
 
 // Values
+pub let array_filter_count_yaml : String
+
 pub let array_map_fusion_yaml : String
 
 pub let avoid_collect_for_count_yaml : String
@@ -27,6 +29,14 @@ pub let discarded_array_map_yaml : String
 pub let inspect_boolean_yaml : String
 
 pub let inspect_number_yaml : String
+
+pub let iter_filter_count_yaml : String
+
+pub let iter_filter_next_yaml : String
+
+pub let iter_find_first_exists_yaml : String
+
+pub let iter_map_flatten_yaml : String
 
 pub let match_early_exit_yaml : String
 

@@ -150,6 +150,11 @@ pub(all) enum SemanticCheck {
   DiscardedArrayMap
   ConsumedIterator
   ArrayMapFusion
+  ArrayFilterCount
+  IterFilterCount
+  IterFilterNext
+  IterFindFirstExists
+  IterMapFlatten
 }
 
 ///|

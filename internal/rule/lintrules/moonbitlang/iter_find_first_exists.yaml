@@ -1,0 +1,9 @@
+id: iter_find_first_exists
+description: |
+  Prefer iterator.any(predicate) for find_first(predicate).is_some(),
+  or !iterator.any(predicate) for is_none(). Both preserve short-circuit behavior.
+semantic:
+  check: iter-find-first-exists
+  patterns:
+    - shape: $(iterator:exp).find_first($(predicate:exp)).is_some()
+    - shape: $(iterator:exp).find_first($(predicate:exp)).is_none()

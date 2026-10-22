@@ -1,0 +1,8 @@
+id: iter_filter_count
+description: |
+  Prefer iterator.count_if(predicate) over iterator.filter(predicate).count().
+  It preserves consumption and predicate calls while avoiding an iterator adapter.
+semantic:
+  check: iter-filter-count
+  patterns:
+    - shape: $(iterator:exp).filter($(predicate:exp)).count()

@@ -1,0 +1,8 @@
+id: iter_filter_next
+description: |
+  Prefer iterator.find_first(predicate) over iterator.filter(predicate).next().
+  Both stop after the same matching element and leave the same remaining input.
+semantic:
+  check: iter-filter-next
+  patterns:
+    - shape: $(iterator:exp).filter($(predicate:exp)).next()

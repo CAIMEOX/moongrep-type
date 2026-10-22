@@ -15,6 +15,11 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("discarded_array_map", @moonbitlang_rules.discarded_array_map_yaml),
     ("consumed_iterator", @moonbitlang_rules.consumed_iterator_yaml),
     ("array_map_fusion", @moonbitlang_rules.array_map_fusion_yaml),
+    ("array_filter_count", @moonbitlang_rules.array_filter_count_yaml),
+    ("iter_filter_count", @moonbitlang_rules.iter_filter_count_yaml),
+    ("iter_filter_next", @moonbitlang_rules.iter_filter_next_yaml),
+    ("iter_find_first_exists", @moonbitlang_rules.iter_find_first_exists_yaml),
+    ("iter_map_flatten", @moonbitlang_rules.iter_map_flatten_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

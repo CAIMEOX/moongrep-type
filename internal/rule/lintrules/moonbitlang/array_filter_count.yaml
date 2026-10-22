@@ -1,0 +1,8 @@
+id: array_filter_count
+description: |
+  Prefer array.count_if(predicate) over array.filter(predicate).length().
+  It calls the predicate in the same order without constructing the filtered array.
+semantic:
+  check: array-filter-count
+  patterns:
+    - shape: $(array:exp).filter($(predicate:exp)).length()

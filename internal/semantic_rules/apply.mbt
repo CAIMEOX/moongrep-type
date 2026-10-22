@@ -118,6 +118,11 @@ fn evaluate_semantic_check(
         FilterMapComprehension => check_filter_map(context, node)
         IterComprehension => check_iter_pipeline(context, node)
         CollectCount => check_collect_count(context, node)
+        ArrayFilterCount => check_array_filter_count(context, node)
+        IterFilterCount => check_iter_filter_count(context, node)
+        IterFilterNext => check_iter_filter_next(context, node)
+        IterFindFirstExists => check_iter_find_first_exists(context, node)
+        IterMapFlatten => check_iter_map_flatten(context, node)
         DiscardedArrayMap => check_discarded_map(context, node)
         ConsumedIterator => check_consumed_iterator(context, node)
         ArrayMapFusion => {

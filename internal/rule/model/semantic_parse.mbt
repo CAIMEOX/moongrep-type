@@ -15,6 +15,11 @@ fn expect_semantic_rule(
     Some(String("discarded-array-map")) => DiscardedArrayMap
     Some(String("consumed-iterator")) => ConsumedIterator
     Some(String("array-map-fusion")) => ArrayMapFusion
+    Some(String("array-filter-count")) => ArrayFilterCount
+    Some(String("iter-filter-count")) => IterFilterCount
+    Some(String("iter-filter-next")) => IterFilterNext
+    Some(String("iter-find-first-exists")) => IterFindFirstExists
+    Some(String("iter-map-flatten")) => IterMapFlatten
     Some(String(name)) =>
       raise invalid_rule(path~, info="unknown semantic.check: \{name}")
     _ =>

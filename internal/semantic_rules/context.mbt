@@ -136,17 +136,24 @@ fn CheckContext::method_is(
     return false
   }
   match symbol.identity {
+    { "kind": "method", "name": String(name), "self_type": owner_type, .. } =>
+      symbol.kind == "global" &&
+      builtin_owner_is(owner_type, owner) &&
+      names.contains(name)
+    _ => false
+  }
+}
+
+///|
+fn builtin_owner_is(path : Json, owner : String) -> Bool {
+  match path {
     {
-      "kind": "method",
+      "kind": "named",
+      "package": "moonbitlang/core/builtin",
       "name": String(name),
-      "self_type": {
-        "kind": "named",
-        "package": "moonbitlang/core/builtin",
-        "name": String(type_name),
-        ..
-      },
       ..
-    } => symbol.kind == "global" && type_name == owner && names.contains(name)
+    }
+    | { "kind": "builtin", "name": String(name), .. } => name == owner
     _ => false
   }
 }

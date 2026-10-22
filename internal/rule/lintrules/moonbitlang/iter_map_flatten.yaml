@@ -1,0 +1,8 @@
+id: iter_map_flatten
+description: |
+  Prefer iterator.flat_map(transform) over iterator.map(transform).flatten().
+  Both remain lazy and preserve the transform calls and nested iterator order.
+semantic:
+  check: iter-map-flatten
+  patterns:
+    - shape: $(iterator:exp).map($(transform:exp)).flatten()
