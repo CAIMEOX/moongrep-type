@@ -17,7 +17,11 @@ const expected = {
   array_filter_count: ['collection_array_count', 'collection_generic_count', 'collection_raising_count', 'collection_count_factory'],
   iter_filter_count: ['collection_iter_count'],
   iter_filter_next: ['collection_first'],
-  iter_find_first_exists: ['collection_exists', 'collection_absent', 'collection_raising_exists'],
+  iter_find_first_exists: [
+    'collection_exists', 'collection_absent', 'collection_raising_exists',
+    'collection_is_none', 'collection_is_some', 'collection_is_qualified',
+    'collection_is_raising', 'collection_is_generic', 'collection_is_factory', 'collection_is_unicode',
+  ],
   iter_map_flatten: ['collection_flatten', 'collection_flatten_factory'],
   option_map_fusion: ['theorem_option_map', 'theorem_option_map_raising', 'theorem_option_map_return'],
   result_map_fusion: ['theorem_result_map'],
@@ -78,7 +82,7 @@ function checkFindings(snapshot, extra = []) {
   for (const [name, functions] of Object.entries(expected)) {
     assert.deepEqual(findings.filter(f => f.rule_id === `moonbitlang/${name}`).map(f => functionAt(snapshot, f)), functions, name);
   }
-  assert.equal(findings.length, 33);
+  assert.equal(findings.length, 40);
   for (const finding of findings) {
     assert.equal(finding.matched_source, slice(snapshot, finding), 'exact Unicode scalar source range');
     assert.ok(finding.source_context.some(line => line.is_match));
@@ -87,6 +91,10 @@ function checkFindings(snapshot, extra = []) {
   const line = sourceFor(snapshot, unicode).text.split('\n')[unicode.range.start.line - 1];
   assert.ok(line.indexOf('🚀') >= 0 && line.indexOf('🚀') < line.indexOf('value.bind'));
   assert.equal(unicode.range.start.column, Array.from(line.slice(0, line.indexOf('value.bind'))).length + 1);
+  const presence = findings.find(f => functionAt(snapshot, f) === 'collection_is_unicode');
+  const presenceLine = sourceFor(snapshot, presence).text.split('\n')[presence.range.start.line - 1];
+  assert.ok(presenceLine.indexOf('🚀') >= 0 && presenceLine.indexOf('🚀') < presenceLine.indexOf('it.find_first'));
+  assert.equal(presence.range.start.column, Array.from(presenceLine.slice(0, presenceLine.indexOf('it.find_first'))).length + 1);
   return findings;
 }
 
@@ -101,7 +109,7 @@ try {
   const text = run(cli, ['lint', path.join(project, 'collections.mbt'), '--semantic-index', indexPath]).stdout;
   assert.match(text, /rule: moonbitlang\/array_filter_count\ndescription:/);
   assert.match(text, /source:\n/);
-  assert.equal(hits(lint('collections.mbt', ['--disable', 'moonbitlang/array_filter_count'])).length, 7);
+  assert.equal(hits(lint('collections.mbt', ['--disable', 'moonbitlang/array_filter_count'])).length, 14);
   assert.equal(hits(run(cli, ['lint', path.join(project, 'identities.mbt'), '--json'])).length, 0);
 
   // Every check also runs through a caller-owned YAML rule and ordinary scan.
@@ -219,7 +227,7 @@ pub fn actual_view_method(xs : ArrayView[Int]) -> Array[Int] {
   assert.equal(stale.status, 6);
   assert.equal(stale.stdout, '');
   assert.equal(JSON.parse(stale.stderr).category, 'scan_input');
-  console.log('theorem integration passed: 20 checks, 33 findings, implicit trait/view conversions, explicit casts, both rule entrypoints, negative cases, YAML, source mapping, three views, missing evidence, stale sources');
+  console.log('theorem integration passed: 20 checks, 40 findings, presence patterns and exclusions, implicit trait/view conversions, explicit casts, both rule entrypoints, negative cases, YAML, source mapping, three views, missing evidence, stale sources');
 } finally {
   fs.rmSync(temp, {recursive: true, force: true});
 }

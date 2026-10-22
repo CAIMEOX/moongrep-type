@@ -58,6 +58,83 @@ pub fn collection_raising_exists(
 }
 
 ///|
+pub fn collection_is_none(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  it.find_first(p) is None
+}
+
+///|
+pub fn collection_is_some(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  it.find_first(p) is Some(_)
+}
+
+///|
+pub fn collection_is_qualified(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  it.find_first(p) is Option::Some(_)
+}
+
+///|
+pub fn collection_is_raising(
+  it : Iter[Int],
+  p : (Int) -> Bool raise CollectionFailure,
+) -> Bool raise CollectionFailure {
+  it.find_first(p) is None
+}
+
+///|
+pub fn[T] collection_is_generic(it : Iter[T], p : (T) -> Bool) -> Bool {
+  it.find_first(p) is Some(_)
+}
+
+///|
+pub fn collection_is_factory(
+  source : () -> Iter[Int],
+  predicate : () -> (Int) -> Bool,
+) -> Bool {
+  source().find_first(predicate()) is None
+}
+
+///|
+pub fn collection_is_unicode(
+  it : Iter[Int],
+  p : (Int) -> Bool,
+) -> (String, Bool) {
+  ("🚀", it.find_first(p) is Some(_))
+}
+
+///|
+pub fn collection_is_binding(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  if it.find_first(p) is Some(value) {
+    value > 0
+  } else {
+    false
+  }
+}
+
+///|
+pub fn collection_is_literal(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  it.find_first(p) is Some(7)
+}
+
+///|
+pub fn collection_is_nested(it : Iter[Int?], p : (Int?) -> Bool) -> Bool {
+  it.find_first(p) is Some(None)
+}
+
+///|
+pub fn collection_is_alias(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  if it.find_first(p) is Some(_ as value) {
+    value > 0
+  } else {
+    false
+  }
+}
+
+///|
+pub fn collection_is_alternative(it : Iter[Int], p : (Int) -> Bool) -> Bool {
+  it.find_first(p) is (Some(_) | None)
+}
+
+///|
 pub fn[A, B] collection_flatten(it : Iter[A], f : (A) -> Iter[B]) -> Iter[B] {
   it.map(f).flatten()
 }

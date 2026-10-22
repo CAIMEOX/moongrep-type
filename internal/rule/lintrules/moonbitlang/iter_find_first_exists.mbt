@@ -4,13 +4,15 @@
 let _embed_iter_find_first_exists_yaml : String =
   #|id: iter_find_first_exists
   #|description: |
-  #|  Prefer iterator.any(predicate) for find_first(predicate).is_some(),
-  #|  or !iterator.any(predicate) for is_none(). Both preserve short-circuit behavior.
+  #|  Prefer iterator.any(predicate) for find_first(predicate) is Some(_) or .is_some().
+  #|  Use !iterator.any(predicate) for is None or .is_none().
+  #|  Both preserve short-circuit behavior, predicate effects, and iterator position.
   #|semantic:
   #|  check: iter-find-first-exists
   #|  patterns:
   #|    - shape: $(iterator:exp).find_first($(predicate:exp)).is_some()
   #|    - shape: $(iterator:exp).find_first($(predicate:exp)).is_none()
+  #|    - shape: $(iterator:exp).find_first($(predicate:exp)) is $(presence:pat)
   #|
 
 ///|

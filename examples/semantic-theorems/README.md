@@ -17,7 +17,7 @@ for file in collections option_fusion identities; do
 done
 ```
 
-This prints **33 theorem findings** across the three source files, including
+This prints **40 theorem findings** across the three source files, including
 generic types, checked errors, factories where permitted, and Unicode positions.
 Ordinary lint findings may also appear. The `no_*` and `identity_negative_*`
 functions demonstrate rejected cases. The collection examples also reject eager
@@ -41,7 +41,7 @@ For example, disable the first with `--disable moonbitlang/array_filter_count`.
 | `array-filter-count` | `a.filter(p).length()` → `a.count_if(p)` |
 | `iter-filter-count` | `it.filter(p).count()` → `it.count_if(p)` |
 | `iter-filter-next` | `it.filter(p).next()` → `it.find_first(p)` |
-| `iter-find-first-exists` | `it.find_first(p).is_some()` → `it.any(p)`; `is_none()` → `!it.any(p)` |
+| `iter-find-first-exists` | `it.find_first(p) is Some(_)` → `it.any(p)`; `is None` → `!it.any(p)`; also supports `.is_some()` / `.is_none()` |
 | `iter-map-flatten` | `it.map(f).flatten()` → `it.flat_map(f)` |
 | `option-map-fusion` | `o.map(f).map(g)` → `o.map(x => g(f(x)))` |
 | `result-map-fusion` | `r.map(f).map(g)` → `r.map(x => g(f(x)))` |
@@ -82,6 +82,13 @@ rules preserve evaluation of receiver and callback expressions once, in order,
 so callback factories are allowed. Checked errors are allowed when supported
 by both standard-library operations; an effect-free function type is never
 treated as a purity proof.
+
+Iterator presence tests accept only the complete builtin Option patterns `None`
+and `Some(_)`, including qualified forms such as `Option::Some(_)`. The compiler
+constructor identity decides which Option is meant. `Some(value)`, literal or
+nested payload patterns, aliases, and alternatives are rejected: they can bind
+a value or test more than presence. The suggested `any` / `!any` preserves the
+predicate's effects, checked errors, and the iterator's remaining position.
 
 Option/Result map fusion operates on at most one payload. In a mapped branch,
 both forms call `f` then `g`; the other branch skips both. Option filter fusion

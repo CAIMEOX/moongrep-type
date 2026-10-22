@@ -192,6 +192,77 @@ test "iterator existence preserves predicate exceptions and pull order" {
 }
 
 ///|
+test "Option presence patterns preserve iterator state and predicate effects" {
+  for some in [false, true] {
+    for matched in [false, true] {
+      let before = []
+      let after = []
+      let xs = collection_recording_iter(before)
+      let ys = collection_recording_iter(after)
+      let predicate = fn(trace : Array[String], x : Int) {
+        trace.push("predicate:\{x}")
+        matched && x == 2
+      }
+      let a = if some {
+        xs.find_first(x => predicate(before, x)) is Some(_)
+      } else {
+        xs.find_first(x => predicate(before, x)) is None
+      }
+      let b = if some {
+        ys.any(x => predicate(after, x))
+      } else {
+        !ys.any(x => predicate(after, x))
+      }
+      assert_eq(a, b)
+      assert_eq(before, after)
+      assert_eq(xs.next(), ys.next())
+      assert_eq(before, after)
+    }
+  }
+}
+
+///|
+test "presence pattern rewrite preserves factory timing and checked errors" {
+  let before = []
+  let after = []
+  let source = fn(trace : Array[String]) {
+    trace.push("source")
+    collection_recording_iter(trace)
+  }
+  let factory = fn(trace : Array[String]) {
+    trace.push("factory")
+    fn(x : Int) -> Bool raise CollectionTraceFailure {
+      trace.push("predicate:\{x}")
+      if x == 2 {
+        raise TraceStop
+      }
+      false
+    }
+  }
+  let a = Ok(source(before).find_first(factory(before)) is None) catch {
+    TraceStop => Err("stopped")
+  }
+  let b = Ok(!source(after).any(factory(after))) catch {
+    TraceStop => Err("stopped")
+  }
+  assert_eq(a, b)
+  assert_eq(before, after)
+  debug_inspect(
+    before,
+    content=(
+      #|[
+      #|  "source",
+      #|  "factory",
+      #|  "pull:1",
+      #|  "predicate:1",
+      #|  "pull:2",
+      #|  "predicate:2",
+      #|]
+    ),
+  )
+}
+
+///|
 test "iterator map flatten preserves factories laziness and nested pulls" {
   let before = []
   let after = []

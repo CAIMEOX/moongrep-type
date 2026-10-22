@@ -79,13 +79,26 @@ fn check_iter_find_first_exists(
   context : CheckContext,
   node : @untyped_cst.CstNode,
 ) -> @basic.Location? raise {
-  guard dot_call(node) is Some(exists) &&
-    ["is_some", "is_none"].contains(exists.name) &&
-    exists.args.is_empty() &&
-    dot_call(exists.receiver) is Some(find) &&
+  let receiver = if node.kind is Expr_Is {
+    guard @cst.child(node, "expr") is Some(value) &&
+      @cst.child(node, "pattern") is Some(pattern) &&
+      option_presence_pattern(context, pattern) &&
+      context.expression(node).node_kind == "Texpr_is" else {
+      return None
+    }
+    value
+  } else {
+    guard dot_call(node) is Some(exists) &&
+      ["is_some", "is_none"].contains(exists.name) &&
+      exists.args.is_empty() &&
+      context.method_is(exists.node, "Option", ["is_some", "is_none"]) else {
+      return None
+    }
+    exists.receiver
+  }
+  guard dot_call(ungroup(receiver)) is Some(find) &&
     find.name == "find_first" &&
     find.args is [predicate] &&
-    context.method_is(exists.node, "Option", ["is_some", "is_none"]) &&
     context.method_is(find.node, "Iter", ["find_first"]) &&
     container_element(context.shape(find.receiver), "Iter") is Some(element) &&
     builtin_type_arguments(context.shape(find.node), "Option") ==
@@ -97,6 +110,25 @@ fn check_iter_find_first_exists(
     return None
   }
   Some(node.loc)
+}
+
+///|
+/// Only presence tests are equivalent to any(). A binder, literal, nested
+/// payload, alias, or alternative pattern can observe more than presence.
+fn option_presence_pattern(
+  context : CheckContext,
+  pattern : @untyped_cst.CstNode,
+) -> Bool raise {
+  guard pattern.kind is Pattern_Constr else { return false }
+  match @cst.child(pattern, "params") {
+    None => context.constructor_is(pattern, "Option", "None")
+    Some(params) => {
+      guard @cst.items(params) is [payload] && payload.kind is Pattern_Any else {
+        return false
+      }
+      context.constructor_is(pattern, "Option", "Some")
+    }
+  }
 }
 
 ///|

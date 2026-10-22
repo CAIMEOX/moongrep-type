@@ -187,7 +187,8 @@ fn CollectionRuleFixture::matches(
   let context = CheckContext::new(source)
   let pending = [source.root()]
   while pending.pop() is Some(node) {
-    if node.kind is Expr_DotApply && node.source_span.1 == self.end_offset {
+    if node.kind is (Expr_DotApply | Expr_Is) &&
+      node.source_span.1 == self.end_offset {
       return check(context, node) is Some(_)
     }
     for (_, child) in node.children {
