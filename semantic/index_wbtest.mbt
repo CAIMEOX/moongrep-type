@@ -1,5 +1,5 @@
 ///|
-fn fixture_fact(id : Int, start : Int, end : Int) -> Json {
+fn fixture_fact(id : Int32, start : Int32, end : Int32) -> Json {
   {
     "id": Json(id),
     "package": "demo",

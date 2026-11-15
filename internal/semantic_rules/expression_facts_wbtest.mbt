@@ -1,9 +1,9 @@
 ///|
 fn conversion_fact(
   inner : Json,
-  id : Int,
+  id : Int32,
   node_kind : String,
-  type_id : Int,
+  type_id : Int32,
   implicit~ : Json = Json::boolean(true),
 ) -> Json {
   guard inner is Object(fields) else { abort("fixture expression") }

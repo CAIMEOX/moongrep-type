@@ -1,13 +1,15 @@
 ///|
+#derive(Debug)
 pub(all) struct ExpressionEvidence {
   location : @semantic.Range
   text : String
-  fact_id : Int
-  type_id : Int
-} derive(Debug)
+  fact_id : Int32
+  type_id : Int32
+}
 
 ///|
 /// A type-compatible candidate, not a proof that fusion preserves effects.
+#derive(Debug)
 pub(all) struct MapFusionCandidate {
   package_name : String
   map_symbol : @semantic.SymbolInfo
@@ -17,19 +19,21 @@ pub(all) struct MapFusionCandidate {
   first_callback : ExpressionEvidence
   second_callback : ExpressionEvidence
   type_flow : Json
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub(all) struct SkippedCandidate {
   location : @semantic.Range
   reason : String
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub(all) struct MapFusionReport {
   candidates : Array[MapFusionCandidate]
   skipped : Array[SkippedCandidate]
-} derive(Debug)
+}
 
 ///|
 pub extend ExpressionEvidence with Debug::{to_repr}

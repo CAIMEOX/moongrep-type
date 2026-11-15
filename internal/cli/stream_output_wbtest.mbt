@@ -1,6 +1,7 @@
 ///|
 fn stream_event_scan_options() -> CliOptions {
   {
+    strict_taint: false,
     rules_root: Some("e2etests/testdata/skip-structural/rules"),
     rule_file: None,
     patterns: [],
@@ -18,6 +19,7 @@ fn stream_event_scan_options() -> CliOptions {
 ///|
 fn stream_order_scan_options() -> CliOptions {
   {
+    strict_taint: false,
     rules_root: Some("e2etests/rules/structural"),
     rule_file: None,
     patterns: [],
@@ -35,6 +37,7 @@ fn stream_order_scan_options() -> CliOptions {
 ///|
 fn no_match_stream_options(output_json : Bool) -> CliOptions {
   {
+    strict_taint: false,
     rules_root: Some("e2etests/rules/structural"),
     rule_file: None,
     patterns: [],
@@ -52,6 +55,7 @@ fn no_match_stream_options(output_json : Bool) -> CliOptions {
 ///|
 fn parse_warning_stream_options() -> CliOptions {
   {
+    strict_taint: false,
     rules_root: Some("e2etests/rules/structural"),
     rule_file: None,
     patterns: [],
@@ -73,6 +77,7 @@ fn stream_options_with_format(
   output_json : Bool,
 ) -> CliOptions {
   {
+    strict_taint: options.strict_taint,
     rules_root: options.rules_root,
     rule_file: options.rule_file,
     patterns: options.patterns,
@@ -92,6 +97,7 @@ fn scan_event_summary(event : ScanEvent) -> String {
   match event {
     Trace(trace) => "trace:\{render_scan_trace(trace)}"
     Warning(Parse(warning)) => "warning:\{warning.file}"
+    Warning(TaintIncomplete(diagnostic)) => "warning:\{diagnostic.file}"
     Warning(InvalidMoongrepSkipPayload(file, _)) => "warning:\{file}"
     Warning(Semantic(file~, ..)) => "warning:\{file}"
     Hit(hit) =>

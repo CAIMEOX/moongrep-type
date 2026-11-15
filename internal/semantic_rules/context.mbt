@@ -8,7 +8,7 @@ priv struct CheckContext {
   source : @semantic_source.Source
   facts_by_symbol : Map[String, Array[@semantic.Fact]]
   mutable_bindings : Map[@semantic.Range, Bool]
-  previous : Map[(Int, Int), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
+  previous : Map[(Int32, Int32), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
 }
 
 ///|

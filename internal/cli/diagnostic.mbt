@@ -42,18 +42,15 @@ fn append_cli_diagnostic_pattern(
   output : StringBuilder,
   value : String?,
 ) -> Unit {
-  match value {
-    Some(text) => {
-      let normalized = normalize_cli_diagnostic_pattern(text)
-      output.write_string("\n  pattern:")
-      if normalized != "" {
-        for line in normalized.split("\n") {
-          output.write_string("\n    ")
-          output.write_string(line.to_owned())
-        }
+  if value is Some(text) {
+    let normalized = normalize_cli_diagnostic_pattern(text)
+    output.write_string("\n  pattern:")
+    if normalized != "" {
+      for line in normalized.split("\n") {
+        output.write_string("\n    ")
+        output.write_string(line.to_owned())
       }
     }
-    _ => ()
   }
 }
 
@@ -109,6 +106,7 @@ fn cli_error_diagnostic(error : CliError) -> CliDiagnostic {
     RuleContent(diagnostic~) => diagnostic
     ScanInput(diagnostic~) => diagnostic
     Output(diagnostic~) => diagnostic
+    TaintIncomplete(diagnostic~) => diagnostic
   }
 }
 
@@ -122,6 +120,7 @@ fn cli_error_category(error : CliError) -> String {
     RuleContent(..) => "rule_content"
     ScanInput(..) => "scan_input"
     Output(..) => "output"
+    TaintIncomplete(..) => "taint_incomplete"
   }
 }
 
@@ -479,4 +478,16 @@ fn new_output_os_error(
   error : @os_error.OSError,
 ) -> CliError {
   new_output_error(destination, os_error_reason(error))
+}
+
+///|
+fn new_taint_incomplete_error() -> CliError {
+  TaintIncomplete(
+    diagnostic=new_cli_diagnostic(
+      "taint analysis incomplete",
+      None,
+      Some("see taint_incomplete warnings for skipped functions and rules"),
+      None,
+    ),
+  )
 }

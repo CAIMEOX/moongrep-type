@@ -1,5 +1,5 @@
 ///|
-fn Exporter::owner_name(self : Exporter, binder : Int) -> String raise {
+fn Exporter::owner_name(self : Exporter, binder : Int32) -> String raise {
   let w = self.wire
   let id = w.record(binder, 2)[0]
   if w.tag(id) == 2 {
@@ -13,7 +13,7 @@ fn Exporter::owner_name(self : Exporter, binder : Int) -> String raise {
 fn Exporter::implementation(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> Unit raise {
   let w = self.wire
   let tag = w.tag(id)
@@ -118,10 +118,10 @@ fn Exporter::implementation(
 }
 
 ///|
-fn Wire::hash_values(self : Wire, id : Int) -> Array[(String, Int)] raise {
+fn Wire::hash_values(self : Wire, id : Int32) -> Array[(String, Int32)] raise {
   let h = self.record(id, 3)
   let out = []
-  let seen : Map[Int, Bool] = Map([])
+  let seen : Map[Int32, Bool] = Map([])
   for head in self.record(h[1], -1) {
     let mut node = head
     while !(self.value(node) is Integer(0L)) {
@@ -141,7 +141,7 @@ fn Wire::hash_values(self : Wire, id : Int) -> Array[(String, Int)] raise {
 }
 
 ///|
-fn Exporter::load_type_environment(self : Exporter, id : Int) -> Unit raise {
+fn Exporter::load_type_environment(self : Exporter, id : Int32) -> Unit raise {
   let w = self.wire
   for (_, info) in w.hash_values(id) {
     let tag = w.tag(info)
@@ -170,7 +170,7 @@ fn Exporter::load_type_environment(self : Exporter, id : Int) -> Unit raise {
 }
 
 ///|
-fn Exporter::load_value_environment(self : Exporter, id : Int) -> Unit raise {
+fn Exporter::load_value_environment(self : Exporter, id : Int32) -> Unit raise {
   let w = self.wire
   let environment = w.record(id, 4)
   for (_, value) in w.hash_values(environment[0]) {
@@ -199,9 +199,9 @@ fn Exporter::declared_type(
   self : Exporter,
   ctx : Context,
   path : Json,
-  params : Int,
+  params : Int32,
   extension~ : Bool = false,
-) -> Int raise {
+) -> Int32 raise {
   let w = self.wire
   let kind = if extension {
     "Extenum"
@@ -243,7 +243,7 @@ fn Exporter::declared_type(
 fn Exporter::declaration(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> Unit raise {
   let w = self.wire
   let tag = w.tag(id)
@@ -325,7 +325,7 @@ fn Exporter::declaration(
 fn Exporter::method_declaration(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> Unit raise {
   let w = self.wire
   let d = w.record(id, 8)

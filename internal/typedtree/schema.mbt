@@ -4,8 +4,8 @@
 /// Field tokens: * = list, ? = option, # = array; x = nonsemantic payload.
 priv struct Shape {
   name : String
-  type_slot : Int
-  location_slot : Int
+  type_slot : Int32
+  location_slot : Int32
   fields : Array[String]
 }
 
@@ -59,7 +59,7 @@ let type_nodes : Array[Shape] = [
 ].map(shape)
 
 ///|
-fn schema_int(s : String) -> Int {
+fn schema_int(s : String) -> Int32 {
   let mut n = 0
   for c in s {
     if c != '-' {

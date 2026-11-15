@@ -13,7 +13,7 @@ let builtin_paths : Array[String] = [
 ]
 
 ///|
-fn Exporter::path(self : Exporter, id : Int) -> Json raise {
+fn Exporter::path(self : Exporter, id : Int32) -> Json raise {
   let w = self.wire
   match w.value(id) {
     Integer(_) =>
@@ -61,7 +61,7 @@ fn Exporter::path(self : Exporter, id : Int) -> Json raise {
 }
 
 ///|
-fn Exporter::qualified(self : Exporter, id : Int) -> Json raise {
+fn Exporter::qualified(self : Exporter, id : Int32) -> Json raise {
   let w = self.wire
   let tag = w.tag(id)
   let f = w.fields(id, tag, if tag <= 1 { 2 } else { 3 })
@@ -105,7 +105,7 @@ fn json_name(value : Json) -> String {
 }
 
 ///|
-fn Exporter::ident(self : Exporter, ctx : Context, id : Int) -> String raise {
+fn Exporter::ident(self : Exporter, ctx : Context, id : Int32) -> String raise {
   let w = self.wire
   match w.tag(id) {
     0 => {
@@ -173,7 +173,7 @@ fn Exporter::field_symbol(
   self : Exporter,
   owner : Json,
   name : String,
-  position : Int,
+  position : Int32,
 ) -> String {
   self.symbol(
     "field",
@@ -191,7 +191,7 @@ fn Exporter::constructor_symbol(
   self : Exporter,
   owner : Json,
   spelling : String,
-  tag : Int,
+  tag : Int32,
 ) -> String raise {
   let tag_value = self.constructor_tag(tag)
   let name = json_name(tag_value)
@@ -242,7 +242,7 @@ fn Exporter::constructor_symbol(
 }
 
 ///|
-fn Exporter::constructor_tag(self : Exporter, id : Int) -> Json raise {
+fn Exporter::constructor_tag(self : Exporter, id : Int32) -> Json raise {
   let w = self.wire
   match w.tag(id) {
     0 => {
@@ -279,7 +279,7 @@ fn Exporter::constructor_tag(self : Exporter, id : Int) -> Json raise {
 }
 
 ///|
-fn Exporter::typ(self : Exporter, ctx : Context, id : Int) -> Int raise {
+fn Exporter::typ(self : Exporter, ctx : Context, id : Int32) -> Int32 raise {
   let w = self.wire
   if w.value(id) is Integer(0L) {
     let key = ("error_recovery", -1)
@@ -388,8 +388,8 @@ fn Exporter::typ(self : Exporter, ctx : Context, id : Int) -> Int raise {
 fn Exporter::error(
   self : Exporter,
   ctx : Context,
-  id : Int,
-  visited : Array[Int],
+  id : Int32,
+  visited : Array[Int32],
 ) -> Json raise {
   if visited.contains(id) {
     raise Invalid("cyclic error link")
@@ -423,8 +423,8 @@ fn Exporter::error(
 ///|
 fn Exporter::result_path(
   self : Exporter,
-  type_id : Int,
-  visited~ : Array[Int] = [],
+  type_id : Int32,
+  visited~ : Array[Int32] = [],
 ) -> Json? raise {
   if visited.contains(type_id) {
     return None

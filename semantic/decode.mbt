@@ -22,7 +22,7 @@ fn string_value(value : Json, context : String) -> String raise SemanticError {
 }
 
 ///|
-fn integer_value(value : Json, context : String) -> Int raise SemanticError {
+fn integer_value(value : Json, context : String) -> Int32 raise SemanticError {
   guard value is Number(number, ..) else {
     raise Invalid("\{context} must be an integer")
   }
@@ -57,7 +57,7 @@ fn string_field(
 }
 
 ///|
-fn id_field(value : Json, context : String) -> Int raise SemanticError {
+fn id_field(value : Json, context : String) -> Int32 raise SemanticError {
   let id = integer_value(required(value, "id", context), "\{context}.id")
   if id < 0 {
     raise Invalid("\{context}.id must be nonnegative")
@@ -96,8 +96,8 @@ fn absolute_path(path : String) -> Bool {
 }
 
 ///|
-fn source_line_lengths(text : String) -> Array[Int] {
-  let lengths : Array[Int] = []
+fn source_line_lengths(text : String) -> Array[Int32] {
+  let lengths : Array[Int32] = []
   let mut length = 0
   let mut after_cr = false
   for char in text {
@@ -121,7 +121,7 @@ fn source_line_lengths(text : String) -> Array[Int] {
 }
 
 ///|
-fn valid_position(position : Position, lengths : Array[Int]) -> Bool {
+fn valid_position(position : Position, lengths : Array[Int32]) -> Bool {
   position.line >= 1 &&
   position.line <= lengths.length() &&
   position.column >= 1 &&
@@ -141,7 +141,7 @@ fn optional_field(value : Json, key : String) -> Json? {
 fn validate_type_reference(
   value : Json,
   context : String,
-  type_ids : Map[Int, Int],
+  type_ids : Map[Int32, Int32],
 ) -> Unit raise SemanticError {
   let id = integer_value(value, context)
   if !type_ids.contains(id) {
@@ -153,7 +153,7 @@ fn validate_type_reference(
 fn validate_symbol_reference(
   value : Json,
   context : String,
-  symbol_ids : Map[String, Int],
+  symbol_ids : Map[String, Int32],
 ) -> Unit raise SemanticError {
   let id = string_value(value, context)
   if !symbol_ids.contains(id) {
@@ -165,7 +165,7 @@ fn validate_symbol_reference(
 fn validate_error_reference(
   value : Json,
   context : String,
-  type_ids : Map[Int, Int],
+  type_ids : Map[Int32, Int32],
 ) -> Unit raise SemanticError {
   if value is Null {
     return
@@ -182,7 +182,7 @@ fn validate_error_reference(
 ///|
 fn validate_type_references(
   info : TypeInfo,
-  type_ids : Map[Int, Int],
+  type_ids : Map[Int32, Int32],
 ) -> Unit raise SemanticError {
   let context = "type \{info.id}"
   match info.kind {
@@ -224,9 +224,9 @@ fn validate_type_references(
 ///|
 fn validate_detail_references(
   details : Json,
-  id : Int,
-  type_ids : Map[Int, Int],
-  symbol_ids : Map[String, Int],
+  id : Int32,
+  type_ids : Map[Int32, Int32],
+  symbol_ids : Map[String, Int32],
 ) -> Unit raise SemanticError {
   let context = "fact \{id}.details"
   for
@@ -312,8 +312,8 @@ pub fn Index::from_json(
     raise Invalid("unsupported position encoding: \{encoding}")
   }
   let source_entries : Array[SourceFile] = []
-  let source_ids : Map[String, Int] = Map([])
-  let line_lengths : Array[Array[Int]] = []
+  let source_ids : Map[String, Int32] = Map([])
+  let line_lengths : Array[Array[Int32]] = []
   for item in array_value(required(value, "sources", "index"), "sources") {
     let path = string_field(item, "path", "source")
     let text = string_field(item, "text", "source")
@@ -328,7 +328,7 @@ pub fn Index::from_json(
     line_lengths.push(source_line_lengths(text))
   }
   let type_entries : Array[TypeInfo] = []
-  let type_ids : Map[Int, Int] = Map([])
+  let type_ids : Map[Int32, Int32] = Map([])
   for item in array_value(required(value, "types", "index"), "types") {
     let id = id_field(item, "type")
     let kind = string_field(item, "kind", "type")
@@ -342,7 +342,7 @@ pub fn Index::from_json(
     validate_type_references(info, type_ids)
   }
   let symbol_entries : Array[SymbolInfo] = []
-  let symbol_ids : Map[String, Int] = Map([])
+  let symbol_ids : Map[String, Int32] = Map([])
   for item in array_value(required(value, "symbols", "index"), "symbols") {
     let id = string_field(item, "id", "symbol")
     let kind = string_field(item, "kind", "symbol")
@@ -358,9 +358,9 @@ pub fn Index::from_json(
     symbol_entries.push({ id, kind, name, identity, raw: item, })
   }
   let fact_entries : Array[Fact] = []
-  let fact_ids : Map[Int, Bool] = Map([])
-  let ranges : Map[Range, Array[Int]] = Map([])
-  let file_facts : Map[String, Array[Int]] = Map([])
+  let fact_ids : Map[Int32, Bool] = Map([])
+  let ranges : Map[Range, Array[Int32]] = Map([])
+  let file_facts : Map[String, Array[Int32]] = Map([])
   for item in array_value(required(value, "facts", "index"), "facts") {
     let id = id_field(item, "fact")
     if fact_ids.contains(id) {

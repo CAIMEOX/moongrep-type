@@ -19,10 +19,10 @@ fn source_fixture(text : String, facts : Array[Json]) -> @semantic.Index raise {
 
 ///|
 fn x_fact(
-  id : Int,
+  id : Int32,
   kind : String,
   package_name : String,
-  type_id : Int,
+  type_id : Int32,
 ) -> Json {
   {
     "id": Json(id),
@@ -55,7 +55,7 @@ fn x_reference(root : @untyped_cst.CstNode) -> @untyped_cst.CstNode {
 }
 
 ///|
-fn association_ids(value : Association) -> (String, Array[Int]) {
+fn association_ids(value : Association) -> (String, Array[Int32]) {
   match value {
     Unmatched => ("unmatched", [])
     Associated(facts) => ("associated", facts.map(f => f.id))

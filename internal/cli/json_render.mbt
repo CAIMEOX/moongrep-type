@@ -1,21 +1,24 @@
 ///|
+#derive(ToJson)
 priv struct JsonScanPosition {
   line : Int32
   column : Int32
-} derive(ToJson)
+}
 
 ///|
+#derive(ToJson)
 priv struct JsonScanRange {
   start : JsonScanPosition
   end : JsonScanPosition
-} derive(ToJson)
+}
 
 ///|
+#derive(ToJson)
 priv struct JsonSourceContextLine {
   line : Int32
   text : String
   is_match : Bool
-} derive(ToJson)
+}
 
 ///|
 priv struct JsonScanFinding {
@@ -88,6 +91,14 @@ fn render_scan_warning_json(warning : ScanWarning) -> String {
       if parse_warning.block_start_line is Some(line) {
         record["block_start_line"] = ToJson::to_json(line)
       }
+    }
+    TaintIncomplete(diagnostic) => {
+      record["category"] = Json::string("taint_incomplete")
+      record["message"] = Json::string(scan_warning_message(warning))
+      record["file"] = Json::string(diagnostic.file)
+      record["range"] = ToJson::to_json(json_scan_range(diagnostic.loc))
+      record["rule_ids"] = ToJson::to_json(diagnostic.rule_ids)
+      record["reason"] = Json::string(diagnostic.reason)
     }
     InvalidMoongrepSkipPayload(file, loc) => {
       record["category"] = Json::string("invalid_skip_payload")

@@ -83,6 +83,8 @@ pub async fn run_cli(
     CliError::RuleContent(..) as err => exit_with_cli_error(err, output_json)
     CliError::ScanInput(..) as err => exit_with_cli_error(err, output_json)
     CliError::Output(..) as err => exit_with_cli_error(err, output_json)
+    CliError::TaintIncomplete(..) as err =>
+      exit_with_cli_error(err, output_json)
     err => exit_with_cli_error(CliError::internal("\{err}"), output_json)
   }
 }

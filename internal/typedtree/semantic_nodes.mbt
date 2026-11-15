@@ -1,5 +1,9 @@
 ///|
-fn Exporter::shape_for(self : Exporter, kind : String, id : Int) -> Shape raise {
+fn Exporter::shape_for(
+  self : Exporter,
+  kind : String,
+  id : Int32,
+) -> Shape raise {
   let shapes = match kind {
     "e" => expressions
     "p" => patterns
@@ -19,8 +23,8 @@ fn Exporter::node_type(
   self : Exporter,
   ctx : Context,
   kind : String,
-  id : Int,
-) -> Int raise {
+  id : Int32,
+) -> Int32 raise {
   let shape = self.shape_for(kind, id)
   let f = self.wire.fields(id, self.wire.tag(id), shape.fields.length())
   if shape.type_slot >= 0 {
@@ -40,9 +44,9 @@ fn Exporter::node_type(
 ///|
 fn Exporter::var_parts(
   self : Exporter,
-  id : Int,
+  id : Int32,
   actual~ : Bool = false,
-) -> (Int, Int, Array[(String, Int)]) raise {
+) -> (Int32, Int32, Array[(String, Int32)]) raise {
   let w = self.wire
   match w.tag(id) {
     0 => {
@@ -70,7 +74,7 @@ fn Exporter::var_parts(
 }
 
 ///|
-fn Exporter::variable(self : Exporter, ctx : Context, id : Int) -> Unit raise {
+fn Exporter::variable(self : Exporter, ctx : Context, id : Int32) -> Unit raise {
   let (ident, loc, aliases) = self.var_parts(id)
   let details = aliases.map(pair => (pair.0, str(self.ident(ctx, pair.1))))
   self.fact(
@@ -88,8 +92,8 @@ fn Exporter::variable(self : Exporter, ctx : Context, id : Int) -> Unit raise {
 fn Exporter::binding(
   self : Exporter,
   ctx : Context,
-  id : Int,
-  ty : Int?,
+  id : Int32,
+  ty : Int32?,
   name : String,
   details~ : Array[(String, Json)] = [],
 ) -> Unit raise {
@@ -125,7 +129,7 @@ fn Exporter::binding(
 fn Exporter::callee(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> (String?, String) raise {
   let tag = self.wire.tag(id)
   if tag == 1 || tag == 3 {
@@ -148,8 +152,8 @@ fn Exporter::callee(
 fn Exporter::type_name(
   self : Exporter,
   ctx : Context,
-  id : Int,
-) -> (String, Int) raise {
+  id : Int32,
+) -> (String, Int32) raise {
   let w = self.wire
   match w.tag(id) {
     0 => {
@@ -183,7 +187,7 @@ fn Exporter::type_name(
 fn Exporter::constraints(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> Json raise {
   let w = self.wire
   Json::array(
@@ -204,7 +208,7 @@ fn Exporter::constraints(
 fn Exporter::substitution(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
 ) -> Json raise {
   let w = self.wire
   let f = w.record(id, 2)
@@ -233,7 +237,7 @@ fn Exporter::substitution(
 ///|
 /// Opaque auxiliary data stays structural; it never runs a custom decoder or
 /// masquerades as a typed node. References beyond the display depth are explicit.
-fn Exporter::raw(self : Exporter, id : Int, depth : Int) -> Json raise {
+fn Exporter::raw(self : Exporter, id : Int32, depth : Int32) -> Json raise {
   if depth <= 0 {
     return obj([("wire_reference", num(id))])
   }
@@ -262,7 +266,7 @@ fn Exporter::raw(self : Exporter, id : Int, depth : Int) -> Json raise {
 fn Exporter::enqueue(
   self : Exporter,
   kind : String,
-  id : Int,
+  id : Int32,
   ctx : Context,
 ) -> Unit {
   self.pending.push((kind, id, ctx))
@@ -272,7 +276,7 @@ fn Exporter::enqueue(
 fn Exporter::children(
   self : Exporter,
   ctx : Context,
-  f : Array[Int],
+  f : Array[Int32],
   kinds : Array[String],
 ) -> Unit raise {
   if f.length() != kinds.length() {
@@ -288,7 +292,7 @@ fn Exporter::semantic(
   self : Exporter,
   ctx : Context,
   family : String,
-  id : Int,
+  id : Int32,
 ) -> Unit raise {
   let w = self.wire
   let shape = self.shape_for(family, id)

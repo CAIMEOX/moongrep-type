@@ -31,7 +31,7 @@ pub fn apply_rules(
   let report : RuleReport = { findings: [], warnings: [], }
   for rule in rules {
     guard rule.definition is Semantic(definition) else { continue }
-    let reported : Map[(Int, Int), Bool] = Map([])
+    let reported : Map[(Int32, Int32), Bool] = Map([])
     let covered : Array[@basic.Location] = []
     for candidate in candidates {
       for pattern_index, pattern in definition.patterns {

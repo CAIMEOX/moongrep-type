@@ -81,14 +81,14 @@ fn new_semantics_input_error(source : String, reason : String) -> CliError {
 async fn collect_semantics_process(
   executable : String,
   args : Array[String],
-) -> (Int, String, String) {
+) -> (Int32, String, String) {
   let (status, stdout, stderr) = @process.collect_output(executable, args)
   (status, stdout.text(), stderr.text())
 }
 
 ///|
 async fn semantic_compiler_version(
-  run_process : async (String, Array[String]) -> (Int, String, String),
+  run_process : async (String, Array[String]) -> (Int32, String, String),
 ) -> String {
   let (version_status, version_output, version_error) = run_process("moonc", [
     "-v",
@@ -117,7 +117,7 @@ async fn semantic_compiler_version(
 ///|
 async fn semantic_index_output(
   options : SemanticsOptions,
-  run_process : async (String, Array[String]) -> (Int, String, String),
+  run_process : async (String, Array[String]) -> (Int32, String, String),
 ) -> (String, String) {
   let compiler_version = semantic_compiler_version(run_process)
   let args = ["--project", options.project]

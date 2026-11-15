@@ -3,9 +3,9 @@
 /// parameters in the calling function's scope.
 fn Exporter::wire_path(
   self : Exporter,
-  id : Int,
+  id : Int32,
   result~ : Bool = false,
-  seen~ : Array[Int] = [],
+  seen~ : Array[Int32] = [],
 ) -> Json? raise {
   if seen.contains(id) {
     return None

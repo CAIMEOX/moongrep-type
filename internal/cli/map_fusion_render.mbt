@@ -18,22 +18,26 @@ fn semantic_render_location(location : @semantic.Range) -> @basic.Location {
 }
 
 ///|
+#derive(FromJson)
 priv struct DisplayTypeParameter {
   owner : String
-  index : Int
+  index : Int32
   name : String
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct MapFusionTypeFlow {
   input_element : Json
   intermediate_element : Json
   output_element : Json
-} derive(FromJson)
+}
 
 ///|
-fn type_parameter_names(index : @semantic.Index) -> Map[(String, Int), String] {
-  let names : Map[(String, Int), String] = Map([])
+fn type_parameter_names(
+  index : @semantic.Index,
+) -> Map[(String, Int32), String] {
+  let names : Map[(String, Int32), String] = Map([])
   for info in index.types() {
     if info.kind == "parameter" {
       let parameter : DisplayTypeParameter = @json.from_json(info.raw) catch {
@@ -60,7 +64,7 @@ fn type_path_text(path : Json) -> String {
 
 ///|
 /// Presentation only: equality is established by the rule's structural types.
-fn type_text(shape : Json, names : Map[(String, Int), String]) -> String {
+fn type_text(shape : Json, names : Map[(String, Int32), String]) -> String {
   match shape {
     { "kind": "builtin", "name": String(name), .. } => name
     {

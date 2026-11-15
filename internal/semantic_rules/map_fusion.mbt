@@ -151,7 +151,7 @@ pub fn find_map_fusion(
   source : @semantic_source.Source,
 ) -> MapFusionReport raise {
   let chains : Array[(MapCall, MapCall)] = []
-  let seen : Map[(Int, Int), Bool] = Map([])
+  let seen : Map[(Int32, Int32), Bool] = Map([])
   @cst.visit_expr_match_candidate_roots(source.root(), fn(candidate) {
     if candidate is Direct(node) &&
       map_call(node) is Some(outer) &&

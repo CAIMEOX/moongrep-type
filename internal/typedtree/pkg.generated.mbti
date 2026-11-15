@@ -3,15 +3,17 @@ package "moonbit-community/moongrep/internal/typedtree"
 
 import {
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub fn extract(String, Array[Source], Array[Package]) -> Json raise
+pub fn extract(String, Array[Source], Array[Package]) -> @json.Json raise
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror SchemaError {
   Invalid(String)
-} derive(@debug.Debug)
+}
 pub fn SchemaError::output(Self, &Logger) -> Unit
 pub fn SchemaError::to_repr(Self) -> @debug.Repr
 pub fn SchemaError::to_string(Self) -> String

@@ -151,8 +151,10 @@ block 表达式候选。body 内的语句组成 sequence 候选，其中的每�
 `fn sample { a; b }` 的函数体容器，但会匹配 `fn sample { { a; b } }` 中的
 嵌套 block。该显式 block 的 finding range 包含花括号。
 
-普通正向 pattern、`patterns-not`、`then` target 遍历和 expression query
-都使用同一套候选及 range 规则。
+普通扫描、`then` target、`inside-toplevel` target 和 expression query
+都使用同一套候选边界及 range 规则，也适用于嵌套闭包。选中的函数体仍是
+sequence 容器，不会因此把外层花括号暴露为显式 block 候选。空 sequence
+和选中的部分 continuation 保留其精确的语句边界。
 
 ### 省略 body 的 let shape
 
@@ -659,6 +661,11 @@ patterns:
 
 同一条规则中的所有 pattern 共享同一个规则 id 和 `description`。
 
+在同一个解析源码块中，结构 finding 按文件、规则 id 和完整的起止源码范围保持
+唯一。首次成功的 finding 保留其 `pattern_index`、description 和发布顺序。
+不同规则或不同范围仍分别报告，独立解析的源码块各自保留结果。文本和 JSON
+输出使用相同的 finding。
+
 ### `patterns-not`
 
 `patterns-not` 是结构规则的负向约束。它的条目使用与 `patterns` 相同的
@@ -934,6 +941,18 @@ YAML 污点规则目前没有过程间传播。如果 tainted 数据传入的 he
 
 - 如果一个调用同时匹配 source 和 sanitizer，source 返回污点会产生
 - 如果一个调用同时匹配 sink 和 sanitizer，sink 会使用 sanitizer 效果影响后续读取之前的污点状态进行报告
+
+### 控制流与分析不完整
+
+分析保留短路路径、同时循环更新、continue 参数及退出时执行的 defer。
+errdefer 仅在异常退出时执行。整体污染会传给字段及数组元素。已知字段和常量索引
+支持精确覆盖及净化，保留兄弟路径；动态写入使用保守语义，动态索引净化不清除不唯一目标。
+不引入隐式控制流污点或通用堆别名分析。
+
+不支持的可执行语法跳过受影响函数，输出 `taint_incomplete` warning。
+SCC 在 64 轮内未收敛时跳过该函数对应规则的全部结果，不发布部分 finding。
+其他函数和规则继续扫描。`scan --strict-taint` 在扫描完成后以状态码 8 表示分析不完整，
+包括妨碍污点分析的解析失败。未知调用不推断异常，当前 YAML 规则不声明异常调用模型。
 
 ## 错误条件
 

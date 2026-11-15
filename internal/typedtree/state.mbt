@@ -20,12 +20,12 @@ priv struct Context {
   root : String
   owner : String
   file : String
-  base_line : Int
+  base_line : Int32
   generated : Bool
   origin_known : Bool
   parent_type : Json?
-  parent_semtype : Int?
-  field_position : Int
+  parent_semtype : Int32?
+  field_position : Int32
 }
 
 ///|
@@ -34,17 +34,17 @@ priv struct Exporter {
   sources : Map[String, String]
   source_aliases : Map[String, String]
   types : Array[Json]
-  type_ids : Map[(String, Int), Int]
-  builtin_ids : Map[String, Int]
+  type_ids : Map[(String, Int32), Int32]
+  builtin_ids : Map[String, Int32]
   symbols : Array[Json]
   symbol_ids : Map[String, String]
   facts : Array[Json]
-  type_env : Map[String, Int]
-  global_values : Map[String, Int]
-  constructors : Array[Int]
+  type_env : Map[String, Int32]
+  global_values : Map[String, Int32]
+  constructors : Array[Int32]
   constructor_definitions : Map[String, Bool]
-  active : Map[(String, Int), Bool]
-  pending : Array[(String, Int, Context)]
+  active : Map[(String, Int32), Bool]
+  pending : Array[(String, Int32, Context)]
 }
 
 ///|
@@ -53,7 +53,7 @@ fn obj(fields : Array[(String, Json)]) -> Json {
 }
 
 ///|
-fn num(n : Int) -> Json {
+fn num(n : Int32) -> Json {
   Json::number(n.to_double())
 }
 
@@ -68,7 +68,7 @@ fn bool(b : Bool) -> Json {
 }
 
 ///|
-fn nullable_id(id : Int?) -> Json {
+fn nullable_id(id : Int32?) -> Json {
   match id {
     Some(id) => num(id)
     None => Json::null()
@@ -84,7 +84,7 @@ fn nullable_symbol(id : String?) -> Json {
 }
 
 ///|
-fn Exporter::location(self : Exporter, ctx : Context, id : Int) -> Json raise {
+fn Exporter::location(self : Exporter, ctx : Context, id : Int32) -> Json raise {
   if id < 0 || !ctx.origin_known || ctx.base_line < 0 {
     return Json::null()
   }
@@ -108,7 +108,7 @@ fn Exporter::location(self : Exporter, ctx : Context, id : Int) -> Json raise {
   if !self.sources.contains(file) {
     raise Invalid("source text missing for \{file}")
   }
-  fn position(p : Int) -> Json {
+  fn position(p : Int32) -> Json {
     obj([
       ("line", num(ctx.base_line + (p >> 16))),
       ("column", num((p & 65535) + 1)),
@@ -121,7 +121,7 @@ fn Exporter::location(self : Exporter, ctx : Context, id : Int) -> Json raise {
 fn Exporter::context(
   self : Exporter,
   ctx : Context,
-  base : Int,
+  base : Int32,
   owner : String,
   generated : Bool,
 ) -> Context raise {
@@ -145,8 +145,8 @@ fn Exporter::fact(
   ctx : Context,
   kind : String,
   node : String,
-  loc : Int,
-  ty : Int?,
+  loc : Int32,
+  ty : Int32?,
   symbol : String?,
   details~ : Array[(String, Json)] = [],
 ) -> Unit raise {
@@ -160,7 +160,7 @@ fn Exporter::fact_at(
   kind : String,
   node : String,
   location : Json,
-  ty : Int?,
+  ty : Int32?,
   symbol : String?,
   details~ : Array[(String, Json)] = [],
 ) -> Unit {
@@ -215,7 +215,7 @@ fn Exporter::symbol(
 }
 
 ///|
-fn Exporter::builtin(self : Exporter, name : String) -> Int {
+fn Exporter::builtin(self : Exporter, name : String) -> Int32 {
   if self.builtin_ids.get(name) is Some(id) {
     return id
   }
@@ -239,7 +239,7 @@ fn Exporter::builtin(self : Exporter, name : String) -> Int {
 ///|
 fn select_name(
   names : Array[String],
-  index : Int,
+  index : Int32,
   context : String,
 ) -> String raise {
   guard names.get(index) is Some(name) else {

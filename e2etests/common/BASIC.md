@@ -3,7 +3,7 @@
 ## moongrep help
 
 The top-level help introduces the command, lists every subcommand, and shows
-the global help option.
+the global help and version options.
 
 ```mooncram moonbit-community/moongrep
 $ moonx moonbit-community/moongrep help
@@ -21,7 +21,20 @@ Commands:
   help        Print help for the subcommand(s).
 
 Options:
-  -h, --help  Show help information.
+  -h, --help     Show help information.
+  -V, --version  Show version information.
+```
+
+## moongrep --version
+
+The version options print the module version without requiring a subcommand.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep --version
+0.3.11
+
+$ moonx moonbit-community/moongrep -V
+0.3.11
 ```
 
 ## moongrep docs
@@ -30,8 +43,8 @@ The docs registry lists the English rule and CLI specifications in that order.
 
 ```mooncram moonbit-community/moongrep
 $ moonx moonbit-community/moongrep docs --list
-RuleSpec	YAML rule keys, validation, and matcher semantics.
-CLISpec	Command-line parsing, scanning, output, diagnostics, and exit behavior.
+"RuleSpec\tYAML rule keys, validation, and matcher semantics." (escaped)
+"CLISpec\tCommand-line parsing, scanning, output, diagnostics, and exit behavior." (escaped)
 ```
 
 ## moongrep lint --help
@@ -50,6 +63,7 @@ Arguments:
 Options:
   -h, --help                         Show help information.
   --verbose                          Write loaded rule ids and traversal progress to stderr.
+  --strict-taint                     Exit with code 8 after scanning if taint analysis is incomplete.
   --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
   -r, --rules <rules>                Directory containing YAML rules.
   --rule <rule>                      Single YAML rule file.
@@ -78,6 +92,7 @@ Arguments:
 Options:
   -h, --help                         Show help information.
   --verbose                          Write loaded rule ids and traversal progress to stderr.
+  --strict-taint                     Exit with code 8 after scanning if taint analysis is incomplete.
   --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
   -r, --rules <rules>                Directory containing YAML rules. [default: ./.moongrep/rules]
   --rule <rule>                      Single YAML rule file.

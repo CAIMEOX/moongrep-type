@@ -1,11 +1,12 @@
 ///|
 /// Invalid or incompatible semantic input is never treated as an empty index.
+#derive(Debug)
 pub(all) suberror SemanticError {
   Invalid(String)
   StaleSource(String)
   MissingSource(String)
   CompilerMismatch(expected~ : String, found~ : String)
-} derive(Debug)
+}
 
 ///|
 pub impl Show for SemanticError with fn output(self, logger) {
@@ -26,55 +27,61 @@ pub impl Show for SemanticError with fn output(self, logger) {
 
 ///|
 /// One-based line and Unicode scalar column. Range ends are exclusive.
+#derive(Eq, Hash, Debug)
 pub(all) struct Position {
-  line : Int
-  column : Int
-} derive(Eq, Hash, Debug)
+  line : Int32
+  column : Int32
+}
 
 ///|
 /// The file is the original absolute path supplied by the semantic reader.
+#derive(Eq, Hash, Debug)
 pub(all) struct Range {
   file : String
   start : Position
   end : Position
-} derive(Eq, Hash, Debug)
+}
 
 ///|
+#derive(Debug)
 pub(all) struct SourceFile {
   path : String
   text : String
-} derive(Debug)
+}
 
 ///|
 /// `raw` retains the reader's structured type fields, including extensions.
+#derive(Debug)
 pub(all) struct TypeInfo {
-  id : Int
+  id : Int32
   kind : String
   raw : Json
-} derive(Debug)
+}
 
 ///|
+#derive(Debug)
 pub(all) struct SymbolInfo {
   id : String
   kind : String
   name : String
   identity : Json
   raw : Json
-} derive(Debug)
+}
 
 ///|
 /// Multiple compiler facts may describe the same source range.
+#derive(Debug)
 pub(all) struct Fact {
-  id : Int
+  id : Int32
   package_name : String
   kind : String
   node_kind : String
   location : Range?
-  type_id : Int?
+  type_id : Int32?
   symbol_id : String?
   details : Json
   raw : Json
-} derive(Debug)
+}
 
 ///|
 /// A validated snapshot of the compiler's facts and their source contents.
@@ -85,11 +92,11 @@ pub struct Index {
   priv type_entries : Array[TypeInfo]
   priv symbol_entries : Array[SymbolInfo]
   priv fact_entries : Array[Fact]
-  priv source_ids : Map[String, Int]
-  priv type_ids : Map[Int, Int]
-  priv symbol_ids : Map[String, Int]
-  priv ranges : Map[Range, Array[Int]]
-  priv file_facts : Map[String, Array[Int]]
+  priv source_ids : Map[String, Int32]
+  priv type_ids : Map[Int32, Int32]
+  priv symbol_ids : Map[String, Int32]
+  priv ranges : Map[Range, Array[Int32]]
+  priv file_facts : Map[String, Array[Int32]]
 }
 
 ///|
@@ -128,7 +135,7 @@ pub fn Index::source(self : Index, path : String) -> SourceFile? {
 }
 
 ///|
-pub fn Index::type_info(self : Index, id : Int) -> TypeInfo? {
+pub fn Index::type_info(self : Index, id : Int32) -> TypeInfo? {
   self.type_ids.get(id).map(index => self.type_entries[index])
 }
 

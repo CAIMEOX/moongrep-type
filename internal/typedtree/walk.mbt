@@ -2,7 +2,7 @@
 fn Exporter::record_children(
   self : Exporter,
   ctx : Context,
-  id : Int,
+  id : Int32,
   fields : Array[String],
 ) -> Unit raise {
   self.children(ctx, self.wire.record(id, fields.length()), fields)
@@ -12,7 +12,7 @@ fn Exporter::record_children(
 fn Exporter::step(
   self : Exporter,
   kind : String,
-  id : Int,
+  id : Int32,
   ctx : Context,
 ) -> Unit raise {
   let w = self.wire

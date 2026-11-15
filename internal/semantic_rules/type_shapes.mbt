@@ -1,5 +1,5 @@
 ///|
-fn reference_id(value : Json) -> Int? {
+fn reference_id(value : Json) -> Int32? {
   guard value is Number(number, ..) && number >= 0.0 && number <= 2147483647.0 else {
     return None
   }
@@ -16,8 +16,8 @@ fn reference_id(value : Json) -> Int? {
 /// for unresolved variables are not evidence of type equality.
 fn type_shape(
   index : @semantic.Index,
-  id : Int,
-  ancestors~ : Array[Int] = [],
+  id : Int32,
+  ancestors~ : Array[Int32] = [],
 ) -> Json? {
   if ancestors.length() >= 128 || ancestors.contains(id) {
     return None
@@ -86,7 +86,7 @@ fn type_shape(
 fn type_shapes(
   index : @semantic.Index,
   ids : Array[Json],
-  ancestors : Array[Int],
+  ancestors : Array[Int32],
 ) -> Array[Json]? {
   let result = []
   for value in ids {
@@ -103,7 +103,7 @@ fn type_shapes(
 fn error_shape(
   index : @semantic.Index,
   error : Json,
-  ancestors : Array[Int],
+  ancestors : Array[Int32],
 ) -> Json? {
   match error {
     { "kind": "none", .. } => Some({ "kind": "none" })

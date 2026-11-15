@@ -1,7 +1,7 @@
 ///|
 priv struct CollectionRuleFixture {
   text : String
-  end_offset : Int
+  end_offset : Int32
   types : Array[Json]
   symbols : Array[Json]
   facts : Array[Json]
@@ -22,10 +22,10 @@ fn collection_fixture(
   inner : String,
   outer_owner : String,
   outer : String,
-  receiver_type : Int,
-  intermediate_type : Int,
-  result_type : Int,
-  callback_type~ : Int = 5,
+  receiver_type : Int32,
+  intermediate_type : Int32,
+  result_type : Int32,
+  callback_type~ : Int32 = 5,
 ) -> CollectionRuleFixture {
   let expression = "input.\{inner}(factory()).\{outer}()"
   let text = "fn sample() { \{expression} }"

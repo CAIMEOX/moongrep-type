@@ -1,16 +1,16 @@
 ///|
 priv struct Reader {
   bytes : Bytes
-  mut offset : Int
-  limit : Int
+  mut offset : Int32
+  limit : Int32
   values : Array[Value]
-  objects : Array[Int]
-  pending : Array[(Int, Int)]
-  mut field_slots : Int
+  objects : Array[Int32]
+  pending : Array[(Int32, Int32)]
+  mut field_slots : Int32
 }
 
 ///|
-fn Reader::take(self : Reader, size : Int) -> Bytes raise DecodeError {
+fn Reader::take(self : Reader, size : Int32) -> Bytes raise DecodeError {
   if size < 0 || size > self.limit - self.offset {
     raise Invalid(offset=self.offset, reason="truncated value")
   }
@@ -20,7 +20,7 @@ fn Reader::take(self : Reader, size : Int) -> Bytes raise DecodeError {
 }
 
 ///|
-fn Reader::byte(self : Reader) -> Int raise DecodeError {
+fn Reader::byte(self : Reader) -> Int32 raise DecodeError {
   if self.offset >= self.limit {
     raise Invalid(offset=self.offset, reason="truncated value")
   }
@@ -32,7 +32,7 @@ fn Reader::byte(self : Reader) -> Int raise DecodeError {
 ///|
 fn Reader::word(
   self : Reader,
-  width : Int,
+  width : Int32,
   little~ : Bool = false,
 ) -> Int64 raise DecodeError {
   let bytes = self.take(width)
@@ -45,7 +45,7 @@ fn Reader::word(
 }
 
 ///|
-fn Reader::count(self : Reader, width : Int) -> Int raise DecodeError {
+fn Reader::count(self : Reader, width : Int32) -> Int32 raise DecodeError {
   let value = self.word(width)
   if value < 0L || value > 2147483647L {
     raise Invalid(
@@ -61,7 +61,7 @@ fn Reader::add(
   self : Reader,
   value : Value,
   shared~ : Bool,
-) -> Int raise DecodeError {
+) -> Int32 raise DecodeError {
   // Every new value consumes at least one input byte. Bound allocations by the
   // checked payload, not by untrusted counts in the header.
   if self.values.length() >= self.limit {
@@ -76,7 +76,11 @@ fn Reader::add(
 }
 
 ///|
-fn Reader::block(self : Reader, tag : Int, size : Int) -> Int raise DecodeError {
+fn Reader::block(
+  self : Reader,
+  tag : Int32,
+  size : Int32,
+) -> Int32 raise DecodeError {
   if size < 0 || size > self.limit - self.offset {
     raise Invalid(
       offset=self.offset,
@@ -102,12 +106,12 @@ fn Reader::block(self : Reader, tag : Int, size : Int) -> Int raise DecodeError 
 }
 
 ///|
-fn Reader::string(self : Reader, size : Int) -> Int raise DecodeError {
+fn Reader::string(self : Reader, size : Int32) -> Int32 raise DecodeError {
   self.add(ByteString(self.take(size)), shared=true)
 }
 
 ///|
-fn Reader::shared(self : Reader, width : Int) -> Int raise DecodeError {
+fn Reader::shared(self : Reader, width : Int32) -> Int32 raise DecodeError {
   let distance = self.count(width)
   if distance <= 0 || distance > self.objects.length() {
     raise Invalid(
@@ -121,9 +125,9 @@ fn Reader::shared(self : Reader, width : Int) -> Int raise DecodeError {
 ///|
 fn Reader::float_array(
   self : Reader,
-  width : Int,
+  width : Int32,
   little~ : Bool,
-) -> Int raise DecodeError {
+) -> Int32 raise DecodeError {
   let count = self.count(width)
   if count > (self.limit - self.offset) / 8 {
     raise Invalid(offset=self.offset, reason="truncated float array")
@@ -136,7 +140,7 @@ fn Reader::float_array(
 }
 
 ///|
-fn Reader::custom(self : Reader, sized~ : Bool) -> Int raise DecodeError {
+fn Reader::custom(self : Reader, sized~ : Bool) -> Int32 raise DecodeError {
   let name = StringBuilder()
   while true {
     let byte = self.byte()
@@ -191,7 +195,7 @@ fn Reader::custom(self : Reader, sized~ : Bool) -> Int raise DecodeError {
 }
 
 ///|
-fn Reader::value(self : Reader) -> Int raise DecodeError {
+fn Reader::value(self : Reader) -> Int32 raise DecodeError {
   let code = self.byte()
   if code >= 0x80 {
     return self.block(code & 15, (code >> 4) & 7)

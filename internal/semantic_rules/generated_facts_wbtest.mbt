@@ -7,7 +7,7 @@ fn mark_generated_fact(fact : Json, generated : Json) -> Unit {
 }
 
 ///|
-fn duplicate_generated_fact(fact : Json, id : Int) -> Json {
+fn duplicate_generated_fact(fact : Json, id : Int32) -> Json {
   guard fact is Object(fields) else { abort("fixture fact") }
   let copy = Json::object(fields.copy())
   put(copy, "id", Json(id))

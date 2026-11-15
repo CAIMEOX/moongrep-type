@@ -1,10 +1,12 @@
 ///|
+#derive(FromJson)
 priv struct SourceInput {
   path : String
   text : String
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct PackageInput {
   key : String
   name : String
@@ -12,22 +14,23 @@ priv struct PackageInput {
   artifact : String
   import_kind : String
   source_aliases : Array[(String, String)]
-} derive(FromJson)
+}
 
 ///|
+#derive(FromJson)
 priv struct Manifest {
   compiler_version : String
   sources : Array[SourceInput]
   packages : Array[PackageInput]
-} derive(FromJson)
+}
 
 ///|
 #cfg(target="native")
-extern "c" fn exit_process(code : Int) -> Unit = "exit"
+extern "c" fn exit_process(code : Int32) -> Unit = "exit"
 
 ///|
 #cfg(target="wasm")
-fn exit_process(code : Int) -> Unit = "moonbitlang/async" "runtime/exit"
+fn exit_process(code : Int32) -> Unit = "moonbitlang/async" "runtime/exit"
 
 ///|
 async fn run(args : Array[String]) -> Unit {

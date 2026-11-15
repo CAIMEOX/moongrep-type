@@ -43,18 +43,20 @@ fn map_fusion_cli_options(
 }
 
 ///|
+#derive(ToJson)
 priv struct JsonMapFusionFile {
   file : String
   report : Json
-} derive(ToJson)
+}
 
 ///|
+#derive(ToJson)
 priv struct JsonMapFusionOutput {
-  schema_version : Int
+  schema_version : Int32
   compiler_version : String
   position_encoding : String
   files : Array[JsonMapFusionFile]
-} derive(ToJson)
+}
 
 ///|
 async fn run_map_fusion_command(options : MapFusionOptions) -> Unit {

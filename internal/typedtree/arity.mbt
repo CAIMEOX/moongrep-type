@@ -1,5 +1,5 @@
 ///|
-fn Exporter::arity(self : Exporter, id : Int) -> Json raise {
+fn Exporter::arity(self : Exporter, id : Int32) -> Json raise {
   let w = self.wire
   match w.tag(id) {
     0 =>
@@ -64,7 +64,7 @@ fn Exporter::arity(self : Exporter, id : Int) -> Json raise {
 }
 
 ///|
-fn Exporter::param_kind(self : Exporter, id : Int) -> String raise {
+fn Exporter::param_kind(self : Exporter, id : Int32) -> String raise {
   match self.wire.value(id) {
     Integer(0L) => "positional"
     Integer(1L) => "autofill"

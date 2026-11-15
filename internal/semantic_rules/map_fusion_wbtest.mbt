@@ -253,17 +253,17 @@ test "map fusion excludes raising and async callbacks" {
 
 ///|
 test "eager map fusion preserves pure results but can reorder observable effects" {
-  let g = (x : Int) => x + 1
-  let f = (x : Int) => x * 2
+  let g = (x : Int32) => x + 1
+  let f = (x : Int32) => x * 2
   let values = [1, 2, 3]
   debug_inspect(values.map(g).map(f), content="[4, 6, 8]")
   assert_eq(values.map(g).map(f), values.map(x => f(g(x))))
   let events = []
-  let g_effect = (x : Int) => {
+  let g_effect = (x : Int32) => {
     events.push("g\{x}")
     x
   }
-  let f_effect = (x : Int) => {
+  let f_effect = (x : Int32) => {
     events.push("f\{x}")
     x
   }

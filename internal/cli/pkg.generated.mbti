@@ -26,6 +26,7 @@ pub async fn run_semantics_command(SemanticsOptions) -> Unit
 pub fn runtime_cli_args(Array[String]) -> Array[String]
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror CliError {
   Internal(diagnostic~ : CliDiagnostic)
   Usage(diagnostic~ : CliDiagnostic)
@@ -34,8 +35,9 @@ pub(all) suberror CliError {
   RuleContent(diagnostic~ : CliDiagnostic)
   ScanInput(diagnostic~ : CliDiagnostic)
   Output(diagnostic~ : CliDiagnostic)
-} derive(@debug.Debug)
-pub fn CliError::exit_code(Self) -> Int
+  TaintIncomplete(diagnostic~ : CliDiagnostic)
+}
+pub fn CliError::exit_code(Self) -> Int32
 pub fn CliError::internal(String) -> Self
 pub fn CliError::output(Self, &Logger) -> Unit
 pub fn CliError::output_error(String, String) -> Self
@@ -56,10 +58,11 @@ pub(all) enum CliCommand {
   DumpExpr(source~ : String, strict_check~ : Bool, exit_code~ : Bool, output_json~ : Bool)
 }
 
+#derive(@debug.Debug)
 pub(all) enum CliDiagnostic {
   Fields(summary~ : String, source~ : String?, reason~ : String?, help~ : String?, pattern~ : String?)
   ParserMessage(message~ : String)
-} derive(@debug.Debug)
+}
 pub fn CliDiagnostic::to_repr(Self) -> @debug.Repr
 
 pub(all) struct CliOptions {
@@ -72,6 +75,7 @@ pub(all) struct CliOptions {
   verbose : Bool
   no_color : Bool
   output_json : Bool
+  strict_taint : Bool
   semantic_index : String?
   semantic_view : String
 }

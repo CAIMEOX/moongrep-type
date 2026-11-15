@@ -139,7 +139,7 @@ fn identity_theorem_fixture(
     node,
     kind : String,
     node_kind : String,
-    type_id : Int,
+    type_id : Int32,
     symbol_id : String?,
   ) raise {
     facts.push({

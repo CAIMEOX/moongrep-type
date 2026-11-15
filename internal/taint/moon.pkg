@@ -1,5 +1,7 @@
 import {
   "moonbit-community/moongrep/internal/taint/domain",
+  "moonbit-community/moongrep/internal/taint/cfg",
+  "moonbit-community/moongrep/internal/taint/lowering",
   "moonbit-community/moongrep/internal/taint/engine",
   "moonbit-community/moongrep/internal/taint/model",
 }
@@ -7,4 +9,5 @@ import {
 import {
   "moonbit-community/moongrep/internal/cst",
   "moonbitlang/parser/untyped_cst",
+  "moonbitlang/core/bench",
 } for "test"

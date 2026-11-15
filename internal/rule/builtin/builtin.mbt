@@ -50,8 +50,8 @@ fn builtin_rule_sources() -> Array[BuiltinRuleSource] {
       yaml: @moonbitlang_rules.boolean_match_yaml,
     },
     {
-      path: "builtin/moonbitlang/match_early_exit.yaml",
-      yaml: @moonbitlang_rules.match_early_exit_yaml,
+      path: "builtin/moonbitlang/match_option_early_exit.yaml",
+      yaml: @moonbitlang_rules.match_option_early_exit_yaml,
     },
     {
       path: "builtin/moonbitlang/match_single_case.yaml",

@@ -11,21 +11,23 @@ import {
 // Values
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror SourceError {
   InvalidSource(String)
   ForeignNode
-} derive(@debug.Debug)
+}
 pub fn SourceError::output(Self, &Logger) -> Unit
 pub fn SourceError::to_repr(Self) -> @debug.Repr
 pub fn SourceError::to_string(Self) -> String
 pub impl Show for SourceError
 
 // Types and methods
+#derive(@debug.Debug)
 pub(all) enum Association {
   Unmatched
   Associated(Array[@semantic.Fact])
   Ambiguous(Array[@semantic.Fact])
-} derive(@debug.Debug)
+}
 pub fn Association::to_repr(Self) -> @debug.Repr
 
 pub struct Source {

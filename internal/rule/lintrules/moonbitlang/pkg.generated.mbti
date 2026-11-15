@@ -38,7 +38,7 @@ pub let iter_find_first_exists_yaml : String
 
 pub let iter_map_flatten_yaml : String
 
-pub let match_early_exit_yaml : String
+pub let match_option_early_exit_yaml : String
 
 pub let match_option_yaml : String
 

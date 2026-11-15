@@ -1,6 +1,6 @@
 ///|
 fn generated_source_fact(
-  id : Int,
+  id : Int32,
   kind : String,
   package_name : String,
   generated : Json,

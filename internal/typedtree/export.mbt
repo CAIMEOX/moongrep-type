@@ -15,8 +15,8 @@ pub fn extract(
     source_map[source.path] = source.text
   }
   let types : Array[Json] = []
-  let type_ids : Map[(String, Int), Int] = Map([])
-  let builtin_ids : Map[String, Int] = Map([])
+  let type_ids : Map[(String, Int32), Int32] = Map([])
+  let builtin_ids : Map[String, Int32] = Map([])
   let symbols : Array[Json] = []
   let symbol_ids : Map[String, String] = Map([])
   let facts : Array[Json] = []

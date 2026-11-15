@@ -221,8 +221,11 @@ let _embed_rulespec_md : String =
   #|`fn sample { { a; b } }`. The finding range for that explicit block includes
   #|its braces.
   #|
-  #|The same candidates and ranges are used by ordinary positive patterns,
-  #|`patterns-not`, `then` target traversal, and expression queries.
+  #|Ordinary scans, `then` targets, `inside-toplevel` targets, and expression
+  #|queries use the same candidate boundaries and ranges, including inside nested
+  #|closures. A selected function body remains a sequence container; selecting it
+  #|does not expose its braces as an explicit block candidate. An empty sequence
+  #|or a selected part of a continuation retains its exact statement boundaries.
   #|
   #|### Let Shapes With Omitted Bodies
   #|
@@ -828,6 +831,12 @@ let _embed_rulespec_md : String =
   #|
   #|All patterns in one rule share the same rule id and `description`.
   #|
+  #|Within one parsed source block, structural findings are unique by file, rule
+  #|id, and complete start/end source range. The first successful finding keeps
+  #|its `pattern_index`, description, and publication order. Different rules or
+  #|ranges remain separate findings, and independently parsed blocks keep their
+  #|own results. Text and JSON output use these same findings.
+  #|
   #|### `patterns-not`
   #|
   #|`patterns-not` is a structural negative constraint. Its entries use the same
@@ -1168,6 +1177,24 @@ let _embed_rulespec_md : String =
   #|  produced
   #|- if a call matches both a sink and a sanitizer, the sink is reported using the
   #|  taint state before sanitizer effects affect later reads
+  #|
+  #|### Control flow and incomplete analysis
+  #|
+  #|The analyzer preserves short-circuit paths, simultaneous loop updates and
+  #|continue arguments, and exit-time defer execution. Errdefer runs only on error
+  #|exits. Whole-value taint flows into fields and array elements. Known fields and
+  #|constant indexes support exact overwrites and sanitization without clearing
+  #|siblings. Dynamic index writes are conservative, and dynamic-index sanitizers
+  #|do not clear elements whose identity is unknown. There is no implicit control
+  #|flow taint or general heap alias analysis.
+  #|
+  #|Unsupported executable syntax skips the affected function and emits a
+  #|`taint_incomplete` warning. An SCC that fails to converge within 64 rounds skips
+  #|that function's results for the affected rule. No partial findings are emitted.
+  #|Other functions and rules continue. `scan --strict-taint` finishes the scan and
+  #|returns status 8 when analysis was incomplete, including parse failures that
+  #|prevented taint analysis. Unknown calls do not implicitly raise exceptions;
+  #|YAML rules do not currently declare exceptional call models.
   #|
   #|## Error Conditions
   #|

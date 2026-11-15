@@ -1,5 +1,5 @@
 ///|
-fn packet(payload : Array[Int], objects : Int) -> Bytes {
+fn packet(payload : Array[Int32], objects : Int32) -> Bytes {
   let out : Array[Byte] = [0x84, 0x95, 0xa6, 0xbe]
   for n in [payload.length(), objects, 0, 0] {
     for shift in [24, 16, 8, 0] {
@@ -171,7 +171,7 @@ test "Marshal decoding is iterative and rejects every truncated prefix" {
 
 ///|
 test "Marshal nested oversized field claims have a linear allocation budget" {
-  let payload : Array[Int] = []
+  let payload : Array[Int32] = []
   for _ in 0..<3 {
     payload.append([8, 0, 1, 144, 0])
   }

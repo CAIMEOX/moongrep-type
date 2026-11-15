@@ -1,8 +1,9 @@
 ///|
+#derive(Debug)
 pub(all) suberror SourceError {
   InvalidSource(String)
   ForeignNode
-} derive(Debug)
+}
 
 ///|
 pub impl Show for SourceError with fn output(self, logger) {
@@ -18,11 +19,12 @@ pub impl Show for SourceError with fn output(self, logger) {
 /// Associated facts share the exact source range and have a compatible syntax
 /// role. This does not select a unique type: implicit conversions may add facts.
 /// Ambiguous preserves exact candidates whose source role or package is unclear.
+#derive(Debug)
 pub(all) enum Association {
   Unmatched
   Associated(Array[@semantic.Fact])
   Ambiguous(Array[@semantic.Fact])
-} derive(Debug)
+}
 
 ///|
 /// One whole-file parse tied to a validated compiler source snapshot.
@@ -30,7 +32,7 @@ pub struct Source {
   priv index : @semantic.Index
   priv file : String
   priv cst_root : @untyped_cst.CstNode
-  priv nodes : Map[(Int, Int), Array[@untyped_cst.CstNode]]
+  priv nodes : Map[(Int32, Int32), Array[@untyped_cst.CstNode]]
   priv view : String?
 }
 
@@ -54,7 +56,7 @@ pub fn Source::parse(
   if @cst.first_recovery_node(root) is Some(_) {
     raise InvalidSource("incomplete recovered CST node")
   }
-  let nodes : Map[(Int, Int), Array[@untyped_cst.CstNode]] = Map([])
+  let nodes : Map[(Int32, Int32), Array[@untyped_cst.CstNode]] = Map([])
   let pending = [root]
   while pending.pop() is Some(node) {
     if nodes.get(node.source_span) is Some(bucket) {
