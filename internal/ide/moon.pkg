@@ -1,0 +1,17 @@
+import {
+  "moonbit-community/moongrep/internal/cst",
+  "moonbit-community/moongrep/semantic",
+  "moonbitlang/parser/untyped_cst",
+  "moonbitlang/parser/syntax",
+  "moonbitlang/core/json",
+  "moonbitlang/core/string",
+  "moonbitlang/core/env",
+  "moonbitlang/core/list",
+  "moonbitlang/lexer/basic",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/process",
+  "moonbitlang/x/path",
+}
+
+supported_targets = "+wasm+native"
