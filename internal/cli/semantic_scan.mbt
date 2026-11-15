@@ -30,7 +30,7 @@ async fn scan_semantic_source(
     context.index,
     file=canonical,
     text~,
-    view=context.view,
+    view?=if context.view == "auto" { None } else { Some(context.view) },
   ) catch {
     err => raise new_semantics_input_error(file, "\{err}")
   }

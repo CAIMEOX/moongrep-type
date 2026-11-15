@@ -90,8 +90,9 @@ moongrep lint [options] [scan-root]
 - `--exclude <name-or-path>`：跳过匹配的文件或目录条目。
 - `--disable <rule-id>`：禁用一个已加载规则 id。
 - `--semantic-index <file>`：为语义 YAML 规则加载已检查的索引。
-- `--semantic-view <view>`：选择 normal（默认）、wbtest 或 bbtest，
-  必须同时提供 `--semantic-index`。
+- `--semantic-view <view>`：选择 auto（默认）、ide、normal、wbtest 或 bbtest，
+  必须同时提供 `--semantic-index`。官方 IDE 索引用 auto 或 ide；其余标签用于
+  实际包含对应视图的外部索引。
 - `--verbose`：把规则加载和遍历事件写入标准错误。
 - `--json`：以 JSON Lines 格式输出命中。
 - `-h` 或 `--help`：打印命令帮助。
@@ -547,27 +548,29 @@ match-mode 选项。
 ## `semantics`
 
 ```text
-moongrep semantics <project-or-file> [--reader <executable>] [--target <target>] [--json]
+moongrep semantics <project-or-file> [--target <target>] [--json]
 ```
 
-该命令通过独立 reader 导入类型、符号和源码映射。在 `tools/moonc-reader` 中为当前
-MoonBit 编译器构建 reader，然后通过 `--reader` 或 `MOONGREP_SEMANTIC_READER`
-环境变量选择它；命令行选项优先。reader 参数是可执行文件路径或命令名，不是包含
-其他参数的 shell 命令。
+该命令通过官方 MoonBit language service 导出源码语义证据，后端由 MoonBit 实现。
+无需独立 reader、编译器源码、私有前端产物或版本专用解码器。`MOON_HOME` 可选择
+同一工具链中的 `moon` 和 `moonc`。
 
-位置参数指定 MoonBit 项目目录或源码文件，`--target` 原样传给 reader。reader 先
-运行 `moon check` 再导出语义产物。CLI 独立调用 `moonc -v`，要求编译器版本完全
-一致，并在校验索引后逐一比较当前源码与索引内的源码。子进程参数直接传递，不经过
-shell。
+后端先检查项目并捕获输入快照，再通过官方 `moon ide hover` 和 `peek-def` 查询
+类型与定义。查询使用 `--no-check` 和固定 backend，限制并发并在快照内缓存结果。
+类型文本由已有 MoonBit 语法解析器解析；定义位置确定方法、构造器和局部
+绑定身份。alias 和 re-export 必须指向同一个规范身份。无法提供或尚未实例化的
+类型保留为不可用。derive 实现正文不属于手写 CST，因此不会成为规则候选。
 
-成功时标准输出始终是一个紧凑的语义索引 JSON 对象，包含 schema 版本、编译器
-版本、源码、类型、符号和事实。这是索引导出，不是 finding 记录。reader 诊断写入
-标准错误；指定 `--json` 时包装成 category 为 `semantic_reader` 的 warning 记录，
-致命错误沿用 error schema。未指定时诊断为纯文本；帮助始终是纯文本。
+成功时输出一个 JSON 索引，包含 `provider: "moon-ide"`、当前编译器版本、源码
+快照、结构化类型、符号和源码事实。位置采用从 1 开始的 Unicode scalar 列，末端
+不包含在范围内。索引使用 IDE 按文件选择的语境，包括测试文件语境，不合并其他
+编译视图。默认 `--semantic-view auto` 直接使用此语境；`ide` 可显式选择它。其他
+view 标签仅适用于包含这些标签的外部索引。
 
-缺少参数或未选择 reader 使用状态码 2。编译器或 reader 不可用、检查失败、索引
-不兼容或格式错误、源码已变化时，使用既有 `scan_input` 类别和状态码 6，且不输出
-语义索引。该命令不添加或运行 lint 规则。
+缺少参数使用状态码 2。IDE 不可用、检查失败、响应无效、backend 或输入变化时，
+输出 `scan_input` 错误并使用状态码 6，不发布部分索引。
+`--json` 选择结构化错误诊断；成功的索引始终是 JSON。输出前再次检查源码、配置、
+目录成员和定义源码。该命令不运行 lint 规则，也不修改源码。
 
 ## `map-fusion`
 

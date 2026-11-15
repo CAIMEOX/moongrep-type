@@ -102,7 +102,7 @@ fn CheckContext::symbol_id(
       (
         fact.kind == "binding" ||
         fact.kind == "symbol_reference" ||
-        (fact.kind == "expression" && fact.node_kind == "Texpr_ident")
+        (fact.kind == "expression" && fact.node_kind == "identifier")
       ) {
       ids[id] = true
     }
@@ -124,7 +124,12 @@ fn CheckContext::method_is(
   names : Array[String],
 ) -> Bool raise {
   let fact = self.expression(node)
-  guard fact.node_kind == "Texpr_apply" &&
+  if fact.details is { "dispatch": "unavailable", .. } {
+    raise Unavailable(
+      "The official IDE did not resolve a unique callable definition.",
+    )
+  }
+  guard fact.node_kind == "call" &&
     fact.details
     is { "dispatch": "resolved_symbol", "callee_symbol_id": String(id), .. } &&
     fact.symbol_id == Some(id) &&
@@ -161,7 +166,7 @@ fn CheckContext::builtin_value_call(
   name : String,
 ) -> Bool raise {
   let fact = self.expression(node)
-  guard fact.node_kind == "Texpr_apply" &&
+  guard fact.node_kind == "call" &&
     fact.symbol_id is Some(id) &&
     self.source.index().symbol(id) is Some(symbol) else {
     return false

@@ -12,15 +12,9 @@ let semantics_command : @argparse.Command = Command(
   ],
   options=[
     OptionArg(
-      "reader",
-      action=Set,
-      env="MOONGREP_SEMANTIC_READER",
-      about="Semantic reader executable built for the active MoonBit compiler.",
-    ),
-    OptionArg(
       "target",
       action=Set,
-      about="MoonBit target to pass to the reader and moon check.",
+      about="MoonBit backend to check before querying the official IDE.",
     ),
   ],
   positionals=[
@@ -38,29 +32,11 @@ fn semantics_cli_options(matches : @argparse.Matches) -> SemanticsOptions raise 
     !project.is_empty() else {
     raise new_usage_error("missing semantics project or file")
   }
-  guard last_cli_value(matches.values, "reader") is Some(reader) &&
-    !reader.trim().is_empty() else {
-    raise Usage(
-      diagnostic=new_cli_diagnostic(
-        "missing semantic reader",
-        None,
-        None,
-        Some(
-          "build tools/moonc-reader for the active compiler, then pass --reader or set MOONGREP_SEMANTIC_READER",
-        ),
-      ),
-    )
-  }
   let target = last_cli_value(matches.values, "target")
   if target is Some(value) && value.trim().is_empty() {
     raise new_usage_error("semantics --target must not be empty")
   }
-  {
-    project,
-    reader,
-    target,
-    output_json: cli_flag_enabled(matches.flags, "json"),
-  }
+  { project, target, output_json: cli_flag_enabled(matches.flags, "json"), }
 }
 
 ///|
@@ -71,7 +47,7 @@ fn new_semantics_input_error(source : String, reason : String) -> CliError {
       Some(source),
       Some(reason),
       Some(
-        "check the project and use a reader built for the active moonc version",
+        "check the project with the active MoonBit toolchain and regenerate its IDE semantic index",
       ),
     ),
   )
@@ -82,6 +58,9 @@ async fn collect_semantics_process(
   executable : String,
   args : Array[String],
 ) -> (Int32, String, String) {
+  let executable = @env.get_env_var("MOON_HOME")
+    .map(home => home + "/bin/" + executable)
+    .unwrap_or(executable)
   let (status, stdout, stderr) = @process.collect_output(executable, args)
   (status, stdout.text(), stderr.text())
 }
@@ -117,39 +96,17 @@ async fn semantic_compiler_version(
 ///|
 async fn semantic_index_output(
   options : SemanticsOptions,
-  run_process : async (String, Array[String]) -> (Int32, String, String),
-) -> (String, String) {
-  let compiler_version = semantic_compiler_version(run_process)
-  let args = ["--project", options.project]
-  if options.target is Some(target) {
-    args.push("--target")
-    args.push(target)
-  }
-  let (status, output, diagnostics) = run_process(options.reader, args) catch {
-    err =>
-      raise new_semantics_input_error(
-        options.reader,
-        "could not run reader: \{err}",
-      )
-  }
-  if status != 0 {
-    let detail = diagnostics.trim()
-    let reason = if detail.is_empty() {
-      "reader exited with status \{status}"
-    } else {
-      "reader exited with status \{status}: \{detail}"
-    }
-    raise new_semantics_input_error(options.reader, reason)
-  }
-  let index = @semantic.Index::parse(output, compiler_version~) catch {
+  generate : async (String, String?) -> @semantic.Index,
+) -> String {
+  let index = generate(options.project, options.target) catch {
     err =>
       raise new_semantics_input_error(
         options.project,
-        "invalid reader output: \{err}",
+        "could not query the official IDE: \{err}",
       )
   }
   require_current_semantic_sources(index)
-  (index.raw_json().stringify(), diagnostics)
+  index.raw_json().stringify()
 }
 
 ///|
@@ -173,26 +130,11 @@ async fn require_current_semantic_sources(index : @semantic.Index) -> Unit {
 }
 
 ///|
-/// Runs the external reader, validates its index, and writes the complete JSON.
+/// Queries the official language service and writes a source-validated index.
 pub async fn run_semantics_command(options : SemanticsOptions) -> Unit {
-  let (output, diagnostics) = semantic_index_output(
-    options, collect_semantics_process,
-  )
-  if !diagnostics.trim().is_empty() {
-    let message = if options.output_json {
-      let record : Json = {
-        "type": "warning",
-        "category": "semantic_reader",
-        "message": diagnostics.trim().to_owned(),
-      }
-      record.stringify()
-    } else {
-      diagnostics.trim().to_owned()
-    }
-    @stdio.stderr.write(message + "\n") catch {
-      err => raise CliError::output_error("standard error", "\{err}")
-    }
-  }
+  let output = semantic_index_output(options, (project, target) => {
+    @ide.export_index(project, target?)
+  })
   @stdio.stdout.write(output + "\n") catch {
     err => raise CliError::output_error("standard output", "\{err}")
   }

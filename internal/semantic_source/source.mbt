@@ -43,7 +43,7 @@ pub fn Source::parse(
   text~ : String,
   view? : String,
 ) -> Source raise {
-  if view is Some(name) && !["normal", "wbtest", "bbtest"].contains(name) {
+  if view is Some(name) && !["ide", "normal", "wbtest", "bbtest"].contains(name) {
     raise InvalidSource("unknown package view: \{name}")
   }
   index.require_source(file, text)

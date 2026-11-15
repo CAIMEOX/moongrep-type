@@ -48,7 +48,7 @@ fn array_map_symbol(
   index : @semantic.Index,
   fact : @semantic.Fact,
 ) -> @semantic.SymbolInfo raise NotCandidate {
-  guard fact.node_kind == "Texpr_apply" &&
+  guard fact.node_kind == "call" &&
     fact.details
     is { "dispatch": "resolved_symbol", "callee_symbol_id": String(id), .. } &&
     fact.symbol_id == Some(id) &&

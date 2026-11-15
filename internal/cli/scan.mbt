@@ -61,11 +61,16 @@ async fn scan_events(
   }
   let semantic_context = match options.semantic_index {
     None => None
-    Some(path) =>
-      Some(SemanticScanContext::{
-        index: load_semantic_index(path),
-        view: options.semantic_view,
-      })
+    Some(path) => {
+      let index = load_semantic_index(path)
+      if index.raw_json() is { "provider": "moon-ide", .. } &&
+        !["auto", "ide"].contains(options.semantic_view) {
+        raise new_usage_error(
+          "IDE indexes use file context; use --semantic-view auto or ide",
+        )
+      }
+      Some(SemanticScanContext::{ index, view: options.semantic_view, })
+    }
   }
   if options.verbose {
     for rule in compiled_rules {

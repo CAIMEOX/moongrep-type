@@ -23,6 +23,10 @@ fn type_shape(
     return None
   }
   guard index.type_info(id) is Some(info) else { return None }
+  // A declaration's polymorphic scheme is not an instantiated expression type.
+  if info.raw is { "polymorphic": true, .. } {
+    return None
+  }
   let ancestors = [..ancestors, id]
   match info.raw {
     { "kind": "resolved_variable", "target_type": target, .. } =>

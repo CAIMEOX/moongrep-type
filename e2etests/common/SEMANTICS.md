@@ -1,7 +1,7 @@
-# Semantic index command
+# Official IDE semantic export
 
-The semantic index is always JSON. The optional JSON flag also selects structured
-diagnostics. Reader arguments are executable paths, not shell commands.
+The semantic index is always JSON. The optional JSON flag selects structured
+error diagnostics. The backend uses the official MoonBit language service.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)
@@ -9,15 +9,13 @@ $ moonx moonbit-community/moongrep semantics --help | moonx cli/grep@0.2.0 'alwa
   --json             Write diagnostics as JSON Lines; the semantic index is always JSON.
 ```
 
-An explicitly empty reader selection is rejected before launching a process.
+A checked source with spaces and shell punctuation in its path is passed as a
+single process argument. The command needs no separate reader or build script.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)
-$ moonx moonbit-community/moongrep semantics . --reader '' --json
-@STDOUT (empty)
-@STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"missing semantic reader","help":"build tools/moonc-reader for the active compiler, then pass --reader or set MOONGREP_SEMANTIC_READER"}
-[2]
+$ moonx moonbit-community/moongrep semantics '../testdata/ide-source with spaces;literal' --target wasm --json | moonx cli/jq@0.2.1 -c '[.schema_version,.provider,.position_encoding,(.facts | length > 0),(.symbols | length > 0),(.types | length > 0)]'
+[1,"moon-ide","unicode-scalar",true,true,true]
 ```
 
 Bare invocation prints the same help as an explicit help request.

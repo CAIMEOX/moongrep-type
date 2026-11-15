@@ -21,17 +21,17 @@ standard library's `Array::map`. The map law is
 ## Architecture
 
 ```text
-installed moonc
-  → pure MoonBit Marshal / typedtree adapter
+moon check + official moon ide hover / peek-def
+  → MoonBit CST/type-syntax adapter
   → semantic.Index (validated types, symbols, source snapshots)
   → semantic_source.Source (original CST + exact source ranges)
   → semantic_rules.find_map_fusion (candidates + evidence + skipped reasons)
   → moongrep map-fusion (existing CLI renderers, or --json)
 ```
 
-The compiler adapter owns the version-specific wire format. Rules depend on the
-semantic index and the existing CST traversal, with no compiler source or library
-dependency. The rule accepts a checked source and returns data; it performs no
+The [official IDE backend](../ide/README.md) owns protocol queries and parsing
+of the language syntax returned by hover. Rules depend on the shared semantic
+index and existing CST traversal. The rule accepts a checked source and returns data; it performs no
 I/O and never edits source. The CLI shares compiler-version and file-freshness
 checks with `semantics`. Candidates adapt to `RuleFinding` and `ScanHit` and use
 the existing source-context renderer, highlighting, and `NO_COLOR` behavior.
@@ -45,27 +45,18 @@ Semantic graph validation and rendering MoonBit type names remain domain logic.
 The common checks and source-view selection are shared by the YAML analyses.
 The existing syntax-only YAML rules still run without compiler artifacts.
 
-Rule evidence excludes facts with `details.generated_top_level == true`,
-including compiler-derived implementations and their child nodes. The check
-uses compiler provenance rather than names or source ranges, which can overlap
-authored declarations. Source association and symbol-use indexing apply this
-filter before checking roles or package ambiguity; generated-only candidates
-are skipped quietly. The original Index and default Source queries retain all
-facts, and handwritten impls and implicit expression conversions remain eligible.
+The provider queries authored CST scopes. Compiler-generated derive bodies
+are not traversed; handwritten impls remain eligible. Source and symbol facts
+are joined by exact source/definition locations, not names. The common snapshot
+API retains its generated-fact filter for imported snapshots.
 
 ## Recognition contract
 
 1. Find adjacent dot calls with one positional callback each.
-2. Join the original CST nodes to exact expression ranges. Auxiliary
-   `function_body` metadata does not compete with actual typed expression nodes.
-   Rules select the source operation before compiler-inserted `Texpr_as` and
-   `Texpr_array_as_view` conversions, only when their `implicit` flag is true.
-   The index and source API still expose every fact and converted type. This
-   selection does not remove conversions or treat them as semantically inert.
-   Missing evidence or multiple remaining source expressions produce a skipped
-   result, as do facts from multiple package/test views. Explicit conversions,
-   unrecognized implicit nodes, and duplicate actual expressions are not merged;
-   the POC does not guess a view or select an enclosing expression.
+2. Join original CST nodes to official IDE queries at exact source positions.
+   Hover ranges must describe the requested source operation or a specific
+   language-defined member/operator anchor. Unsupported or ambiguous evidence
+   yields a skipped result. No enclosing-range fallback is used.
 3. Require both calls to resolve to the same global method identity:
    `moonbitlang/core/builtin.Array::map`. A user method named `map`, `Option::map`,
    `Iter::map`, and indirect calls do not qualify.
@@ -110,12 +101,11 @@ non-raising arrow from moonc alone is insufficient.
 
 ## Run
 
-From the repository root, using the nightly supported by the reader:
+From the repository root, with a toolchain compatible with upstream dependencies:
 
 ```sh
-node scripts/build-moonc-reader.mjs
-_build/semantic-reader/moonc-reader --project tools/map-fusion/fixture > /tmp/map-index.json
-moon run . -- map-fusion --index /tmp/map-index.json
+moon run --target native . -- semantics tools/map-fusion/fixture > /tmp/map-index.json
+moon run --target native . -- map-fusion --index /tmp/map-index.json
 ```
 
 The default output is a terminal report with source ranges, numbered code
@@ -144,8 +134,8 @@ the same colors as `scan` and `lint`.
 Use `--json` for the structured report, or run the integration checks:
 
 ```sh
-moon run . -- map-fusion --index /tmp/map-index.json --json
-node tools/map-fusion/test.mjs
+moon run --target native . -- map-fusion --index /tmp/map-index.json --json
+moon test tests/ide --target native
 ```
 
 The command checks the installed `moonc -v` independently, validates the index,

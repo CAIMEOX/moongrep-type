@@ -30,6 +30,6 @@ $ moonx moonbit-community/moongrep lint --semantic-view wbtest --json
 $ moonx moonbit-community/moongrep lint --semantic-index missing.json --semantic-view unknown --json
 @STDOUT (empty)
 @STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"--semantic-view must be normal, wbtest, or bbtest"}
+{"type":"error","category":"usage","exit_code":2,"message":"--semantic-view must be auto, ide, normal, wbtest, or bbtest"}
 [2]
 ```

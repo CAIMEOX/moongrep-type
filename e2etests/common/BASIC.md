@@ -72,7 +72,7 @@ Options:
   --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
   --disable <disable>                Rule id to disable after loading rules. May be repeated.
   --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
-  --semantic-view <semantic-view>    Package view: normal (default), wbtest, or bbtest.
+  --semantic-view <semantic-view>    Snapshot context: auto (default), ide, normal, wbtest, or bbtest.
 ```
 
 ## moongrep scan --help
@@ -101,7 +101,7 @@ Options:
   --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
   --disable <disable>                Rule id to disable after loading rules. May be repeated.
   --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
-  --semantic-view <semantic-view>    Package view: normal (default), wbtest, or bbtest.
+  --semantic-view <semantic-view>    Snapshot context: auto (default), ide, normal, wbtest, or bbtest.
 ```
 
 ## moongrep dump --help

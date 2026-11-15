@@ -164,7 +164,7 @@ fn identity_theorem_fixture(
   add(
     call_node,
     "expression",
-    "Texpr_apply",
+    "call",
     if is_unwrap {
       payload_type
     } else {
@@ -176,41 +176,41 @@ fn identity_theorem_fixture(
     call.receiver,
     "expression",
     if is_unwrap {
-      "Texpr_constr"
+      "constructor"
     } else {
-      "Texpr_ident"
+      "identifier"
     },
     2,
     None,
   )
   if is_unwrap {
     let payload = positional_args(call.receiver).unwrap()[0]
-    add(payload, "expression", "Texpr_ident", payload_type, None)
+    add(payload, "expression", "identifier", payload_type, None)
     add(
       @cst.child(call.receiver, "func").unwrap(),
       "expression",
-      "Texpr_constr",
+      "constructor",
       4,
       Some("constructor"),
     )
   } else {
     let callback = call.args[0]
     let (binder, body) = unary_lambda_parts(callback).unwrap()
-    add(callback, "expression", "Texpr_function", 3, None)
+    add(callback, "expression", "function", 3, None)
     add(binder, "binding", "Param", 0, Some("binder"))
     if operation == "map" {
-      add(body, "expression", "Texpr_ident", 0, Some("binder"))
+      add(body, "expression", "identifier", 0, Some("binder"))
     } else {
       let payload = positional_args(body).unwrap()[0]
-      add(payload, "expression", "Texpr_ident", 0, Some("binder"))
+      add(payload, "expression", "identifier", 0, Some("binder"))
       add(
         @cst.child(body, "func").unwrap(),
         "expression",
-        "Texpr_constr",
+        "constructor",
         4,
         Some("constructor"),
       )
-      add(body, "expression", "Texpr_constr", 2, None)
+      add(body, "expression", "constructor", 2, None)
     }
     // Nightly exports both Param and binder facts at the same Name_Binder.
     add(binder, "binding", "binder", 0, Some("binder"))

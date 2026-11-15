@@ -101,8 +101,9 @@ let _embed_clispec_md : String =
   #|- `--exclude <name-or-path>`: skip matching file or directory entries.
   #|- `--disable <rule-id>`: disable a loaded rule id.
   #|- `--semantic-index <file>`: load a checked semantic index for semantic YAML rules.
-  #|- `--semantic-view <view>`: select `normal` (default), `wbtest`, or `bbtest`;
-  #|  requires `--semantic-index`.
+  #|- `--semantic-view <view>`: select `auto` (default), `ide`, `normal`, `wbtest`,
+  #|  or `bbtest`; requires `--semantic-index`. Official IDE snapshots use `auto`
+  #|  or `ide`. Other labels filter imported snapshots that contain those views.
   #|- `--verbose`: write rule-loading and traversal events to standard error.
   #|- `--json`: write findings as JSON Lines records.
   #|- `-h` or `--help`: print command help.
@@ -642,35 +643,38 @@ let _embed_clispec_md : String =
   #|## `semantics`
   #|
   #|```text
-  #|moongrep semantics <project-or-file> [--reader <executable>] [--target <target>] [--json]
+  #|moongrep semantics <project-or-file> [--target <target>] [--json]
   #|```
   #|
-  #|This command imports compiler types, symbols, and source mappings through a
-  #|separate semantic reader. Build the reader under `tools/moonc-reader` for the
-  #|active MoonBit compiler, then select it with `--reader` or the
-  #|`MOONGREP_SEMANTIC_READER` environment variable. An explicit option takes
-  #|precedence over the environment. The reader value is an executable path or
-  #|command name, not a shell command with embedded arguments.
+  #|This command exports authored semantic evidence through the official MoonBit
+  #|language service. The implementation is MoonBit. No separate reader, compiler
+  #|checkout, private frontend artifact, or version-specific decoder is required.
+  #|Use the active toolchain's `moon` and `moonc` executables; `MOON_HOME`
+  #|selects one toolchain consistently when set.
   #|
-  #|The project argument names a MoonBit project directory or one source file.
-  #|`--target` is forwarded to the reader. The reader performs `moon check` and
-  #|exports the resulting semantic artifacts. The CLI invokes `moonc -v`
-  #|independently, requires an exact compiler version match, validates the index,
-  #|and compares each indexed source with the current file before writing output.
-  #|Reader and compiler arguments are passed directly without a shell.
+  #|The backend checks the project, captures its sources and configuration, then
+  #|uses official `moon ide hover` and `peek-def` queries with `--no-check`, a fixed
+  #|backend, and bounded concurrency. Results are cached within that snapshot.
+  #|Hover types are parsed with the existing MoonBit syntax parser. Definition
+  #|locations identify global methods, constructors, and local bindings; aliases
+  #|and re-exports must agree on a single canonical identity. Unsupported or
+  #|uninstantiated type information remains unavailable. Derived implementation
+  #|bodies are not in the authored CST and are never queried as rule candidates.
   #|
-  #|Success always writes one compact semantic-index JSON object to standard
-  #|output, including the schema version, compiler version, sources, types,
-  #|symbols, and facts. This is an index export, not a finding record. Reader
-  #|diagnostics go to standard error. With `--json`, those diagnostics are
-  #|`warning` records with category `semantic_reader`; fatal errors use the usual
-  #|error-record schema. Without `--json`, diagnostics are plain text. Help remains
-  #|plain text in either mode.
+  #|Success writes one compact JSON index with `provider: "moon-ide"`, the active
+  #|compiler version, checked source snapshots, structured types, symbols, and
+  #|source facts. Indexed positions use one-based Unicode scalar columns with
+  #|exclusive ends. The index represents the IDE's file context, including the
+  #|context chosen for test files; it does not merge alternative compiler views.
+  #|The default `--semantic-view auto` consumes that context. `ide` selects it
+  #|explicitly. Other view labels apply only to imported snapshots that contain them.
   #|
-  #|Missing arguments or a missing reader selection use status 2. An unavailable
-  #|compiler or reader, a failed check, an incompatible or malformed index, or a
-  #|changed source uses the existing `scan_input` category and status 6. No semantic
-  #|index is printed on failure. The command does not add or run lint rules.
+  #|Missing arguments use status 2. An unavailable language service, failed check,
+  #|invalid response, changed backend, or changed input uses
+  #|`scan_input` and status 6. No partial index is published. `--json` selects the
+  #|ordinary structured error diagnostics; the successful index is always JSON.
+  #|Source files, configuration, directory membership, and definition sources are
+  #|rechecked before output. The command does not run lint rules or edit source.
   #|
   #|## `map-fusion`
   #|
@@ -809,7 +813,7 @@ let _embed_clispec_md : String =
   #|MoonBit source parse failure encountered during scanning remains a warning and
   #|returns status 0.
   #|
-  #|Semantic-input failures also use status 6, including reader failures, compiler
+  #|Semantic-input failures also use status 6, including IDE failures, compiler
   #|version mismatches, invalid indices, and source changes since compilation.
   #|
   #|### Exit Status 7

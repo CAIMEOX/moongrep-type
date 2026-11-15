@@ -75,9 +75,9 @@ fn fixture() -> Fixture {
       "package": "fixture@wasm:normal",
       "kind": "expression",
       "node_kind": if is_call {
-        "Texpr_apply"
+        "call"
       } else {
-        "Texpr_ident"
+        "identifier"
       },
       "location": {
         "file": "/fixture/maps.mbt",
@@ -168,6 +168,9 @@ test "map fusion rejects unresolved and cyclic types even at identical handles" 
   let cyclic = fixture()
   cyclic.types[4] = { "id": 4, "kind": "resolved_variable", "target_type": 4 }
   inspect(cyclic.report().skipped[0].reason, content="unknown_type")
+  let scheme = fixture()
+  put(scheme.types[2], "polymorphic", true)
+  inspect(scheme.report().skipped[0].reason, content="unknown_type")
 }
 
 ///|

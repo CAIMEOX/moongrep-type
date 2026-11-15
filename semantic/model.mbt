@@ -34,7 +34,7 @@ pub(all) struct Position {
 }
 
 ///|
-/// The file is the original absolute path supplied by the semantic reader.
+/// The file is the original absolute path of the checked source snapshot.
 #derive(Eq, Hash, Debug)
 pub(all) struct Range {
   file : String
@@ -50,7 +50,7 @@ pub(all) struct SourceFile {
 }
 
 ///|
-/// `raw` retains the reader's structured type fields, including extensions.
+/// `raw` retains the provider's structured type fields, including extensions.
 #derive(Debug)
 pub(all) struct TypeInfo {
   id : Int32

@@ -88,9 +88,6 @@ test "generated filtering retains authored conversion and malformed flag evidenc
     assert_eq(maps.report().skipped[0].reason, "non_unique_expression_type")
   }
   let maps = fixture()
-  let wrapper = conversion_fact(maps.facts[0], 5, "Texpr_as", 0)
-  mark_generated_fact(wrapper, false)
-  maps.facts.push(wrapper)
-  maps.facts.push(duplicate_generated_fact(maps.facts[0], 6))
+  maps.facts.push(duplicate_generated_fact(maps.facts[0], 5))
   assert_eq(maps.report().candidates.length(), 1)
 }

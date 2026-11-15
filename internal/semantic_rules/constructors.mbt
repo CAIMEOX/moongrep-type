@@ -16,17 +16,13 @@ fn CheckContext::constructor_is(
     node
   }
   let fact = if node.kind is Pattern_Constr {
-    let patterns = self
-      .facts(node)
-      .filter(fact => {
-        fact.kind == "pattern" && fact.node_kind.has_prefix("Tpat_")
-      })
+    let patterns = self.facts(node).filter(fact => fact.kind == "pattern")
     guard patterns is [fact] else {
       raise Unavailable(
         "No unique typed constructor pattern at this exact source range.",
       )
     }
-    guard fact.node_kind == "Tpat_constr" else { return false }
+    guard fact.node_kind == "constructor_pattern" else { return false }
     fact
   } else {
     guard node.kind is Expr_Constr else { return false }

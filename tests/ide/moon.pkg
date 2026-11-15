@@ -1,0 +1,15 @@
+import {
+  "moonbit-community/moongrep/internal/ide" @provider,
+  "moonbit-community/moongrep/internal/cst",
+  "moonbit-community/moongrep/semantic",
+  "moonbit-community/moongrep/internal/semantic_source",
+  "moonbit-community/moongrep/internal/semantic_rules",
+  "moonbit-community/moongrep/internal/rule/builtin",
+  "moonbit-community/moongrep/internal/rule/compile",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+} for "test"
+
+supported_targets = "+native"
+
+max_concurrent_tests = 1

@@ -21,7 +21,7 @@ test "query captures retain the CST identity used by semantic facts" {
         "id": 0,
         "package": "fixture@wasm:normal",
         "kind": "expression",
-        "node_kind": "Texpr_ident",
+        "node_kind": "identifier",
         "location": {
           "file": file,
           "start": { "line": 2, "column": 11 },

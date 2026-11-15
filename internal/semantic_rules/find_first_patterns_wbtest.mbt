@@ -12,7 +12,7 @@ fn presence_fixture(
   let text = prefix + expression + " }"
   let pattern_start = prefix.length() +
     "input.find_first(factory()) is ".length()
-  collection_put(base.facts[3], "node_kind", Json("Texpr_is"))
+  collection_put(base.facts[3], "node_kind", Json("is"))
   collection_put(base.facts[3], "symbol_id", Json::null())
   collection_put(base.facts[3], "details", Json::object(Map([])))
   collection_put(base.facts[3], "location", {
@@ -33,7 +33,7 @@ fn presence_fixture(
     "id": 4,
     "package": "fixture@wasm:normal",
     "kind": "pattern",
-    "node_kind": "Tpat_constr",
+    "node_kind": "constructor_pattern",
     "type_id": 4,
     "symbol_id": "presence",
     "location": {
@@ -106,7 +106,7 @@ test "presence checks cannot hide another typed pattern at the same range" {
   guard data.facts[4] is Object(fields) else { abort("pattern fixture") }
   let other = Json::object(fields.copy())
   collection_put(other, "id", Json(5))
-  collection_put(other, "node_kind", Json("Tpat_with"))
+  collection_put(other, "node_kind", Json("pattern_constraint"))
   collection_put(other, "symbol_id", Json::null())
   data.facts.push(other)
   let rejected = try {

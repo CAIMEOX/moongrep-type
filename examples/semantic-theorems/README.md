@@ -7,13 +7,12 @@ suggestions; they do not rewrite code or produce machine-checked proofs.
 
 ## Run
 
-From the repository root, with the supported nightly installed:
+From the repository root, with a toolchain compatible with upstream dependencies:
 
 ```sh
-node scripts/build-moonc-reader.mjs
-_build/semantic-reader/moonc-reader --project examples/semantic-theorems > /tmp/theorems-index.json
+moon run --target native . -- semantics examples/semantic-theorems > /tmp/theorems-index.json
 for file in collections option_fusion identities; do
-  moon run . -- lint "examples/semantic-theorems/$file.mbt" --semantic-index /tmp/theorems-index.json
+  moon run --target native . -- lint "examples/semantic-theorems/$file.mbt" --semantic-index /tmp/theorems-index.json
 done
 ```
 
@@ -23,12 +22,12 @@ Ordinary lint findings may also appear. The `no_*` and `identity_negative_*`
 functions demonstrate rejected cases. The collection examples also reject eager
 Array flattening, removal of mapping effects, and full-traversal to short-circuit
 changes. The `is_some` / `is_none` examples intentionally use deprecated methods
-so the reader may print compiler deprecation warnings when building the index.
+so checking the examples may produce compiler deprecation warnings.
 
 Set `NO_COLOR=1` for plain terminal output; add `--json` for JSON Lines. The
-`*_test.mbt` files exercise behavior and belong to the `bbtest` view, so the
-command above scans only the demonstration files in the default `normal` view.
-Regenerate the index after editing any source.
+`*_test.mbt` files exercise behavior. The IDE selects each file's context; the
+command above scans only the demonstration files. Regenerate the index after
+editing any source.
 
 ## Catalogue
 
@@ -68,21 +67,15 @@ ambiguous facts produce diagnostics instead of definite findings. Method syntax
 must have the expected positional arguments; cascade calls and extra arguments
 do not qualify. All callbacks must be synchronous.
 
-An implicit trait conversion or Array-to-ArrayView conversion can share the
-call's source range. The checks select the unique source operation before these
-known conversions, requiring the compiler's explicit `implicit: true` metadata.
-Raw semantic queries still retain both types and all facts. Explicit casts,
-unknown implicit nodes, multiple actual expressions, and mixed package views
-are not collapsed. No conversion is removed from the program.
+The official IDE supplies source-expression types directly. No generated
+conversion nodes are traversed. The backend parses language type syntax and
+keeps generic parameter scopes, errors, and async status. A generic declaration
+scheme is marked `polymorphic` and is not treated as an instantiated value type.
+Missing or unsupported information stays unavailable instead of being guessed.
 
-Compiler-generated top-level bodies, including derived implementations, are
-excluded from rule evidence using `details.generated_top_level: true`. They may
-share a declaration's range, so filtering happens before checking association
-ambiguity. Handwritten impls and ordinary implicit conversions remain eligible.
-Generated-only candidates are skipped without missing-evidence warnings.
-The raw index and default source queries retain every generated fact; explicit
-queries can use `source.facts(include_generated=false)` or
-`source.facts_for_node(node, include_generated=false)` to select authored facts.
+Derived implementation bodies are absent from the authored CST and are not
+queried. Handwritten impls remain eligible. The shared snapshot API can still
+retain or filter explicitly marked generated facts from imported indexes.
 
 The count laws unfold to the same full traversal and predicate call sequence.
 The search laws stop at the same successful pull, or at the same exhaustion
@@ -127,9 +120,9 @@ copying operations. As in the standard library, allocation failures and results
 of `physical_equal` are outside these laws; ordinary aliasing, iterator state,
 callback effects, exceptions, and termination behavior are not ignored.
 
-The contracts are pinned to `moonc v0.10.14+7080b3792-nightly (2026-10-10)` and
-its installed core definitions (`builtin/array.mbt`, `iterator.mbt`,
-`option.mbt`, and `result.mbt`). The reader uses no compiler source or library.
+The laws use the installed standard library's Array, Iter, Option, and Result
+operations. Evidence comes from the official IDE protocol, not a compiler-private
+layout. See the [IDE backend contract](../../internal/ide/README.md).
 
 ## YAML and tests
 
@@ -152,14 +145,13 @@ waive semantic evidence or declare a callback pure. See the [rule specification]
 ```sh
 moon -C examples/semantic-theorems test --target wasm
 moon -C examples/semantic-theorems test --target native
-node tools/semantic-rules/theorems.mjs
-node tools/semantic-rules/generated.mjs
+moon test tests/ide --target native
 ```
 
 The runtime tests compare values, mutation traces, error paths, receiver/callback
 factory evaluation, iterator pulls and remaining position, and mutable payload
-aliases. The integration test covers all 20 checks through builtin and custom
-YAML, exact source slices, Unicode columns, negative cases, disables, selected
-normal/wbtest/bbtest views, missing evidence, and stale sources.
-The generated-code regression checks seven derives, handwritten impls,
-overlapping ranges, implicit conversions, and both analysis entrypoints.
+aliases. The native integration tests cover all 20 checks through builtin YAML,
+Unicode positions, negative cases, file and test contexts, stale sources,
+derives, handwritten impls, and implicit conversions. Unit and CLI tests cover
+custom YAML, disables, and missing evidence. Both analysis entrypoints consume
+the same authored evidence.

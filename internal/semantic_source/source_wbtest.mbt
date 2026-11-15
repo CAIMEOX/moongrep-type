@@ -28,7 +28,7 @@ fn x_fact(
     "id": Json(id),
     "package": Json(package_name),
     "kind": Json(kind),
-    "node_kind": "Texpr_ident",
+    "node_kind": "identifier",
     "location": {
       "file": "/demo/main.mbt",
       "start": { "line": 2, "column": 16 },

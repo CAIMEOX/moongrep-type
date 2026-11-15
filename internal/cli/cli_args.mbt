@@ -74,10 +74,9 @@ pub(all) struct CliOptions {
 }
 
 ///|
-/// Input and reader selected for compiler-backed semantic export.
+/// Input selected for official IDE semantic export.
 pub(all) struct SemanticsOptions {
   project : String
-  reader : String
   target : String?
   output_json : Bool
 }
@@ -187,7 +186,7 @@ let scan_value_options : Array[ScanValueOption] = [
   {
     name: "semantic-view",
     short: None,
-    about: "Package view: normal (default), wbtest, or bbtest.",
+    about: "Snapshot context: auto (default), ide, normal, wbtest, or bbtest.",
   },
 ]
 
@@ -403,13 +402,15 @@ fn scan_cli_options(
   let no_color = no_color_enabled(env)
   let semantic_index = last_cli_value(scan_matches.values, "semantic-index")
   let semantic_view = last_cli_value(scan_matches.values, "semantic-view").unwrap_or(
-    "normal",
+    "auto",
   )
   if semantic_index is Some(path) && path.trim().is_empty() {
     raise new_usage_error("--semantic-index must not be empty")
   }
-  if !["normal", "wbtest", "bbtest"].contains(semantic_view) {
-    raise new_usage_error("--semantic-view must be normal, wbtest, or bbtest")
+  if !["auto", "ide", "normal", "wbtest", "bbtest"].contains(semantic_view) {
+    raise new_usage_error(
+      "--semantic-view must be auto, ide, normal, wbtest, or bbtest",
+    )
   }
   if scan_matches.values.contains("semantic-view") && semantic_index is None {
     raise new_usage_error("--semantic-view requires --semantic-index")

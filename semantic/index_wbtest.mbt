@@ -4,7 +4,7 @@ fn fixture_fact(id : Int32, start : Int32, end : Int32) -> Json {
     "id": Json(id),
     "package": "demo",
     "kind": "expression",
-    "node_kind": "Texpr_constant",
+    "node_kind": "value",
     "location": {
       "file": "/demo/main.mbt",
       "start": { "line": 1, "column": Json(start) },

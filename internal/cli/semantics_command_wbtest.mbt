@@ -1,256 +1,132 @@
 ///|
-test "semantics args select explicit reader and preserve path arguments" {
-  match
-    parse_cli_command([
-      "semantics", "project with spaces/file.mbt", "--reader", "reader with spaces",
-      "--target", "wasm-gc", "--json",
-    ]) {
-    Semantics(options) => {
-      inspect(options.project, content="project with spaces/file.mbt")
-      inspect(options.reader, content="reader with spaces")
-      assert_eq(options.target, Some("wasm-gc"))
-      assert_true(options.output_json)
-    }
-    _ => fail("expected semantics command")
+test "semantics uses the official IDE without an external reader" {
+  guard parse_cli_command([
+      "semantics", "project with spaces", "--target", "native", "--json",
+    ])
+    is Semantics(options) else {
+    fail("expected semantics")
   }
-}
-
-///|
-test "semantics reader environment fallback and command line precedence" {
-  let env = { "MOONGREP_SEMANTIC_READER": "env-reader" }
-  match parse_cli_command(["semantics", "."], env~) {
-    Semantics(options) => {
-      inspect(options.reader, content="env-reader")
-      assert_true(options.target is None)
-      assert_false(options.output_json)
-    }
-    _ => fail("expected semantics command")
-  }
-  match
-    parse_cli_command(["semantics", ".", "--reader=explicit-reader"], env~) {
-    Semantics(options) => inspect(options.reader, content="explicit-reader")
-    _ => fail("expected semantics command")
-  }
-}
-
-///|
-test "semantics rejects missing reader and invalid argument combinations" {
-  expect_cli_usage(["semantics", "."], 2)
-  expect_cli_usage(["semantics", ".", "--reader", ""], 2)
-  expect_cli_usage(["semantics", ".", "--reader"], 2)
-  expect_cli_usage(["semantics", "--reader", "reader"], 2)
-  expect_cli_usage(["semantics", "a", "b", "--reader", "reader"], 2)
-  expect_cli_usage(["semantics", ".", "--reader", "reader", "--target", ""], 2)
-}
-
-///|
-test "semantics JSON diagnostics respect the option terminator" {
+  assert_eq(options.project, "project with spaces")
+  assert_eq(options.target, Some("native"))
+  assert_true(options.output_json)
   assert_true(output_json_requested(["semantics", ".", "--json"]))
-  assert_false(output_json_requested(["semantics", "--", "--json"]))
-  assert_true(
-    semantics_command.render_help().contains("MOONGREP_SEMANTIC_READER"),
-  )
+  assert_false(output_json_requested(["semantics", ".", "--", "--json"]))
+}
+
+///|
+test "semantics rejects removed reader flags and missing input" {
+  for
+    args in [
+      ["semantics"],
+      ["semantics", ".", "--reader", "old-reader"],
+      ["semantics", ".", "--target", ""],
+    ] {
+    let rejected = try {
+      ignore(parse_cli_command(args))
+      false
+    } catch {
+      Usage(..) => true
+      error => raise error
+    }
+    assert_true(rejected)
+  }
 }
 
 ///|
 fn semantics_test_options() -> SemanticsOptions {
-  {
-    project: "project;with spaces",
-    reader: "reader with spaces",
-    target: Some("native"),
-    output_json: true,
-  }
+  { project: "project", target: Some("wasm"), output_json: true, }
 }
 
 ///|
-async test "semantics reader failure preserves status and diagnostic without accepting stdout" {
-  let calls : Array[(String, Array[String])] = []
-  let options = semantics_test_options()
-  try
-    semantic_index_output(options, (executable, args) => {
-      calls.push((executable, args))
-      if executable == "moonc" {
-        (0, "test-compiler (test-date)\n", "")
-      } else {
-        (9, "{}", "compiler artifact is incompatible\n")
-      }
-    })
-  catch {
-    CliError::ScanInput(..) as err => {
-      assert_eq(err.exit_code(), 6)
-      assert_true(err.to_string().contains("reader exited with status 9"))
-      assert_true(err.to_string().contains("compiler artifact is incompatible"))
-    }
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected reader failure")
+fn semantics_fixture_index(
+  file : String?,
+  text~ : String = "",
+) -> @semantic.Index raise {
+  let sources : Array[Json] = match file {
+    Some(file) => [{ "path": file, "text": text }]
+    None => []
   }
-  assert_eq(calls, [
-    ("moonc", ["-v"]),
-    (
-      "reader with spaces",
-      ["--project", "project;with spaces", "--target", "native"],
-    ),
-  ])
+  @semantic.Index::from_json(
+    {
+      "schema_version": 1,
+      "provider": "moon-ide",
+      "compiler_version": "fixture",
+      "position_encoding": "unicode-scalar",
+      "sources": sources,
+      "types": [],
+      "symbols": [],
+      "facts": [],
+    },
+    compiler_version="fixture",
+  )
 }
 
 ///|
-async test "semantics rejects malformed successful reader output" {
-  try
-    semantic_index_output(semantics_test_options(), (executable, _) => {
-      if executable == "moonc" {
-        (0, "test-compiler\n", "")
-      } else {
-        (0, "not a semantic index", "")
-      }
-    })
-  catch {
-    CliError::ScanInput(..) as err =>
-      assert_true(err.to_string().contains("invalid reader output"))
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected schema validation failure")
-  }
-}
-
-///|
-async test "semantics stops before reader when compiler version fails" {
-  let calls : Array[String] = []
-  try
-    semantic_index_output(semantics_test_options(), (executable, _) => {
-      calls.push(executable)
-      (4, "", "version unavailable")
-    })
-  catch {
-    CliError::ScanInput(..) as err =>
-      assert_true(
-        err
-        .to_string()
-        .contains("compiler version command exited with status 4"),
-      )
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected version failure")
-  }
-  assert_eq(calls, ["moonc"])
-}
-
-///|
-async test "semantics reports executable launch failures as scan input errors" {
-  try
-    semantic_index_output(semantics_test_options(), (executable, _) => {
-      if executable == "moonc" {
-        (0, "test-compiler", "")
-      } else {
-        fail("reader executable missing")
-      }
-    })
-  catch {
-    CliError::ScanInput(..) as err => {
-      assert_eq(err.exit_code(), 6)
-      assert_true(err.to_string().contains("could not run reader"))
-    }
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected launch failure")
-  }
-}
-
-///|
-fn semantics_empty_index(compiler_version : String) -> String {
-  let value : Json = {
-    "schema_version": 1,
-    "compiler_version": compiler_version,
-    "position_encoding": "unicode-scalar",
-    "sources": [],
-    "types": [],
-    "symbols": [],
-    "facts": [],
-  }
-  value.stringify()
-}
-
-///|
-async test "semantics accepts a validated snapshot and preserves reader diagnostics" {
-  let expected = semantics_empty_index("test-compiler (test-date)")
-  let (output, diagnostics) = semantic_index_output(semantics_test_options(), (
-    executable,
-    _,
-  ) => {
-    if executable == "moonc" {
-      (0, "test-compiler (test-date)\n", "")
-    } else {
-      (0, expected + "\n", "reader warning\n")
-    }
+async test "semantics forwards project and backend and preserves the validated index" {
+  let index = semantics_fixture_index(None)
+  let output = semantic_index_output(semantics_test_options(), (project, target) => {
+    assert_eq(project, "project")
+    assert_eq(target, Some("wasm"))
+    index
   })
-  assert_eq(@json.parse(output), @json.parse(expected))
-  inspect(diagnostics, content="reader warning\n")
+  assert_eq(output, index.raw_json().stringify())
 }
 
 ///|
-async test "semantics rejects reader compiler identity mismatch" {
-  try
-    semantic_index_output(semantics_test_options(), (executable, _) => {
-      if executable == "moonc" {
-        (0, "active-compiler", "")
-      } else {
-        (0, semantics_empty_index("different-compiler"), "")
-      }
-    })
-  catch {
-    CliError::ScanInput(..) as err => {
-      assert_true(err.to_string().contains("invalid reader output"))
-      assert_true(err.to_string().contains("different-compiler"))
-    }
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected compiler mismatch")
+async test "semantics wraps IDE transport failures as scan input errors" {
+  let error = try {
+    ignore(
+      semantic_index_output(semantics_test_options(), (_, _) => {
+        fail("server stopped")
+      }),
+    )
+    None
+  } catch {
+    ScanInput(diagnostic~) => Some(diagnostic)
+    error => raise error
   }
+  guard error is Some(Fields(summary~, reason=Some(reason), ..)) else {
+    fail("expected source diagnostic")
+  }
+  assert_eq(summary, "could not load semantic index")
+  assert_true(reason.contains("server stopped"))
 }
 
 ///|
-async test "semantics compares indexed source against the current file" {
-  let path = @fs.realpath("e2etests/testdata/semantics/mock-reader.mjs")
-  let current = @fs.read_file(path).text()
-  let snapshot : Json = {
-    "schema_version": 1,
-    "compiler_version": "test-compiler",
-    "position_encoding": "unicode-scalar",
-    "sources": [{ "path": path, "text": current }],
-    "types": [],
-    "symbols": [],
-    "facts": [],
+async test "semantics checks source freshness before publishing" {
+  let directory = @fs.tmpdir(prefix="moongrep-semantics-fresh-")
+  defer @fs.rmdir(directory, recursive=true)
+  let file = @fs.realpath(directory) + "/source.mbt"
+  @fs.write_file(file, "fn sample { 1 }\n")
+  let index = semantics_fixture_index(Some(file), text="fn sample { 1 }\n")
+  ignore(semantic_index_output(semantics_test_options(), (_, _) => index))
+  @fs.write_file(file, "fn sample { 2 }\n")
+  let stale = try {
+    ignore(semantic_index_output(semantics_test_options(), (_, _) => index))
+    false
+  } catch {
+    ScanInput(..) => true
+    error => raise error
   }
-  let (output, _) = semantic_index_output(semantics_test_options(), (
-    executable,
-    _,
-  ) => {
-    if executable == "moonc" {
-      (0, "test-compiler", "")
-    } else {
-      (0, snapshot.stringify(), "")
-    }
+  assert_true(stale)
+}
+
+///|
+async test "external snapshots still require an independent active compiler version" {
+  let version = semantic_compiler_version((program, args) => {
+    assert_eq(program, "moonc")
+    assert_eq(args, ["-v"])
+    (0, "fixture-compiler\n", "")
   })
-  assert_eq(@json.parse(output), snapshot)
-  guard snapshot is Object(fields) else { fail("expected test snapshot") }
-  fields["sources"] = [{ "path": path, "text": "changed source" }]
-  try
-    semantic_index_output(semantics_test_options(), (executable, _) => {
-      if executable == "moonc" {
-        (0, "test-compiler", "")
-      } else {
-        (0, snapshot.stringify(), "")
-      }
-    })
-  catch {
-    CliError::ScanInput(..) as err => {
-      assert_eq(err.exit_code(), 6)
-      assert_true(
-        err.to_string().contains("source changed since semantic analysis"),
-      )
+  assert_eq(version, "fixture-compiler")
+  for output in [(1, "", "failed"), (0, "  ", "")] {
+    let rejected = try {
+      ignore(semantic_compiler_version((_, _) => output))
+      false
+    } catch {
+      ScanInput(..) => true
+      error => raise error
     }
-    err => fail("unexpected error: \{err}")
-  } noraise {
-    _ => fail("expected stale source failure")
+    assert_true(rejected)
   }
 }

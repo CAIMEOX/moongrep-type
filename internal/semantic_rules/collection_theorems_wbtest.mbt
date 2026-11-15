@@ -132,9 +132,9 @@ fn collection_fixture(
       "package": "fixture@wasm:normal",
       "kind": "expression",
       "node_kind": if id == 0 {
-        "Texpr_ident"
+        "identifier"
       } else {
-        "Texpr_apply"
+        "call"
       },
       "location": {
         "file": "/fixture/collection_theorems.mbt",

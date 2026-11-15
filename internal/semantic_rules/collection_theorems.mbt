@@ -83,7 +83,7 @@ fn check_iter_find_first_exists(
     guard @cst.child(node, "expr") is Some(value) &&
       @cst.child(node, "pattern") is Some(pattern) &&
       option_presence_pattern(context, pattern) &&
-      context.expression(node).node_kind == "Texpr_is" else {
+      context.expression(node).node_kind == "is" else {
       return None
     }
     value
