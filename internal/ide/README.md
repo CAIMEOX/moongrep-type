@@ -73,12 +73,28 @@ project can trigger a check for its preferred target, replacing an explicitly
 checked target. The official CLI preserves that selection with `--no-check`.
 The backend verifies Moon's active backend inventory before publication.
 
-This correctness tradeoff has a cost: the official CLI starts a process per
-unique query. The twenty-theorem corpus (2,634 authored facts, forty findings)
-took about 173 seconds in a native integration run on the validation machine.
-Deduplication and bounded concurrency reduce repeated work; large exports can
-still take minutes. This timing includes checks and index construction, not
-just the rule scan against an existing index.
+The official CLI starts a process per unique query. A measurement with the
+2026-11-13 nightly, the compiled native MoonGrep CLI, `--target wasm`, and four
+concurrent queries produced these wall times on the validation machine:
+
+| Fixture | Export, empty project build | Export, cached project build | Lint, existing index |
+| --- | ---: | ---: | ---: |
+| Seven collection checks, 18 semantic findings | 110.9 s | 109.9 s | 0.307 s |
+| Twenty theorem checks, 40 semantic findings | 154.5 s | 154.3 s | 0.376 s |
+
+Both fixtures contain three source files, excluding `*_test.mbt` and
+`*_wbtest.mbt`. The collection fixture has 606 facts and makes 839 IDE CLI
+queries; the theorem fixture has 803 facts and makes 1,174 queries.
+
+Each export column is one run. Lint times are medians of ten separate CLI runs,
+including version/source validation, index loading, builtin rule loading, and
+JSON output. MoonGrep compilation is excluded. Standard-library and OS caches
+were not cleared; an empty project build is not a cold-machine measurement.
+
+IDE queries take about 98% of export time. Deduplication applies within one
+snapshot; a second export queries the IDE again even when `moon check` is
+cached. Existing-index scans stay fast, while source changes require exporting
+a new index. Current full-index regeneration is too slow for an edit/scan loop.
 
 `provider: "moon-ide"` snapshots use the IDE's file context, including the
 context selected for test files. They do not combine alternative normal,
