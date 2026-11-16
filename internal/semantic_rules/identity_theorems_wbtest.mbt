@@ -1,6 +1,6 @@
 ///|
 priv struct IdentityTheoremFixture {
-  data : Json
+  types : Array[Json]
   facts : Array[Json]
   symbols : Array[Json]
   owner : String
@@ -29,7 +29,7 @@ fn identity_test_node(
 fn identity_theorem_fixture(
   owner : String,
   operation : String,
-) -> IdentityTheoremFixture raise {
+) -> IdentityTheoremFixture {
   let ctor_name = if operation == "unwrap_err" {
     "Err"
   } else if owner == "Option" {
@@ -117,23 +117,8 @@ fn identity_theorem_fixture(
     },
   ]
   let facts : Array[Json] = []
-  let data : Json = {
-    "schema_version": 1,
-    "compiler_version": "fixture",
-    "position_encoding": "unicode-scalar",
-    "sources": [{ "path": "/fixture/identity.mbt", "text": text }],
-    "types": types,
-    "symbols": symbols,
-    "facts": facts,
-  }
-  let source = @semantic_source.Source::parse(
-    @semantic.Index::from_json(data, compiler_version="fixture"),
-    file="/fixture/identity.mbt",
-    text~,
-  )
-  let call_node = identity_test_node(source.root(), node => {
-    node.kind is Expr_DotApply
-  })
+  let tree = @untyped_cst.parse_structure(text).root()
+  let call_node = identity_test_node(tree, node => node.kind is Expr_DotApply)
   let call = dot_call(call_node).unwrap()
   let add = fn(
     node,
@@ -141,14 +126,14 @@ fn identity_theorem_fixture(
     node_kind : String,
     type_id : Int32,
     symbol_id : String?,
-  ) raise {
+  ) {
     facts.push({
       "id": facts.length(),
       "package": "fixture@wasm:normal",
       "kind": kind,
       "node_kind": node_kind,
       "type_id": type_id,
-      "location": range_json(source.range_for_node(node)),
+      "location": range_json(node_range("/fixture/identity.mbt", node)),
       "symbol_id": match symbol_id {
         Some(id) => Json::string(id)
         None => Json::null()
@@ -212,25 +197,20 @@ fn identity_theorem_fixture(
       )
       add(body, "expression", "constructor", 2, None)
     }
-    // Nightly exports both Param and binder facts at the same Name_Binder.
-    add(binder, "binding", "binder", 0, Some("binder"))
-    put(facts[facts.length() - 1], "type_id", Json::null())
   }
-  put(data, "facts", Json::array(facts))
-  { data, facts, symbols, owner, operation, text, }
+  { types, facts, symbols, owner, operation, text, }
 }
 
 ///|
-fn IdentityTheoremFixture::matches(self : IdentityTheoremFixture) -> Bool raise {
-  let source = @semantic_source.Source::parse(
-    @semantic.Index::from_json(self.data, compiler_version="fixture"),
-    file="/fixture/identity.mbt",
-    text=self.text,
+async fn IdentityTheoremFixture::matches(self : IdentityTheoremFixture) -> Bool {
+  let (context, tree) = fixture_context(
+    "/fixture/identity.mbt",
+    self.text,
+    self.types,
+    self.symbols,
+    self.facts,
   )
-  let context = CheckContext::new(source)
-  let node = identity_test_node(source.root(), node => {
-    node.kind is Expr_DotApply
-  })
+  let node = identity_test_node(tree, node => node.kind is Expr_DotApply)
   let location = match self.operation {
     "map" => check_map_identity(context, node, self.owner)
     "bind" => check_bind_identity(context, node, self.owner)
@@ -253,7 +233,7 @@ fn IdentityTheoremFixture::matches(self : IdentityTheoremFixture) -> Bool raise 
 }
 
 ///|
-test "identity theorems check all seven Option and Result laws" {
+async test "identity theorems check all seven Option and Result laws" {
   for
     (owner, operation) in [
       ("Option", "map"),
@@ -269,7 +249,7 @@ test "identity theorems check all seven Option and Result laws" {
 }
 
 ///|
-test "identity lambda equality uses binder identity rather than spelling" {
+async test "identity lambda equality uses binder identity rather than spelling" {
   for operation in ["map", "bind"] {
     let fixture = identity_theorem_fixture("Option", operation)
     put(fixture.facts[4], "symbol_id", Json::string("other"))
@@ -278,7 +258,7 @@ test "identity lambda equality uses binder identity rather than spelling" {
 }
 
 ///|
-test "identity laws preserve the entire Result type including its error" {
+async test "identity laws preserve the entire Result type including its error" {
   for operation in ["map", "bind"] {
     let fixture = identity_theorem_fixture("Result", operation)
     put(fixture.facts[0], "type_id", Json::number(5))
@@ -287,7 +267,7 @@ test "identity laws preserve the entire Result type including its error" {
 }
 
 ///|
-test "identity constructor laws reject foreign Some Ok and Err" {
+async test "identity constructor laws reject foreign Some Ok and Err" {
   for
     (owner, operation) in [
       ("Option", "bind"),

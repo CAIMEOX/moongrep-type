@@ -11,8 +11,7 @@ fn stream_event_scan_options() -> CliOptions {
     verbose: true,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -29,8 +28,7 @@ fn stream_order_scan_options() -> CliOptions {
     verbose: false,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -47,8 +45,7 @@ fn no_match_stream_options(output_json : Bool) -> CliOptions {
     verbose: false,
     no_color: true,
     output_json,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -65,8 +62,7 @@ fn parse_warning_stream_options() -> CliOptions {
     verbose: true,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -87,8 +83,7 @@ fn stream_options_with_format(
     verbose,
     no_color: true,
     output_json,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 

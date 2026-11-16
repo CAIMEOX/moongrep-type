@@ -964,11 +964,15 @@ test "cli args render argparse help" {
   assert_true(lint_help.contains("embedded builtin rules"))
   assert_false(lint_help.contains("--enable-builtin-rules"))
   assert_false(lint_help.contains("[default: ./.moongrep/rules]"))
-  assert_true(lint_help.contains("Directory or .mbt file to scan."))
+  assert_true(
+    lint_help.contains("Directory, .mbt file, or .mbtx script to scan."),
+  )
   let scan_help = scan_command.render_help()
   assert_false(scan_help.contains("--enable-builtin-rules"))
   assert_true(scan_help.contains("[default: ./.moongrep/rules]"))
-  assert_true(scan_help.contains("Directory or .mbt file to scan."))
+  assert_true(
+    scan_help.contains("Directory, .mbt file, or .mbtx script to scan."),
+  )
   let dump_help = dump_command.render_help()
   assert_true(
     dump_help.contains(

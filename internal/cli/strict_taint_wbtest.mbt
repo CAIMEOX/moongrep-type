@@ -11,8 +11,7 @@ fn strict_taint_options(file : String, strict : Bool) -> CliOptions {
     no_color: true,
     output_json: true,
     strict_taint: strict,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 

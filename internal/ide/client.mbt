@@ -3,7 +3,7 @@ priv struct Client {
   root : String
   backend : String
   environment : Map[String, String]
-  cache : Map[String, Json]
+  cache : Map[String, @async.Lazy[Json]]
 }
 
 ///|
@@ -19,9 +19,21 @@ async fn Client::request(
   point : Point,
 ) -> Json {
   let key = query_key(subcommand, file, point)
-  if self.cache.get(key) is Some(value) {
-    return value
+  if self.cache.get(key) is Some(answer) {
+    return answer.wait()
   }
+  let answer = @async.Lazy::Lazy(() => self.fetch(subcommand, file, point))
+  self.cache[key] = answer
+  answer.wait()
+}
+
+///|
+async fn Client::fetch(
+  self : Client,
+  subcommand : String,
+  file : String,
+  point : Point,
+) -> Json {
   let location = "\{file}:\{point.line}:\{point.column}"
   let (status, stdout, stderr) = @async.with_timeout(30000, () => {
     @process.collect_output(
@@ -58,61 +70,7 @@ async fn Client::request(
     }
     Json::null()
   }
-  self.cache[key] = result
   result
-}
-
-///|
-/// Prime independent official CLI queries without mutating the semantic graph.
-/// Graph construction then consumes the results in deterministic source order.
-async fn Client::prefetch(self : Client, plan : Plan) -> Unit {
-  let pending : Map[String, (String, String, Point)] = Map([])
-  for query in plan.queries {
-    for point in hover_points(query) {
-      pending[query_key("hover", query.file, point)] = (
-        "hover",
-        query.file,
-        point,
-      )
-    }
-    if query.node_kind == "operator" {
-      pending[query_key("hover", query.file, query.anchor.start)] = (
-        "hover",
-        query.file,
-        query.anchor.start,
-      )
-    }
-    if query.definition {
-      pending[query_key("peek-def", query.file, query.anchor.start)] = (
-        "peek-def",
-        query.file,
-        query.anchor.start,
-      )
-    }
-  }
-  let limit = @async.Semaphore::Semaphore(4)
-  @async.with_task_group(group => {
-    for _, (name, file, point) in pending {
-      group.spawn_bg(() => {
-        limit.acquire()
-        defer limit.release()
-        ignore(self.request(name, file, point))
-      })
-    }
-  })
-}
-
-///|
-fn hover_points(query : Query) -> Array[Point] {
-  if query.node_kind == "is" || query.node_kind == "operator" {
-    return []
-  }
-  if ["constructor", "field", "function"].contains(query.node_kind) ||
-    query.role == "binding" {
-    [query.range.end, query.anchor.start]
-  } else {
-    [query.range.end]
-  }
 }
 
 ///|
@@ -146,13 +104,14 @@ priv struct Definition {
 }
 
 ///|
-async fn Client::definitions(
+async fn Client::locations(
   self : Client,
   file : String,
   point : Point,
   documents : Map[String, String],
+  command~ : String = "peek-def",
 ) -> Array[Definition] {
-  let result = self.request("peek-def", file, point)
+  let result = self.request(command, file, point)
   if result is Null {
     return []
   }
@@ -166,7 +125,11 @@ async fn Client::definitions(
     }
     let file = @fs.realpath(file)
     if !documents.contains(file) {
-      documents[file] = @fs.read_file(file).text()
+      let text = @fs.read_file(file).text()
+      if documents.get(file) is Some(before) && before != text {
+        fail("IDE definition changed: \{file}")
+      }
+      documents[file] = text
     }
     let range = cli_span(range)
     require_source_span(range, documents[file])

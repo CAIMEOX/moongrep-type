@@ -30,22 +30,13 @@ async test "authored derives manual impls and implicit conversions have unique e
     #|  let _ = "🚀"; xs.map(x => x + 1).map(x => x * 2)
     #|}
   @fs.write_file(root + "/probe.mbt", text.replace_all(old="\n", new="\r\n"))
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
-  let counts = run_ide_fixture_rules(index)
+  let counts = run_ide_fixture_rules(
+    fixture_files(root),
+    @provider.Session::new(target="wasm"),
+  )
   assert_eq(counts.length(), 2)
   assert_eq(counts.get("moonbitlang/option_map_identity"), Some(2))
   assert_eq(counts.get("moonbitlang/array_map_fusion"), Some(1))
-  assert_true(
-    index
-    .facts()
-    .all(fact => {
-      !(fact.details is { "generated_top_level": true, .. }) &&
-      fact.location is Some(location) &&
-      location.start.line > 5
-    }),
-  )
 }
 
 ///|
@@ -64,58 +55,38 @@ async test "IDE file contexts cover normal whitebox and blackbox sources once" {
       "test { let xs = [1, 2]; ignore(xs.map(x => x + 1).map(x => x * 2)) }\n",
     )
   }
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
-  assert_eq(index.sources().length(), 3)
-  assert_true(index.facts().all(fact => fact.package_name.has_suffix(":ide")))
-  let counts = run_ide_fixture_rules(index)
+  let session = @provider.Session::new(target="wasm")
+  let counts = run_ide_fixture_rules(fixture_files(root), session)
   assert_eq(counts.get("moonbitlang/array_map_fusion"), Some(3))
-  for input in index.sources() {
-    let source = @semantic_source.Source::parse(
-      index,
-      file=input.path,
-      text=input.text,
-      view="ide",
-    )
-    assert_true(!source.facts().is_empty())
-    let stale = try {
-      ignore(
-        @semantic_source.Source::parse(
-          index,
-          file=input.path,
-          text=input.text + "\n",
-        ),
-      )
-      false
-    } catch {
-      _ => true
-    }
-    assert_true(stale)
+  let selected = run_ide_fixture_rules([root + "/source_wbtest.mbt"], session)
+  assert_eq(selected.get("moonbitlang/array_map_fusion"), Some(1))
+  @fs.write_file(root + "/source.mbt", "pub fn changed() -> Int { 1 }")
+  let stale = try {
+    session.validate()
+    false
+  } catch {
+    _ => true
   }
-  // File selection keeps the owning package's IDE context and canonical paths.
-  let file_index = @async.with_timeout(600000, () => {
-    @provider.export_index(root + "/source_wbtest.mbt", target="wasm")
-  })
-  assert_eq(file_index.sources().length(), 1)
-  assert_eq(
-    run_ide_fixture_rules(file_index).get("moonbitlang/array_map_fusion"),
-    Some(1),
-  )
+  assert_true(stale)
 }
 
 ///|
-async test "failed compiler checks cannot publish a semantic snapshot" {
+async test "a failed project check cannot produce semantic findings" {
   let root = @fs.tmpdir(prefix="moongrep-ide-invalid-")
   defer @fs.rmdir(root, recursive=true)
   @fs.write_file(root + "/moon.mod", "name = \"moongrep/invalid-probe\"\n")
   @fs.write_file(root + "/moon.pkg", "")
   @fs.write_file(
     root + "/probe.mbt",
-    "pub fn invalid() -> Int { missing_name() }\n",
+    "pub fn invalid() -> Int { missing_name().filter(x => x).length() }\n",
   )
   let rejected = try {
-    ignore(@provider.export_index(root, target="wasm"))
+    ignore(
+      run_ide_fixture_rules(
+        fixture_files(root),
+        @provider.Session::new(target="wasm"),
+      ),
+    )
     false
   } catch {
     _ => true
@@ -143,30 +114,33 @@ async test "official IDE respects the explicitly checked backend" {
     #|pub fn use_chosen() -> Unit { ignore(chosen()) }
   @fs.write_file(root + "/probe.mbt", text)
   for (target, result_type) in [("wasm", "Int"), ("native", "String")] {
-    let index = @async.with_timeout(600000, () => {
-      @provider.export_index(root, target~)
-    })
-    let calls = index
-      .facts()
-      .filter(fact => {
-        fact.node_kind == "call" &&
-        fact.symbol_id.bind(id => index.symbol(id)) is Some(symbol) &&
-        symbol.name == "chosen"
-      })
-    guard calls is [call] && call.type_id is Some(ty) else {
-      fail("missing backend-specific call")
+    let session = @provider.Session::new(target~)
+    let file = root + "/probe.mbt"
+    let tree = @untyped_cst.parse_structure(text, name=file).root()
+    let checked = session.file(file, text, tree).unwrap()
+    let nodes = [tree]
+    let selected = while nodes.pop() is Some(n) {
+      if n.kind is Expr_Apply && @cst.source_text(n, text) == "chosen()" {
+        break n
+      }
+      for (_, child) in n.children {
+        nodes.push(child)
+      }
+    } nobreak {
+      fail("missing chosen() in fixture")
     }
+    let ty = checked.type_at(selected).unwrap()
     assert_true(
-      index.type_info(ty).unwrap().raw
-      is { "kind": "builtin", "name": String(name), .. } &&
+      checked.raw_type(ty)
+      is Some({ "kind": "builtin", "name": String(name), .. }) &&
       name == result_type,
-      msg=target,
     )
+    session.validate()
   }
 }
 
 ///|
-async test "workspace exports retain module ownership and file selection" {
+async test "workspace candidates retain module ownership and file selection" {
   let root = @fs.tmpdir(prefix="moongrep-ide-workspace-")
   defer @fs.rmdir(root, recursive=true)
   @fs.write_file(root + "/moon.work", "members = [\"./first\", \"./second\"]\n")
@@ -189,41 +163,91 @@ async test "workspace exports retain module ownership and file selection" {
   )
   @fs.write_file(
     root + "/first/native_only/source.mbt",
-    "pub fn only_native() -> Int { 1 }\n",
+    "pub fn only_native(xs : Array[Int]) -> Array[Int] { xs.map(x => x + 1).map(x => x * 2) }\n",
   )
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
-  assert_eq(index.sources().length(), 2)
-  assert_eq(
-    run_ide_fixture_rules(index).get("moonbitlang/array_map_fusion"),
-    Some(2),
-  )
-  let selected = @async.with_timeout(600000, () => {
-    @provider.export_index(root + "/second/source.mbt", target="wasm")
-  })
-  assert_eq(selected.sources().length(), 1)
-  assert_true(
-    selected
-    .facts()
-    .all(fact => fact.package_name.has_prefix("moongrep/work-second@")),
-  )
+  let session = @provider.Session::new(target="wasm")
+  let counts = run_ide_fixture_rules(fixture_files(root), session)
+  assert_eq(counts.get("moonbitlang/array_map_fusion"), Some(2))
+  let file = root + "/second/source.mbt"
+  let text = @fs.read_file(file).text()
+  let checked = session
+    .file(file, text, @untyped_cst.parse_structure(text).root())
+    .unwrap()
+  assert_true(checked.package_name().has_prefix("moongrep/work-second@"))
 }
 
 ///|
-async test "standalone source exports do not require a module manifest" {
+async test "standalone source candidates do not require a module manifest" {
   let root = @fs.tmpdir(prefix="moongrep-ide-standalone-")
   defer @fs.rmdir(root, recursive=true)
   let file = root + "/sample.mbtx"
   @fs.write_file(
     file, "fn main { let xs = [1, 2]; ignore(xs.map(x => x + 1).map(x => x * 2)) }\n",
   )
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(file, target="wasm")
-  })
-  assert_eq(index.sources().length(), 1)
-  assert_eq(
-    run_ide_fixture_rules(index).get("moonbitlang/array_map_fusion"),
-    Some(1),
+  let counts = run_ide_fixture_rules(
+    [file],
+    @provider.Session::new(target="wasm"),
   )
+  assert_eq(counts.get("moonbitlang/array_map_fusion"), Some(1))
+}
+
+///|
+async test "YAML shapes and guards precede project checks; overlapping rules share IDE queries" {
+  let root = @fs.tmpdir(prefix="moongrep-candidate-budget-")
+  defer @fs.rmdir(root, recursive=true)
+  let file = root + "/source.mbt"
+  let rules = @compile.compile_rules(
+    @builtin.load_semantic_rules().filter(r => {
+      r.rule_id == "moonbitlang/array_filter_count"
+    }),
+  )
+  let session = @provider.Session::new(target="wasm")
+  @fs.write_file(file, "pub fn unrelated() -> Int { broken(123) }")
+  let empty = candidate_file(file, rules)
+  assert_true(empty.is_empty())
+  assert_true(empty.verify(session).findings.is_empty())
+  // The builtin shape admits any map, but this lambda cannot be an identity.
+  @fs.write_file(file, "fn unused() { missing.map(x => x + 1) }")
+  let identities = @compile.compile_rules(
+    @builtin.load_semantic_rules().filter(r => {
+      r.rule_id == "moonbitlang/option_map_identity"
+    }),
+  )
+  let broad = candidate_file(file, identities)
+  assert_false(broad.is_empty())
+  assert_true(broad.verify(session).findings.is_empty())
+  let yaml =
+    #|id: count
+    #|description: Only match selected receivers.
+    #|semantic:
+    #|  check: array-filter-count
+    #|  patterns:
+    #|    - shape: $(xs:id).filter($(p:exp)).length()
+    #|      guard:
+    #|        $xs: '^selected$'
+  let guarded = @compile.compile_rules([
+    @rule_model.RawRuleSpec::from_str("/rules/count.yaml", "/rules", yaml),
+  ])
+  @fs.write_file(file, "fn f() { other.filter(missing).length() }")
+  let rejected = candidate_file(file, guarded)
+  assert_true(rejected.is_empty())
+  assert_true(rejected.verify(session).findings.is_empty())
+  assert_false(@fs.exists(root + "/_build"))
+  assert_eq(session.query_count(), 0)
+  @fs.write_file(root + "/moon.mod", "name = \"probe/budget\"\n")
+  @fs.write_file(root + "/moon.pkg", "")
+  let text =
+    #|pub fn f(xs : Array[Int], p : (Int) -> Bool) -> Int {
+    #|  ignore(xs.length() + 123)
+    #|  xs.filter(p).length()
+    #|}
+  @fs.write_file(file, text)
+  let dup = { ..rules[0], rule_id: "custom/also_count", }
+  let result = @async.with_timeout(60000, () => {
+    candidate_file(file, [rules[0], dup]).verify(session)
+  })
+  assert_eq(result.findings.length(), 2)
+  assert_eq(result.warnings.length(), 0)
+  assert_eq(session.query_count(), 6)
+  session.validate()
 }

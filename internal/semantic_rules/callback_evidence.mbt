@@ -2,34 +2,28 @@
 /// Moving the construction of a callback must not move a factory call or a
 /// read of a mutable captured binding. Mutable objects behind stable bindings
 /// remain allowed: the laws preserve callback invocations and their effects.
-fn CheckContext::stable_callback(
+async fn CheckContext::stable_callback(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> Bool raise {
+) -> Bool {
   let node = ungroup(node)
   if node.kind is Expr_Ident {
     return self.stable_identifier(node)
   }
   guard node.kind is Expr_Function else { return false }
-  let range = self.source.range_for_node(node)
+  let range = self.range(node)
   let pending = [node]
   while pending.pop() is Some(current) {
     if current.kind is Expr_Ident {
-      let id = self.symbol_id(current)
-      guard self.source.index().symbol(id) is Some(symbol) else { return false }
+      guard (self.symbol_at)(current) is Some(symbol) else { return false }
       if symbol.kind == "local" {
-        guard self.facts_by_symbol.get(id) is Some(facts) else { return false }
-        let mut bound = false
-        for fact in facts {
-          if fact.kind == "binding" && fact.location is Some(location) {
-            bound = true
-            if self.mutable_bindings.contains(location) &&
-              !range_contains(range, location) {
-              return false
-            }
-          }
+        guard (self.binding)(symbol.id) is Some(location) &&
+          self.binders.get(location) is Some(mutable_binding) else {
+          return false
         }
-        guard bound else { return false }
+        if mutable_binding && !range_contains(range, location) {
+          return false
+        }
       } else if symbol.kind != "global" {
         return false
       }

@@ -1,10 +1,10 @@
 ///|
 /// The filtered array is immediately discarded after counting its elements.
 /// Both forms evaluate the predicate once per input, in the same order.
-fn check_array_filter_count(
+async fn check_array_filter_count(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(length) &&
     length.name == "length" &&
     length.args.is_empty() &&
@@ -25,10 +25,10 @@ fn check_array_filter_count(
 }
 
 ///|
-fn check_iter_filter_count(
+async fn check_iter_filter_count(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(count) &&
     count.name == "count" &&
     count.args.is_empty() &&
@@ -51,10 +51,10 @@ fn check_iter_filter_count(
 ///|
 /// Unlike collecting before looking for a match, these forms stop after exactly
 /// the same successful pull, including when the predicate has side effects.
-fn check_iter_filter_next(
+async fn check_iter_filter_next(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(next) &&
     next.name == "next" &&
     next.args.is_empty() &&
@@ -75,15 +75,14 @@ fn check_iter_filter_next(
 }
 
 ///|
-fn check_iter_find_first_exists(
+async fn check_iter_find_first_exists(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   let receiver = if node.kind is Expr_Is {
     guard @cst.child(node, "expr") is Some(value) &&
       @cst.child(node, "pattern") is Some(pattern) &&
-      option_presence_pattern(context, pattern) &&
-      context.expression(node).node_kind == "is" else {
+      option_presence_pattern(context, pattern) else {
       return None
     }
     value
@@ -115,10 +114,10 @@ fn check_iter_find_first_exists(
 ///|
 /// Only presence tests are equivalent to any(). A binder, literal, nested
 /// payload, alias, or alternative pattern can observe more than presence.
-fn option_presence_pattern(
+async fn option_presence_pattern(
   context : CheckContext,
   pattern : @untyped_cst.CstNode,
-) -> Bool raise {
+) -> Bool {
   guard pattern.kind is Pattern_Constr else { return false }
   match @cst.child(pattern, "params") {
     None => context.constructor_is(pattern, "Option", "None")
@@ -134,10 +133,10 @@ fn option_presence_pattern(
 ///|
 /// Iter's lazy map and flatten already interleave in flat_map order. Neither
 /// source nor callback evaluation moves, and the callback is not duplicated.
-fn check_iter_map_flatten(
+async fn check_iter_map_flatten(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(flatten) &&
     flatten.name == "flatten" &&
     flatten.args.is_empty() &&

@@ -69,16 +69,7 @@ pub(all) struct CliOptions {
   no_color : Bool
   output_json : Bool
   strict_taint : Bool
-  semantic_index : String?
-  semantic_view : String
-}
-
-///|
-/// Input selected for official IDE semantic export.
-pub(all) struct SemanticsOptions {
-  project : String
   target : String?
-  output_json : Bool
 }
 
 ///|
@@ -88,7 +79,6 @@ pub(all) enum CliCommand {
   Lint(CliOptions)
   DocsList
   DocsShow(String)
-  Semantics(SemanticsOptions)
   MapFusion(MapFusionOptions)
   DumpImpl(
     source~ : String,
@@ -116,7 +106,7 @@ pub fn runtime_cli_args(argv : Array[String]) -> Array[String] {
 ///|
 /// Reports whether command-line failures should use the JSON Lines protocol.
 ///
-/// Only a standalone `--json` for an initial `scan`, `lint`, `dump`, `semantics`, or `map-fusion`
+/// Only a standalone `--json` for an initial `scan`, `lint`, `dump`, or `map-fusion`
 /// command enables the protocol. Arguments after the `--` option terminator
 /// are not interpreted as options.
 pub fn output_json_requested(argv : Array[String]) -> Bool {
@@ -125,7 +115,6 @@ pub fn output_json_requested(argv : Array[String]) -> Bool {
       argv[0] != "scan" &&
       argv[0] != "lint" &&
       argv[0] != "dump" &&
-      argv[0] != "semantics" &&
       argv[0] != "map-fusion"
     ) {
     return false
@@ -179,14 +168,9 @@ let scan_value_options : Array[ScanValueOption] = [
     about: "Rule id to disable after loading rules. May be repeated.",
   },
   {
-    name: "semantic-index",
+    name: "target",
     short: None,
-    about: "Checked semantic index for type-aware YAML rules.",
-  },
-  {
-    name: "semantic-view",
-    short: None,
-    about: "Snapshot context: auto (default), ide, normal, wbtest, or bbtest.",
+    about: "MoonBit backend for checking semantic candidates.",
   },
 ]
 
@@ -227,7 +211,7 @@ fn scan_like_command(
       OptionArg(
         option.name,
         short?=option.short,
-        action=if option.name.has_prefix("semantic-") { Set } else { Append },
+        action=if option.name == "target" { Set } else { Append },
         default_values?=if option.name == "rules" {
           Some(
             if default_rules_root_enabled {
@@ -243,7 +227,10 @@ fn scan_like_command(
       )
     }),
     positionals=[
-      PositionArg("scan-root", about="Directory or .mbt file to scan."),
+      PositionArg(
+        "scan-root",
+        about="Directory, .mbt file, or .mbtx script to scan.",
+      ),
     ],
   )
 }
@@ -310,10 +297,10 @@ let dump_command : @argparse.Command = Command(
 ///|
 let moongrep_command : @argparse.Command = Command(
   "moongrep",
-  about="Scan MoonBit source files with structural and taint rules.",
+  about="Scan MoonBit source files with structural, semantic, and taint rules.",
   version=MODULE_VERSION,
   subcommands=[
-    scan_command, lint_command, docs_command, dump_command, semantics_command, map_fusion_command,
+    scan_command, lint_command, docs_command, dump_command, map_fusion_command,
   ],
   subcommand_required=true,
 )
@@ -400,21 +387,7 @@ fn scan_cli_options(
   let verbose = cli_flag_enabled(scan_matches.flags, "verbose")
   let output_json = cli_flag_enabled(scan_matches.flags, "json")
   let no_color = no_color_enabled(env)
-  let semantic_index = last_cli_value(scan_matches.values, "semantic-index")
-  let semantic_view = last_cli_value(scan_matches.values, "semantic-view").unwrap_or(
-    "auto",
-  )
-  if semantic_index is Some(path) && path.trim().is_empty() {
-    raise new_usage_error("--semantic-index must not be empty")
-  }
-  if !["auto", "ide", "normal", "wbtest", "bbtest"].contains(semantic_view) {
-    raise new_usage_error(
-      "--semantic-view must be auto, ide, normal, wbtest, or bbtest",
-    )
-  }
-  if scan_matches.values.contains("semantic-view") && semantic_index is None {
-    raise new_usage_error("--semantic-view requires --semantic-index")
-  }
+  let target = semantic_target(scan_matches)
   let parsed_rules_root = last_cli_value(scan_matches.values, "rules")
   let rule_file = last_cli_value(scan_matches.values, "rule")
   let patterns = parse_scan_pattern_specs(argv, scan_matches.values)
@@ -444,8 +417,7 @@ fn scan_cli_options(
     verbose,
     no_color,
     output_json,
-    semantic_index,
-    semantic_view,
+    target,
     strict_taint: cli_flag_enabled(scan_matches.flags, "strict-taint"),
   }
 }
@@ -631,8 +603,6 @@ pub fn parse_cli_command(
       Lint(scan_cli_options(lint_matches, env, argv))
     Some(("docs", docs_matches)) => docs_cli_command(docs_matches)
     Some(("dump", dump_matches)) => dump_cli_command(dump_matches)
-    Some(("semantics", semantics_matches)) =>
-      Semantics(semantics_cli_options(semantics_matches))
     Some(("map-fusion", fusion_matches)) =>
       MapFusion(map_fusion_cli_options(fusion_matches, env))
     _ => raise new_usage_error("missing required command")
@@ -647,3 +617,15 @@ pub extend CliError with Debug::{to_repr}
 
 ///|
 pub extend CliError with Show::{to_string, output}
+
+///|
+fn semantic_target(matches : @argparse.Matches) -> String? raise {
+  let target = last_cli_value(matches.values, "target")
+  if target is Some(t) &&
+    !["wasm", "wasm-gc", "js", "native", "llvm"].contains(t) {
+    raise new_usage_error(
+      "--target must select one of wasm, wasm-gc, js, native, or llvm",
+    )
+  }
+  target
+}

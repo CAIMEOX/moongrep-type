@@ -3,10 +3,7 @@ async fn prepare_scan_rules(
   mode : ScanMode,
   options : CliOptions,
 ) -> Array[@rule_model.CompiledRule] {
-  let builtin_rules = load_builtin_scan_rules(
-    mode,
-    include_semantic=options.semantic_index is Some(_),
-  )
+  let builtin_rules = load_builtin_scan_rules(mode)
   let raw_rules = builtin_rules.copy()
   raw_rules.append(load_scan_rules(options))
   compile_scan_rules(
@@ -46,7 +43,6 @@ fn compile_scan_rules(
 ///|
 fn load_builtin_scan_rules(
   mode : ScanMode,
-  include_semantic~ : Bool = false,
 ) -> Array[@rule_model.RawRuleSpec] raise {
   if mode is Scan {
     return []
@@ -54,9 +50,7 @@ fn load_builtin_scan_rules(
   let rules = @rule_builtin.load_rules() catch {
     err => raise new_internal_error("could not load builtin rules: \{err}")
   }
-  if include_semantic {
-    rules.append(@rule_builtin.load_semantic_rules())
-  }
+  rules.append(@rule_builtin.load_semantic_rules())
   rules
 }
 

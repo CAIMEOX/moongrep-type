@@ -91,10 +91,10 @@ fn statement_call_syntax(
 }
 
 ///|
-fn CheckContext::statement_call(
+async fn CheckContext::statement_call(
   self : CheckContext,
   statement : @untyped_cst.CstNode,
-) -> DotCall? raise {
+) -> DotCall? {
   let value = statement_value(statement)
   if dot_call(value) is Some(call) {
     return Some(call)

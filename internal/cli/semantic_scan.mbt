@@ -1,80 +1,119 @@
 ///|
-priv struct SemanticScanContext {
-  index : @semantic.Index
-  view : String
+priv struct SemanticFile {
+  path : String
+  text : String
+  candidates : @semantic_rules.Candidates
 }
 
 ///|
-async fn load_semantic_index(path : String) -> @semantic.Index {
-  let compiler_version = semantic_compiler_version(collect_semantics_process)
-  let input = @fs.read_file(path).text() catch {
-    err => raise new_semantics_input_error(path, "could not read index: \{err}")
-  }
-  let index = @semantic.Index::parse(input, compiler_version~) catch {
-    err => raise new_semantics_input_error(path, "\{err}")
-  }
-  require_current_semantic_sources(index)
-  index
-}
-
-///|
-async fn scan_semantic_source(
+async fn select_semantic_file(
   file : String,
   text : String,
-  context : SemanticScanContext,
   plan : @rule_apply.ScanPlan,
   receive : async (ScanEvent) -> Unit,
-) -> Unit {
-  let canonical = @fs.realpath(file)
-  let source = @semantic_source.Source::parse(
-    context.index,
-    file=canonical,
-    text~,
-    view?=if context.view == "auto" { None } else { Some(context.view) },
-  ) catch {
-    err => raise new_semantics_input_error(file, "\{err}")
+) -> SemanticFile? {
+  let parsed = @untyped_cst.parse_structure(text, name=file)
+  let semantic_only = plan.without_semantic_rules().is_empty()
+  if !parsed.diagnostics_view().is_empty() ||
+    @cst.first_recovery_node(parsed.root()) is Some(_) {
+    if semantic_only {
+      receive(
+        Warning(
+          Parse({
+            file,
+            block_start_line: None,
+            reason: "parse failed during semantic candidate selection",
+          }),
+        ),
+      )
+    }
+    return None
   }
-  let source_lines = cache_source_lines(
-    text
-    .replace_all(old="\r\n", new="\n")
-    .replace_all(old="\r", new="\n")
-    .replace_all(old="\u{2028}", new="\n")
-    .replace_all(old="\u{2029}", new="\n"),
-  )
   let roots = []
-  for node in @cst.toplevel_nodes(source.root()) {
-    let skip = impl_moongrep_skip_attributes(node)
-    if plan.without_semantic_rules().is_empty() {
+  for root in @cst.toplevel_nodes(parsed.root()) {
+    let skip = impl_moongrep_skip_attributes(root)
+    if semantic_only {
       for loc in skip.invalid_payload_locations {
         receive(Warning(InvalidMoongrepSkipPayload(file, loc)))
       }
     }
-    if skip.skip_structural {
-      continue
+    if !skip.skip_structural {
+      roots.push(root)
     }
-    roots.push(node)
   }
-  let result = @semantic_rules.apply_rules(
-    source,
+  let candidates = @semantic_rules.Candidates::select(
+    file,
+    text,
+    parsed.root(),
+    roots,
     plan.semantic_rules(),
-    roots~,
   )
-  for warning in result.warnings {
-    let reason = if [
-        "missing_exact_semantics", "ambiguous_semantics", "non_unique_expression_type",
-        "unknown_type",
-      ].contains(warning.reason) {
-      skipped_reason_text(warning.reason)
-    } else {
-      warning.reason
+  if candidates.is_empty() {
+    None
+  } else {
+    Some({ path: file, text, candidates, })
+  }
+}
+
+///|
+async fn verify_semantic_files(
+  files : Array[SemanticFile],
+  target : String?,
+  receive : async (ScanEvent) -> Unit,
+) -> Int32 {
+  let session = @ide.Session::new(target?)
+  let reports = []
+  for input in files {
+    let report = input.candidates.verify(session) catch {
+      err =>
+        raise new_scan_input_error(
+          input.path,
+          "verify semantic candidates",
+          "\{err}",
+        )
     }
-    receive(
-      Warning(
-        Semantic(file~, rule_id=warning.rule_id, loc=warning.loc, reason~),
-      ),
-    )
+    reports.push((input, report))
   }
-  for finding in result.findings {
-    receive(Hit(make_scan_hit(source_lines, { ..finding, file, })))
+  session.validate() catch {
+    err =>
+      raise new_scan_input_error(
+        files[0].path,
+        "validate semantic inputs",
+        "\{err}",
+      )
   }
+  for (input, report) in reports {
+    for warning in report.warnings {
+      let reason = if ["missing_exact_semantics", "unknown_type"].contains(
+          warning.reason,
+        ) {
+        skipped_reason_text(warning.reason)
+      } else {
+        warning.reason
+      }
+      receive(
+        Warning(
+          Semantic(
+            file=input.path,
+            rule_id=warning.rule_id,
+            loc=warning.loc,
+            reason~,
+          ),
+        ),
+      )
+    }
+    if !report.findings.is_empty() {
+      let lines = cache_source_lines(
+        input.text
+        .replace_all(old="\r\n", new="\n")
+        .replace_all(old="\r", new="\n")
+        .replace_all(old="\u{2028}", new="\n")
+        .replace_all(old="\u{2029}", new="\n"),
+      )
+      for finding in report.findings {
+        receive(Hit(make_scan_hit(lines, finding)))
+      }
+    }
+  }
+  session.query_count()
 }

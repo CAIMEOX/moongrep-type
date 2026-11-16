@@ -86,7 +86,7 @@ fn nominal_path(name : @syntax.LongIdent, source : InputSource) -> Json? {
     }
     return Some(package_type_path(package_name, name))
   }
-  if source.type_names.get(name) is Some(path) {
+  if source.type_names.force().get(name) is Some(path) {
     return Some(path)
   }
   if ["Option", "Result", "FixedArray"].contains(name) {
@@ -129,7 +129,7 @@ fn TypeTable::convert(
       let builtin_scope = if pkg_alias is Some(pkg_alias) {
         source_package(source, pkg_alias) == Some("moonbitlang/core/builtin")
       } else {
-        !source.type_names.contains(name)
+        !source.type_names.force().contains(name)
       }
       let normalized = match name {
         "Int32" => "Int"

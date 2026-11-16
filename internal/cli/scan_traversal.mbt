@@ -1,33 +1,32 @@
 ///|
-async fn scan_path(
+async fn visit_scan_sources(
   path : String,
   excludes : Array[String],
-  scan_plan : @rule_apply.ScanPlan,
   verbose : Bool,
   receive : async (ScanEvent) -> Unit,
-  semantic_context~ : SemanticScanContext? = None,
+  visit : async (String) -> Unit,
 ) -> Unit {
   let visited = @fs_walk.VisitedDirectories::new()
-  scan_path_once(
+  visit_scan_sources_once(
     path,
     excludes,
-    scan_plan,
     verbose,
     receive,
     visited,
-    semantic_context~,
+    visit,
+    explicit_file=true,
   )
 }
 
 ///|
-async fn scan_path_once(
+async fn visit_scan_sources_once(
   path : String,
   excludes : Array[String],
-  scan_plan : @rule_apply.ScanPlan,
   verbose : Bool,
   receive : async (ScanEvent) -> Unit,
   visited : @fs_walk.VisitedDirectories,
-  semantic_context~ : SemanticScanContext? = None,
+  visit : async (String) -> Unit,
+  explicit_file~ : Bool = false,
 ) -> Unit {
   let kind = @fs.kind(path) catch {
     @os_error.OSError(_) as err =>
@@ -55,14 +54,8 @@ async fn scan_path_once(
       for entry in entries {
         let child_path = join_scan_path(path, entry)
         if !should_skip_entry(child_path, entry, excludes) {
-          scan_path_once(
-            child_path,
-            excludes,
-            scan_plan,
-            verbose,
-            receive,
-            visited,
-            semantic_context~,
+          visit_scan_sources_once(
+            child_path, excludes, verbose, receive, visited, visit,
           )
         } else {
           emit_scan_trace(verbose, receive, PathSkipped(child_path))
@@ -70,9 +63,9 @@ async fn scan_path_once(
       }
     }
     Regular =>
-      if path.has_suffix(".mbt") {
+      if path.has_suffix(".mbt") || (explicit_file && path.has_suffix(".mbtx")) {
         emit_scan_trace(verbose, receive, FileStarted(path))
-        scan_source_file(path, scan_plan, receive, semantic_context~)
+        visit(path)
       }
     _ => ()
   }

@@ -139,6 +139,10 @@ fn render_scan_trace_json(trace : ScanTrace) -> String {
       record["event"] = Json::string("file_started")
       record["path"] = Json::string(path)
     }
+    SemanticQueries(count) => {
+      record["event"] = "semantic_queries"
+      record["count"] = Json(count)
+    }
   }
   Json::object(record).stringify()
 }

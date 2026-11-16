@@ -143,11 +143,11 @@ fn declarations(source : InputSource) -> Array[Declaration] {
 }
 
 ///|
-priv struct Builder {
+priv struct Catalog {
   types : TypeTable
-  symbols : Array[Json]
+  symbols : Map[String, @semantic.SymbolInfo]
   symbol_ids : Map[String, String]
-  facts : Array[Json]
+  bindings : Map[String, @semantic.Range]
   documents : Map[String, String]
   catalogs : Map[String, Array[Declaration]]
   packages : Map[String, String]
@@ -162,7 +162,7 @@ fn inside(directory : String, file : String) -> Bool {
 }
 
 ///|
-fn Builder::source_for(self : Builder, file : String) -> InputSource? {
+fn Catalog::source_for(self : Catalog, file : String) -> InputSource? {
   if self.sources.get(file) is Some(source) {
     return Some(source)
   }
@@ -192,7 +192,9 @@ fn Builder::source_for(self : Builder, file : String) -> InputSource? {
     text,
     package_name,
     aliases,
-    type_names: type_declarations(text, package_name, aliases),
+    type_names: @lazy.Lazy::Lazy(() => {
+      type_declarations(text, package_name, aliases)
+    }),
   })
 }
 
@@ -202,7 +204,7 @@ fn definition_key(definition : Definition) -> String {
 }
 
 ///|
-fn Builder::symbol(self : Builder, definition : Definition) -> String {
+fn Catalog::symbol(self : Catalog, definition : Definition) -> String {
   let key = definition_key(definition)
   if self.symbol_ids.get(key) is Some(id) {
     return id
@@ -265,162 +267,22 @@ fn Builder::symbol(self : Builder, definition : Definition) -> String {
   } else {
     "symbol:" + identity.stringify()
   }
-  if self.symbols.any(symbol => {
-      symbol is { "id": String(found), .. } && found == id
-    }) {
-    self.symbol_ids[key] = id
-    return id
+  if !self.symbols.contains(id) {
+    let raw : Json = {
+      "id": id,
+      "kind": kind,
+      "name": name,
+      "identity": identity,
+      "definition": {
+        "file": definition.file,
+        "range": ToJson::to_json(definition.range),
+      },
+    }
+    self.symbols[id] = { id, kind, name, identity, raw, }
+    if kind == "local" {
+      self.bindings[id] = definition.source_range()
+    }
   }
-  self.symbols.push({
-    "id": id,
-    "kind": kind,
-    "name": name,
-    "identity": identity,
-    "definition": {
-      "file": definition.file,
-      "range": ToJson::to_json(definition.range),
-    },
-  })
   self.symbol_ids[key] = id
   id
-}
-
-///|
-fn Builder::add_fact(
-  self : Builder,
-  query : Query,
-  source : InputSource,
-  backend : String,
-  ty : Int32?,
-  symbol : String?,
-  details : Json,
-) -> Unit {
-  self.facts.push({
-    "id": self.facts.length(),
-    "package": "\{source.package_name}@\{backend}:ide",
-    "kind": query.role,
-    "node_kind": query.node_kind,
-    "location": {
-      "file": query.file,
-      "start": ToJson::to_json(query.range.start),
-      "end": ToJson::to_json(query.range.end),
-    },
-    "type_id": ty.map(id => Json(id)).unwrap_or(Json::null()),
-    "symbol_id": symbol.map(Json::string).unwrap_or(Json::null()),
-    "details": details,
-  })
-}
-
-///|
-async fn Builder::query(
-  self : Builder,
-  client : Client,
-  query : Query,
-  backend : String,
-) -> Unit {
-  let source = self.sources.get(query.file).unwrap()
-  let definitions = if query.definition {
-    client.definitions(query.file, query.anchor.start, self.documents)
-  } else {
-    []
-  }
-  let mut definition : Definition? = None
-  let ids : Map[String, Bool] = Map([])
-  for candidate in definitions {
-    ids[self.symbol(candidate)] = true
-    definition = Some(candidate)
-  }
-  if ids.length() > 1 {
-    definition = None
-  }
-  // A binder is an authored declaration. Referencing occurrences are admitted
-  // only through the official definition response, including shadowing.
-  let definition = if definition is None &&
-    (query.role == "binding" || query.node_kind == "variable_pattern") {
-    Some({ file: query.file, range: query.range, })
-  } else {
-    definition
-  }
-  let symbol = definition.map(value => self.symbol(value))
-  let mut ty : Int32? = if query.node_kind == "is" {
-    // `is` is a non-overloadable Bool-valued language form. The project has
-    // already passed moon check; no generic instantiation is inferred here.
-    Some(self.types.intern({ "kind": "builtin", "name": "Bool" }))
-  } else {
-    None
-  }
-  let mut hover_text = ""
-  for point in hover_points(query) {
-    if ty is Some(_) {
-      break
-    }
-    if client.hover(query.file, point) is Some((text, found)) &&
-      (
-        found == query.range ||
-        (
-          (
-            query.node_kind == "constructor" ||
-            query.node_kind == "field" ||
-            query.role == "binding"
-          ) &&
-          found == query.anchor
-        )
-      ) {
-      hover_text = text
-      let signature_owner = definition.map(definition_key)
-      let global_signature = symbol is Some(id) &&
-        self.symbols.any(s => {
-          s is { "id": String(found), "kind": "global", .. } && found == id
-        })
-      ty = self.types.parse(
-        text,
-        source,
-        query.owner,
-        query.parameters,
-        signature_owner~,
-        global_signature~,
-      )
-      break
-    }
-  }
-  if ty is None &&
-    query.node_kind == "operator" &&
-    client.hover(query.file, query.anchor.start) is Some((text, found)) &&
-    found == query.anchor &&
-    self.types.parse(text, source, query.owner, query.parameters) is Some(arrow) &&
-    self.types.values[arrow]
-    is { "kind": "function", "return_type": Number(id, ..), .. } &&
-    !(self.types.values[arrow] is { "polymorphic": true, .. }) {
-    ty = Some(id.to_int())
-    hover_text = text
-  }
-  // Definitions and types are independent evidence. An unavailable type must
-  // never be fabricated from a method name or an enclosing hover.
-  let details : Json = if query.node_kind == "call" {
-    {
-      "provider": "moon-ide",
-      "generated_top_level": false,
-      "owner": query.owner,
-      "callee_symbol_id": symbol.map(Json::string).unwrap_or(Json::null()),
-      "dispatch": if symbol is Some(id) &&
-        self.symbols.any(s => {
-          s is { "id": String(found), "kind": "global", .. } && found == id
-        }) {
-        "resolved_symbol"
-      } else if symbol is Some(_) {
-        "binding"
-      } else {
-        "unavailable"
-      },
-      "hover": hover_text,
-    }
-  } else {
-    {
-      "provider": "moon-ide",
-      "generated_top_level": false,
-      "owner": query.owner,
-      "hover": hover_text,
-    }
-  }
-  self.add_fact(query, source, backend, ty, symbol, details)
 }

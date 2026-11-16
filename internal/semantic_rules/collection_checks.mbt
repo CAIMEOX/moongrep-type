@@ -1,8 +1,8 @@
 ///|
-fn check_array_builder(
+async fn check_array_builder(
   context : CheckContext,
   items : Array[@untyped_cst.CstNode],
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard items is [binding, iteration, result] &&
     binding.kind is Expr_Let &&
     @cst.child(binding, "expr") is Some(initializer) &&
@@ -54,17 +54,17 @@ fn check_array_builder(
   let id = context.symbol_id(binder)
   guard context.symbol_id(push.receiver) == id &&
     context.symbol_id(result) == id &&
-    context.uses_only_at(id, [binder, push.receiver, result]) else {
+    context.uses_only_at(binder, [binder, push.receiver, result]) else {
     return None
   }
   Some(binding.loc.merge(result.loc))
 }
 
 ///|
-fn check_collect_count(
+async fn check_collect_count(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(length) &&
     length.name == "length" &&
     length.args.is_empty() &&
@@ -81,10 +81,10 @@ fn check_collect_count(
 }
 
 ///|
-fn check_discarded_map(
+async fn check_discarded_map(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard node.kind is Expr_Apply &&
     positional_args(node) is Some([mapped]) &&
     dot_call(mapped) is Some(call) &&
@@ -99,10 +99,10 @@ fn check_discarded_map(
 }
 
 ///|
-fn check_iter_pipeline(
+async fn check_iter_pipeline(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(outer) else { return None }
   let is_collected = ["collect", "to_array"].contains(outer.name)
   let map = if is_collected {
@@ -143,10 +143,10 @@ fn check_iter_pipeline(
 }
 
 ///|
-fn check_consumed_iterator(
+async fn check_consumed_iterator(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard context.previous.get(node.source_span) is Some((previous, current)) &&
     context.statement_call(current) is Some(later) &&
     later.node.source_span == node.source_span &&

@@ -28,6 +28,7 @@ fn render_scan_trace(trace : ScanTrace) -> String {
     DirectoryEntered(path) => "moongrep scan: entering \{path}"
     PathSkipped(path) => "moongrep scan: skipping \{path}"
     FileStarted(path) => "moongrep scan: file \{path}"
+    SemanticQueries(count) => "moongrep scan: \{count} IDE queries"
   }
 }
 

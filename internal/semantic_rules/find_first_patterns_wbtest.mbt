@@ -47,7 +47,7 @@ fn presence_fixture(
 }
 
 ///|
-test "iterator existence accepts only builtin presence patterns" {
+async test "iterator existence accepts only builtin presence patterns" {
   for
     (pattern, name) in [
       ("None", "None"),
@@ -65,7 +65,7 @@ test "iterator existence accepts only builtin presence patterns" {
 }
 
 ///|
-test "presence tests reject binders payload constraints and composite patterns" {
+async test "presence tests reject binders payload constraints and composite patterns" {
   for
     pattern in [
       "Some(value)", "Some(0)", "Some(None)", "Some(_ as value)", "(Some(_) | None)",
@@ -78,7 +78,7 @@ test "presence tests reject binders payload constraints and composite patterns" 
 }
 
 ///|
-test "presence checks require standard method and constructor identities" {
+async test "presence checks require standard method and constructor identities" {
   let foreign_method = presence_fixture("None", "None")
   collection_put(foreign_method.symbols[0], "identity", {
     "kind": "method",
@@ -101,7 +101,7 @@ test "presence checks require standard method and constructor identities" {
 }
 
 ///|
-test "presence checks cannot hide another typed pattern at the same range" {
+async test "presence checks cannot hide another typed pattern at the same range" {
   let data = presence_fixture("Some(_)", "Some")
   guard data.facts[4] is Object(fields) else { abort("pattern fixture") }
   let other = Json::object(fields.copy())

@@ -37,12 +37,12 @@ fn optional_map_flow(
 ///|
 /// Zero-or-one values preserve callback effects and checked errors in order.
 /// Stable callback expressions prevent moving factories or mutable reads.
-fn check_optional_map_fusion(
+async fn check_optional_map_fusion(
   context : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
   method_name : String,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(outer) &&
     outer.name == method_name &&
     outer.args is [second] &&
@@ -97,17 +97,20 @@ fn fusion_payload_keeps_return_boundary(node : @untyped_cst.CstNode) -> Bool {
 }
 
 ///|
-fn check_bind_map(
+async fn check_bind_map(
   context : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   let ctor_name = if owner == "Option" { "Some" } else { "Ok" }
   guard dot_call(node) is Some(call) &&
     call.name == "bind" &&
     call.args is [callback] &&
     callback.kind is Expr_Function &&
     @cst.child(callback, "body") is Some(body) &&
+    ungroup(body).kind is Expr_Apply &&
+    @cst.child(ungroup(body), "func") is Some(callee) &&
+    callee.kind is Expr_Constr &&
     context.method_is(node, owner, ["bind"]) &&
     unary_callback(context.shape(callback)) is Some((input, output)) &&
     optional_map_members(context.shape(call.receiver), owner, "map")
@@ -141,10 +144,10 @@ fn check_bind_map(
 }
 
 ///|
-fn check_result_map_flatten(
+async fn check_result_map_flatten(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(flatten) &&
     flatten.name == "flatten" &&
     flatten.args.is_empty() &&
@@ -168,10 +171,10 @@ fn check_result_map_flatten(
 }
 
 ///|
-fn check_option_filter_fusion(
+async fn check_option_filter_fusion(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(outer) &&
     outer.name == "filter" &&
     outer.args is [second] &&
@@ -213,10 +216,10 @@ fn fusion_nullary_callback(shape : Json) -> Json? {
 }
 
 ///|
-fn check_option_map_default(
+async fn check_option_map_default(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(default_call) &&
     default_call.name == "unwrap_or_else" &&
     default_call.args is [fallback] &&

@@ -164,28 +164,18 @@ fn collection_put(value : Json, key : String, replacement : Json) -> Unit {
 }
 
 ///|
-fn CollectionRuleFixture::matches(
+async fn CollectionRuleFixture::matches(
   self : CollectionRuleFixture,
-  check : (CheckContext, @untyped_cst.CstNode) -> @basic.Location? raise,
-) -> Bool raise {
-  let data : Json = {
-    "schema_version": 1,
-    "compiler_version": "fixture",
-    "position_encoding": "unicode-scalar",
-    "sources": [
-      { "path": "/fixture/collection_theorems.mbt", "text": self.text },
-    ],
-    "types": self.types,
-    "symbols": self.symbols,
-    "facts": self.facts,
-  }
-  let source = @semantic_source.Source::parse(
-    @semantic.Index::from_json(data, compiler_version="fixture"),
-    file="/fixture/collection_theorems.mbt",
-    text=self.text,
+  check : async (CheckContext, @untyped_cst.CstNode) -> @basic.Location?,
+) -> Bool {
+  let (context, tree) = fixture_context(
+    "/fixture/collection_theorems.mbt",
+    self.text,
+    self.types,
+    self.symbols,
+    self.facts,
   )
-  let context = CheckContext::new(source)
-  let pending = [source.root()]
+  let pending = [tree]
   while pending.pop() is Some(node) {
     if node.kind is (Expr_DotApply | Expr_Is) &&
       node.source_span.1 == self.end_offset {
@@ -199,7 +189,7 @@ fn CollectionRuleFixture::matches(
 }
 
 ///|
-test "collection theorems accept callback factories and checked errors where supported" {
+async test "collection theorems accept callback factories and checked errors where supported" {
   inspect(
     collection_fixture("Array", "filter", "Array", "length", 2, 2, 0).matches(
       check_array_filter_count,
@@ -266,7 +256,7 @@ test "collection theorems accept callback factories and checked errors where sup
 }
 
 ///|
-test "collection theorems reject lookalike methods and incorrect type flow" {
+async test "collection theorems reject lookalike methods and incorrect type flow" {
   let foreign = collection_fixture(
     "Array", "filter", "Array", "length", 2, 2, 0,
   )
@@ -336,7 +326,7 @@ test "collection theorems reject lookalike methods and incorrect type flow" {
 }
 
 ///|
-test "collection theorems reject indirect dispatch and asynchronous callbacks" {
+async test "collection theorems reject indirect dispatch and asynchronous callbacks" {
   let indirect = collection_fixture("Iter", "filter", "Iter", "count", 3, 3, 0)
   collection_put(indirect.facts[2], "details", { "dispatch": "indirect" })
   inspect(indirect.matches(check_iter_filter_count), content="false")
@@ -348,7 +338,7 @@ test "collection theorems reject indirect dispatch and asynchronous callbacks" {
 }
 
 ///|
-test "collection theorems retain generic owner identities" {
+async test "collection theorems retain generic owner identities" {
   let generic = collection_fixture("Iter", "filter", "Iter", "next", 3, 3, 4)
   generic.types[0] = {
     "id": 0,

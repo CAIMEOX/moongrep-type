@@ -5,7 +5,7 @@ fn type_test_source() -> InputSource {
     text: "",
     package_name: "fixture/types",
     aliases: Map([("foreign", "other/types")]),
-    type_names: Map([]),
+    type_names: @lazy.Lazy::ready(Map([])),
   }
 }
 
@@ -97,7 +97,9 @@ test "source type declarations and explicit imports shadow prelude type names" {
   let source = {
     ..base,
     text,
-    type_names: type_declarations(text, base.package_name, base.aliases),
+    type_names: @lazy.Lazy::ready(
+      type_declarations(text, base.package_name, base.aliases),
+    ),
   }
   let table = TypeTable::new()
   let id = table.parse("Array[Int]", source, "scope", Map([])).unwrap()
@@ -157,21 +159,37 @@ test "nested declaration type variables preserve their lexical owners" {
 
 ///|
 test "constructor query anchors preserve qualified leaf names" {
-  let text = "fn f(it) { it.find_first(p) is Option::Some(_) }"
-  let source = { ..type_test_source(), text, }
-  let query = plan([source]).queries
-    .iter()
-    .find_first(q => q.node_kind == "constructor_pattern")
-    .unwrap()
-  let expected = "fn f(it) { it.find_first(p) is Option::".length() + 1
-  assert_eq(query.anchor.start.column, expected)
-  let field_text = "fn f(self) { self.value.map(x => x) }"
-  let field_query = plan([{ ..type_test_source(), text: field_text, }]).queries
-    .iter()
-    .find_first(q => q.node_kind == "field")
-    .unwrap()
-  assert_eq(field_query.anchor.start.column, "fn f(self) { self.".length() + 1)
-  assert_eq(field_query.anchor.end.column - field_query.anchor.start.column, 5)
+  let cases : Array[(String, (@untyped_cst.CstNode) -> Bool, String, Int32)] = [
+    (
+      "fn f(it) { it.find_first(p) is Option::Some(_) }",
+      n => n.kind is Pattern_Constr,
+      "fn f(it) { it.find_first(p) is Option::",
+      4,
+    ),
+    (
+      "fn f(self) { self.value.map(x => x) }",
+      n => n.kind is Expr_Field,
+      "fn f(self) { self.",
+      5,
+    ),
+  ]
+  for (text, matches, prefix, length) in cases {
+    let pending = [@untyped_cst.parse_structure(text).root()]
+    let mut found = false
+    while pending.pop() is Some(node) {
+      if matches(node) {
+        let range = span(query_anchor(node))
+        assert_eq(range.start.column, prefix.length() + 1)
+        assert_eq(range.end.column - range.start.column, length)
+        found = true
+        break
+      }
+      for (_, child) in node.children {
+        pending.push(child)
+      }
+    }
+    assert_true(found)
+  }
 }
 
 ///|

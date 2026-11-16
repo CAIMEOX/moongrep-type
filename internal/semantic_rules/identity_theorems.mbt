@@ -12,17 +12,17 @@ fn identity_container_arguments(shape : Json, owner : String) -> Array[Json]? {
 ///|
 /// Option/Result identity map preserves the payload, including references to
 /// mutable payloads. This law does not apply to copying containers like Array.
-fn check_map_identity(
+async fn check_map_identity(
   context : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(call) &&
     call.name == "map" &&
     call.args is [callback] &&
-    context.method_is(node, owner, ["map"]) &&
     unary_lambda_parts(callback) is Some((binder, body)) &&
     body.kind is Expr_Ident &&
+    context.method_is(node, owner, ["map"]) &&
     context.symbol_id(binder) == context.symbol_id(body) else {
     return None
   }
@@ -39,19 +39,19 @@ fn check_map_identity(
 }
 
 ///|
-fn check_bind_identity(
+async fn check_bind_identity(
   context : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(call) &&
     call.name == "bind" &&
     call.args is [callback] &&
-    context.method_is(node, owner, ["bind"]) &&
     unary_lambda_parts(callback) is Some((binder, body)) &&
     body.kind is Expr_Apply &&
     positional_args(body) is Some([payload]) &&
     payload.kind is Expr_Ident &&
+    context.method_is(node, owner, ["bind"]) &&
     context.symbol_id(binder) == context.symbol_id(payload) &&
     context.constructor_is(
       body,
@@ -80,22 +80,22 @@ fn check_bind_identity(
 ///|
 /// Only empty source argument lists qualify. Explicit labelled arguments may
 /// have effects even if a future standard-library unwrap ignores them.
-fn check_constructor_unwrap(
+async fn check_constructor_unwrap(
   context : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
   ctor_name : String,
   method_name : String,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(call) &&
     call.name == method_name &&
-    call.args.is_empty() &&
-    context.method_is(node, owner, [method_name]) else {
+    call.args.is_empty() else {
     return None
   }
   let receiver = identity_constructor_receiver(call.receiver)
   guard receiver.kind is Expr_Apply &&
     positional_args(receiver) is Some([payload]) &&
+    context.method_is(node, owner, [method_name]) &&
     context.constructor_is(receiver, owner, ctor_name) &&
     identity_container_arguments(context.shape(receiver), owner) is Some(args) else {
     return None

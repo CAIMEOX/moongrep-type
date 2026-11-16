@@ -1,35 +1,30 @@
-# Semantic YAML options
+# Semantic YAML rules
 
-Enabled semantic rules require an index before traversal begins.
+A custom semantic rule can scan an unrelated source containing unresolved names.
+Its shape has no candidates, so compilation is unnecessary.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)
-$ moonx moonbit-community/moongrep scan --rule ../../internal/rule/lintrules/moonbitlang/avoid_collect_for_count.yaml --json
+$ moonx moonbit-community/moongrep scan ../testdata/prefilter-impl/hits.mbt --rule ../../internal/rule/lintrules/moonbitlang/array_filter_count.yaml --json
 @STDOUT (empty)
-@STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"semantic rules require --semantic-index"}
-[2]
+@STDERR (empty)
 ```
 
-Index and view options use ordinary CLI validation and diagnostics.
+Lint checks the matched chains in a module whose directory contains shell punctuation.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)
-$ moonx moonbit-community/moongrep lint --semantic-index '' --json
-@STDOUT (empty)
-@STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"--semantic-index must not be empty"}
-[2]
+$ moonx moonbit-community/moongrep lint '../testdata/ide-source with spaces;literal' --target wasm --json | moonx cli/jq@0.2.1 -c 'select(.rule_id == "moonbitlang/array_map_fusion") | [.rule_id,.matched_source]'
+["moonbitlang/array_map_fusion","xs.map(x => x + 1).map(x => x * 2)"]
+```
 
-$ moonx moonbit-community/moongrep lint --semantic-view wbtest --json
-@STDOUT (empty)
-@STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"--semantic-view requires --semantic-index"}
-[2]
+The optional project backend must be a single supported target.
 
-$ moonx moonbit-community/moongrep lint --semantic-index missing.json --semantic-view unknown --json
+```mooncram moonbit-community/moongrep
+#cwd(.)
+$ moonx moonbit-community/moongrep lint --target=all --json
 @STDOUT (empty)
 @STDERR
-{"type":"error","category":"usage","exit_code":2,"message":"--semantic-view must be auto, ide, normal, wbtest, or bbtest"}
+{"type":"error","category":"usage","exit_code":2,"message":"--target must select one of wasm, wasm-gc, js, native, or llvm"}
 [2]
 ```

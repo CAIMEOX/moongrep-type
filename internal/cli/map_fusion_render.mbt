@@ -19,34 +19,10 @@ fn semantic_render_location(location : @semantic.Range) -> @basic.Location {
 
 ///|
 #derive(FromJson)
-priv struct DisplayTypeParameter {
-  owner : String
-  index : Int32
-  name : String
-}
-
-///|
-#derive(FromJson)
 priv struct MapFusionTypeFlow {
   input_element : Json
   intermediate_element : Json
   output_element : Json
-}
-
-///|
-fn type_parameter_names(
-  index : @semantic.Index,
-) -> Map[(String, Int32), String] {
-  let names : Map[(String, Int32), String] = Map([])
-  for info in index.types() {
-    if info.kind == "parameter" {
-      let parameter : DisplayTypeParameter = @json.from_json(info.raw) catch {
-        _ => continue
-      }
-      names[(parameter.owner, parameter.index)] = parameter.name
-    }
-  }
-  names
 }
 
 ///|
@@ -113,16 +89,9 @@ fn skipped_reason_text(reason : String) -> String {
   match reason {
     "missing_exact_semantics" =>
       "No compiler expression matches this exact source range."
-    "ambiguous_semantics" =>
-      "Source association is ambiguous, possibly across package/test views."
-    "non_unique_expression_type" =>
-      "No unique expression type is available at this source range."
     "not_standard_array_map" =>
       "The call does not resolve to the standard library Array::map method."
     "different_map_symbols" => "The two calls resolve to different methods."
-    "missing_type_or_source" => "Type or source information is missing."
-    "different_package_views" =>
-      "The expressions belong to different package/test views."
     "unknown_type" =>
       "A type is unresolved, cyclic, or unsupported by this rule."
     "not_array_type_flow" =>
@@ -137,28 +106,24 @@ fn skipped_reason_text(reason : String) -> String {
 
 ///|
 fn render_map_fusion_report(
-  index : @semantic.Index,
-  reports : Array[(String, @semantic_rules.MapFusionReport)],
+  reports : Array[(String, String, @semantic_rules.MapFusionReport)],
+  names : Map[(String, Int32), String],
   no_color~ : Bool,
 ) -> String raise {
   let mut candidate_count = 0
   let mut skipped_count = 0
-  for (_, report) in reports {
+  for (_, _, report) in reports {
     candidate_count += report.candidates.length()
     skipped_count += report.skipped.length()
   }
   let lines = [
     "Array.map fusion: \{candidate_count} candidates, \{skipped_count} skipped",
   ]
-  let names = type_parameter_names(index)
   if candidate_count > 0 {
     lines.push("Pattern: xs.map(g).map(f) => xs.map(x => f(g(x)))")
-    for (file, report) in reports {
-      guard index.source(file) is Some(source) else {
-        raise new_internal_error("missing source for semantic report: \{file}")
-      }
+    for (file, text, report) in reports {
       let source_lines = cache_source_lines(
-        source.text
+        text
         .replace_all(old="\r\n", new="\n")
         .replace_all(old="\r", new="\n")
         .replace_all(old="\u{2028}", new="\n")
@@ -191,7 +156,7 @@ fn render_map_fusion_report(
   if skipped_count > 0 {
     lines.push("")
     lines.push("Skipped chains:")
-    for (_, report) in reports {
+    for (_, _, report) in reports {
       for skipped in report.skipped {
         lines.push(
           "  \{format_location(skipped.location.file, semantic_render_location(skipped.location))}",

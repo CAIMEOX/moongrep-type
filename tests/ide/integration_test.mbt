@@ -21,47 +21,71 @@ async fn copy_ide_fixture(source : String, destination : String) -> Unit {
 }
 
 ///|
-fn ide_fixture_sources(
-  index : @semantic.Index,
+async fn candidate_file(
   file : String,
-) -> @semantic_source.Source raise {
-  let source = index.source(file).unwrap()
-  @semantic_source.Source::parse(index, file~, text=source.text)
+  rules : Array[@rule_model.CompiledRule],
+) -> @semantic_rules.Candidates {
+  let text = @fs.read_file(file).text()
+  let tree = @untyped_cst.parse_structure(text, name=file).root()
+  let roots = @cst.toplevel_nodes(tree).filter(root => {
+    !@cst.attributes(root).any(a => {
+      a.qualifier == Some("moongrep") && a.name == "skip" && a.raw_payload == ""
+    })
+  })
+  @semantic_rules.Candidates::select(file, text, tree, roots, rules[:])
 }
 
 ///|
-fn run_ide_fixture_rules(index : @semantic.Index) -> Map[String, Int32] raise {
-  let rules = @compile.compile_rules(@builtin.load_semantic_rules())
-  let counts : Map[String, Int32] = Map([])
-  for input in index.sources() {
-    let source = ide_fixture_sources(index, input.path)
-    let roots = @cst.toplevel_nodes(source.root()).filter(root => {
-      !@cst.attributes(root).any(attribute => {
-        attribute.qualifier == Some("moongrep") && attribute.name == "skip"
-      })
-    })
-    let report = @semantic_rules.apply_rules(source, rules[:], roots~)
-    for warning in report.warnings {
-      fail("\{warning.rule_id}: \{input.path}: \{warning.reason}")
+async fn fixture_files(root : String) -> Array[String] {
+  let files = []
+  for name in @fs.readdir(root, sort=true) {
+    if name.has_prefix(".") ||
+      ["_build", "target", "node_modules"].contains(name) {
+      continue
     }
-    for finding in report.findings {
-      counts[finding.rule_id] = counts.get(finding.rule_id).unwrap_or(0) + 1
-      let location = source.range_for_node(
-        roots
-        .iter()
-        .find_first(root => {
-          root.loc.start.cnum <= finding.loc.start.cnum &&
-          root.loc.end.cnum >= finding.loc.end.cnum
-        })
-        .unwrap(),
-      )
-      assert_eq(location.file, input.path)
-      assert_true(finding.loc.start.lnum >= 1)
-      if input.path.has_suffix("/negative.mbt") {
-        fail("negative source matched \{finding.rule_id}")
-      }
+    let path = root + "/" + name
+    if @fs.kind(path) is Directory {
+      files.append(fixture_files(path))
+    } else if name.has_suffix(".mbt") || name.has_suffix(".mbtx") {
+      files.push(path)
     }
   }
+  files
+}
+
+///|
+async fn run_ide_fixture_rules(
+  files : Array[String],
+  session : @provider.Session,
+  only? : String,
+) -> Map[String, Int32] {
+  let loaded = @builtin.load_semantic_rules()
+  let rules = @compile.compile_rules(
+    loaded.filter(r => only is None || only == Some(r.rule_id)),
+  )
+  let counts : Map[String, Int32] = Map([])
+  let candidates = []
+  for file in files {
+    candidates.push(candidate_file(file, rules))
+  }
+  for i, candidate in candidates {
+    let result = candidate.verify(session)
+    for warning in result.warnings {
+      fail("\{warning.rule_id}: \{files[i]}: \{warning.reason}")
+    }
+    for finding in result.findings {
+      assert_eq(finding.file, files[i])
+      assert_true(
+        finding.loc.start.lnum >= 1 &&
+        finding.loc.start.cnum < finding.loc.end.cnum,
+      )
+      if files[i].has_suffix("/negative.mbt") {
+        fail("negative source matched " + finding.rule_id)
+      }
+      counts[finding.rule_id] = counts.get(finding.rule_id).unwrap_or(0) + 1
+    }
+  }
+  session.validate()
   counts
 }
 
@@ -71,10 +95,8 @@ async test "official IDE preserves seven collection checks and all eighteen find
   let root = @fs.tmpdir(prefix="moongrep-ide-collections-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/semantic-rules", root)
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
-  let counts = run_ide_fixture_rules(index)
+  let session = @provider.Session::new(target="wasm")
+  let counts = run_ide_fixture_rules(fixture_files(root), session)
   for
     (name, expected) in [
       ("prefer_array_comprehension", 6),
@@ -96,10 +118,8 @@ async test "official IDE preserves twenty theorems forty findings and source ide
   let root = @fs.tmpdir(prefix="moongrep-ide-theorems-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/semantic-theorems", root)
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
-  let counts = run_ide_fixture_rules(index)
+  let session = @provider.Session::new(target="wasm")
+  let counts = run_ide_fixture_rules(fixture_files(root), session)
   for
     (name, expected) in [
       ("array_filter_count", 4),
@@ -126,11 +146,6 @@ async test "official IDE preserves twenty theorems forty findings and source ide
     assert_eq(counts.get("moonbitlang/" + name), Some(expected), msg=name)
   }
   assert_eq(counts.length(), 20)
-  assert_true(
-    index
-    .symbols()
-    .any(symbol => symbol.kind == "local" && symbol.name == "value"),
-  )
 }
 
 ///|
@@ -139,27 +154,23 @@ async test "map fusion shares the official IDE evidence and keeps review obligat
   let root = @fs.tmpdir(prefix="moongrep-ide-maps-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("tools/map-fusion/fixture", root)
-  let index = @async.with_timeout(600000, () => {
-    @provider.export_index(root, target="wasm")
-  })
+  let session = @provider.Session::new(target="wasm")
+  let rules = @compile.compile_rules(
+    @builtin.load_semantic_rules().filter(r => {
+      r.rule_id == "moonbitlang/array_map_fusion"
+    }),
+  )
   let mut candidates = 0
   let mut skipped = 0
-  for input in index.sources() {
-    let report = @semantic_rules.find_map_fusion(
-      ide_fixture_sources(index, input.path),
-    )
+  for file in fixture_files(root) {
+    let report = candidate_file(file, rules).map_fusion(session)
     candidates += report.candidates.length()
     skipped += report.skipped.length()
-    for candidate in report.candidates {
-      assert_true(
-        index
-        .facts()
-        .any(fact => {
-          fact.id == candidate.outer_call.fact_id && fact.node_kind == "call"
-        }),
-      )
+    for hit in report.candidates {
+      assert_true(hit.outer_call.text.contains(".map("))
     }
   }
+  session.validate()
   assert_eq(candidates, 8)
   assert_eq(skipped, 4)
 }

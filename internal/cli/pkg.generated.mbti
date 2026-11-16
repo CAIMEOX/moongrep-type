@@ -21,8 +21,6 @@ pub async fn run_lint_command(CliOptions) -> Unit
 
 pub async fn run_scan_command(CliOptions) -> Unit
 
-pub async fn run_semantics_command(SemanticsOptions) -> Unit
-
 pub fn runtime_cli_args(Array[String]) -> Array[String]
 
 // Errors
@@ -52,7 +50,6 @@ pub(all) enum CliCommand {
   Lint(CliOptions)
   DocsList
   DocsShow(String)
-  Semantics(SemanticsOptions)
   MapFusion(MapFusionOptions)
   DumpImpl(source~ : String, strict_check~ : Bool, exit_code~ : Bool, output_json~ : Bool)
   DumpExpr(source~ : String, strict_check~ : Bool, exit_code~ : Bool, output_json~ : Bool)
@@ -76,19 +73,13 @@ pub(all) struct CliOptions {
   no_color : Bool
   output_json : Bool
   strict_taint : Bool
-  semantic_index : String?
-  semantic_view : String
+  target : String?
 }
 
 pub(all) struct MapFusionOptions {
-  index_file : String
-  no_color : Bool
-  output_json : Bool
-}
-
-pub(all) struct SemanticsOptions {
-  project : String
+  path : String
   target : String?
+  no_color : Bool
   output_json : Bool
 }
 

@@ -15,22 +15,22 @@ fn reference_id(value : Json) -> Int32? {
 /// Normalize only known, fully resolved types. In particular, identical handles
 /// for unresolved variables are not evidence of type equality.
 fn type_shape(
-  index : @semantic.Index,
+  lookup : (Int32) -> Json?,
   id : Int32,
   ancestors~ : Array[Int32] = [],
 ) -> Json? {
   if ancestors.length() >= 128 || ancestors.contains(id) {
     return None
   }
-  guard index.type_info(id) is Some(info) else { return None }
+  guard lookup(id) is Some(raw) else { return None }
   // A declaration's polymorphic scheme is not an instantiated expression type.
-  if info.raw is { "polymorphic": true, .. } {
+  if raw is { "polymorphic": true, .. } {
     return None
   }
   let ancestors = [..ancestors, id]
-  match info.raw {
+  match raw {
     { "kind": "resolved_variable", "target_type": target, .. } =>
-      reference_id(target).bind(id => type_shape(index, id, ancestors~))
+      reference_id(target).bind(id => type_shape(lookup, id, ancestors~))
     { "kind": "builtin", "name": String(name), .. } =>
       Some({ "kind": "builtin", "name": name })
     { "kind": "parameter", "owner": String(owner), "index": number, .. } => {
@@ -45,7 +45,7 @@ fn type_shape(
       ..
     } => {
       guard known_path(path) &&
-        type_shapes(index, args, ancestors) is Some(arguments) else {
+        type_shapes(lookup, args, ancestors) is Some(arguments) else {
         return None
       }
       Some({
@@ -65,10 +65,10 @@ fn type_shape(
       "async": String(async_kind),
       ..
     } => {
-      guard type_shapes(index, params, ancestors) is Some(parameters) &&
-        reference_id(result).bind(id => type_shape(index, id, ancestors~))
+      guard type_shapes(lookup, params, ancestors) is Some(parameters) &&
+        reference_id(result).bind(id => type_shape(lookup, id, ancestors~))
         is Some(return_type) &&
-        error_shape(index, error, ancestors) is Some(error_type) else {
+        error_shape(lookup, error, ancestors) is Some(error_type) else {
         return None
       }
       if !["sync", "async", "async_nocancel"].contains(async_kind) {
@@ -88,13 +88,13 @@ fn type_shape(
 
 ///|
 fn type_shapes(
-  index : @semantic.Index,
+  lookup : (Int32) -> Json?,
   ids : Array[Json],
   ancestors : Array[Int32],
 ) -> Array[Json]? {
   let result = []
   for value in ids {
-    guard reference_id(value).bind(id => type_shape(index, id, ancestors~))
+    guard reference_id(value).bind(id => type_shape(lookup, id, ancestors~))
       is Some(shape) else {
       return None
     }
@@ -105,7 +105,7 @@ fn type_shapes(
 
 ///|
 fn error_shape(
-  index : @semantic.Index,
+  lookup : (Int32) -> Json?,
   error : Json,
   ancestors : Array[Int32],
 ) -> Json? {
@@ -114,7 +114,7 @@ fn error_shape(
     { "kind": "parameter", "owner": String(owner), .. } =>
       Some({ "kind": "parameter", "owner": owner })
     { "kind": "typed", "type_id": value, .. } => {
-      guard reference_id(value).bind(id => type_shape(index, id, ancestors~))
+      guard reference_id(value).bind(id => type_shape(lookup, id, ancestors~))
         is Some(shape) else {
         return None
       }

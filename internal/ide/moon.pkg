@@ -7,6 +7,7 @@ import {
   "moonbitlang/core/string",
   "moonbitlang/core/env",
   "moonbitlang/core/list",
+  "moonbitlang/core/lazy",
   "moonbitlang/lexer/basic",
   "moonbitlang/async",
   "moonbitlang/async/fs",

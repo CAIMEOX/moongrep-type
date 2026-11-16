@@ -1,6 +1,7 @@
 ///|
 pub(all) struct MapFusionOptions {
-  index_file : String
+  path : String
+  target : String?
   no_color : Bool
   output_json : Bool
 }
@@ -8,7 +9,7 @@ pub(all) struct MapFusionOptions {
 ///|
 let map_fusion_command : @argparse.Command = Command(
   "map-fusion",
-  about="Find Array.map fusion candidates in a checked semantic index.",
+  about="Find and explain Array.map fusion candidates in MoonBit source.",
   arg_required_else_help=true,
   flags=[
     FlagArg(
@@ -19,9 +20,16 @@ let map_fusion_command : @argparse.Command = Command(
   ],
   options=[
     OptionArg(
-      "index",
+      "target",
       action=Set,
-      about="Semantic index JSON produced by moongrep semantics.",
+      about="MoonBit backend for checking semantic candidates.",
+    ),
+  ],
+  positionals=[
+    PositionArg(
+      "path",
+      about="Source file or directory to scan.",
+      num_args=ValueRange(lower=1, upper=1),
     ),
   ],
 )
@@ -31,59 +39,78 @@ fn map_fusion_cli_options(
   matches : @argparse.Matches,
   env : Map[String, String],
 ) -> MapFusionOptions raise {
-  guard last_cli_value(matches.values, "index") is Some(index_file) &&
-    !index_file.trim().is_empty() else {
-    raise new_usage_error("missing map-fusion --index")
+  guard last_cli_value(matches.values, "path") is Some(path) &&
+    !path.trim().is_empty() else {
+    raise new_usage_error("missing map-fusion source path")
   }
   {
-    index_file,
+    path,
+    target: semantic_target(matches),
     no_color: no_color_enabled(env),
     output_json: cli_flag_enabled(matches.flags, "json"),
   }
 }
 
 ///|
-#derive(ToJson)
-priv struct JsonMapFusionFile {
-  file : String
-  report : Json
-}
-
-///|
-#derive(ToJson)
-priv struct JsonMapFusionOutput {
-  schema_version : Int32
-  compiler_version : String
-  position_encoding : String
-  files : Array[JsonMapFusionFile]
-}
-
-///|
 async fn run_map_fusion_command(options : MapFusionOptions) -> Unit {
-  let index = load_semantic_index(options.index_file)
-  let reports : Array[(String, @semantic_rules.MapFusionReport)] = []
-  for file in index.sources() {
-    let source = @semantic_source.Source::parse(
-      index,
-      file=file.path,
-      text=file.text,
-    ) catch {
-      err => raise new_semantics_input_error(file.path, "\{err}")
+  let rules = @rule_compile.compile_rules(
+    @rule_builtin.load_semantic_rules().filter(rule => {
+      rule.rule_id == "moonbitlang/array_map_fusion"
+    }),
+  )
+  let plan = @rule_apply.ScanPlan::from_rules(rules)
+  let pending = []
+  let receive : async (ScanEvent) -> Unit = event => {
+    if event is Warning(warning) {
+      let rendered = if options.output_json {
+        render_scan_warning_json(warning)
+      } else {
+        render_scan_warning(warning)
+      }
+      write_scan_stderr(rendered + "\n")
     }
-    reports.push((file.path, @semantic_rules.find_map_fusion(source)))
+  }
+  visit_scan_sources(normalize_scan_root(options.path), [], false, receive, file => {
+    let text = read_text_file(file)
+    let file_plan = plan.filter_source(text)
+    if !file_plan.is_empty() &&
+      select_semantic_file(file, text, file_plan, receive) is Some(input) {
+      pending.push(input)
+    }
+  })
+  let target = options.target
+  let session = @ide.Session::new(target?)
+  let reports = []
+  for input in pending {
+    let report = input.candidates.map_fusion(session) catch {
+      err =>
+        raise new_scan_input_error(input.path, "verify map fusion", "\{err}")
+    }
+    reports.push((input.path, input.text, report))
+  }
+  session.validate() catch {
+    err =>
+      raise new_scan_input_error(
+        options.path,
+        "validate semantic inputs",
+        "\{err}",
+      )
   }
   let output = if options.output_json {
-    let output : JsonMapFusionOutput = {
-      schema_version: 1,
-      compiler_version: index.compiler_version(),
-      position_encoding: "unicode-scalar",
-      files: reports.map(pair => { file: pair.0, report: pair.1.to_json(), }),
-    }
-    ToJson::to_json(output).stringify()
+    (
+      {
+        "schema_version": 2,
+        "position_encoding": "unicode-scalar",
+        "files": reports.map(item => {
+          ({ "file": item.0, "report": item.2.to_json() } : Json)
+        }),
+      } : Json).stringify()
   } else {
-    render_map_fusion_report(index, reports, no_color=options.no_color)
+    render_map_fusion_report(
+      reports,
+      session.parameter_names(),
+      no_color=options.no_color,
+    )
   }
-  // Keep both output modes atomic with respect to source freshness checks.
-  require_current_semantic_sources(index)
   write_scan_stdout(output + "\n")
 }

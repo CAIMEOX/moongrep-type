@@ -12,20 +12,20 @@ fn option_element(shape : Json) -> Json? {
 }
 
 ///|
-fn CheckContext::option_constructor(
+async fn CheckContext::option_constructor(
   self : CheckContext,
   node : @untyped_cst.CstNode,
   name : String,
-) -> Bool raise {
+) -> Bool {
   self.constructor_is(node, "Option", name)
 }
 
 ///|
-fn option_branches(
+async fn option_branches(
   context : CheckContext,
   some : @untyped_cst.CstNode,
   none : @untyped_cst.CstNode,
-) -> Bool raise {
+) -> Bool {
   let some = ungroup(some)
   let none = ungroup(none)
   some.kind is Expr_Apply &&
@@ -57,10 +57,10 @@ fn exhaustive_option_pattern(
 }
 
 ///|
-fn simple_filter_map_body(
+async fn simple_filter_map_body(
   context : CheckContext,
   body : @untyped_cst.CstNode,
-) -> Bool raise {
+) -> Bool {
   let body = ungroup(body)
   if body.kind is Expr_If {
     guard @cst.child(body, "body") is Some(yes) &&
@@ -107,10 +107,10 @@ fn simple_filter_map_body(
 }
 
 ///|
-fn check_filter_map(
+async fn check_filter_map(
   context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   guard dot_call(node) is Some(call) &&
     call.name == "filter_map" &&
     call.args is [callback] &&

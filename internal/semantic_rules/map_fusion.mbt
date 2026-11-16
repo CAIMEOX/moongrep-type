@@ -28,32 +28,14 @@ fn map_call(node : @untyped_cst.CstNode) -> MapCall? {
 }
 
 ///|
-fn expression_fact(
-  source : @semantic_source.Source,
+async fn array_map_symbol(
+  context : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @semantic.Fact raise {
-  let facts = match authored_facts_for_node(source, node) {
-    Unmatched => raise Skip("missing_exact_semantics")
-    Ambiguous(_) => raise Skip("ambiguous_semantics")
-    Associated(facts) => source_expression_facts(facts)
+) -> @semantic.SymbolInfo {
+  guard (context.symbol_at)(node) is Some(symbol) else {
+    raise Skip("missing_exact_semantics")
   }
-  guard facts is [fact] && fact.type_id is Some(_) else {
-    raise Skip("non_unique_expression_type")
-  }
-  fact
-}
-
-///|
-fn array_map_symbol(
-  index : @semantic.Index,
-  fact : @semantic.Fact,
-) -> @semantic.SymbolInfo raise NotCandidate {
-  guard fact.node_kind == "call" &&
-    fact.details
-    is { "dispatch": "resolved_symbol", "callee_symbol_id": String(id), .. } &&
-    fact.symbol_id == Some(id) &&
-    index.symbol(id) is Some(symbol) &&
-    symbol.kind == "global" &&
+  guard symbol.kind == "global" &&
     symbol.identity
     is {
       "kind": "method",
@@ -72,46 +54,33 @@ fn array_map_symbol(
 }
 
 ///|
-fn evidence(
-  source : @semantic_source.Source,
+fn CheckContext::evidence(
+  self : CheckContext,
   node : @untyped_cst.CstNode,
-  fact : @semantic.Fact,
-) -> ExpressionEvidence raise {
-  guard fact.type_id is Some(type_id) &&
-    source.index().source(source.file()) is Some(file) else {
-    raise Skip("missing_type_or_source")
-  }
-  {
-    location: source.range_for_node(node),
-    text: @cst.source_text(node, file.text),
-    fact_id: fact.id,
-    type_id,
-  }
+) -> ExpressionEvidence {
+  { location: self.range(node), text: @cst.source_text(node, self.text), }
 }
 
 ///|
-fn analyze_chain(
-  source : @semantic_source.Source,
+async fn analyze_chain(
+  context : CheckContext,
   outer : MapCall,
   inner : MapCall,
-) -> MapFusionCandidate raise {
-  let index = source.index()
-  let outer_fact = expression_fact(source, outer.call)
-  let inner_fact = expression_fact(source, inner.call)
-  let symbol = array_map_symbol(index, outer_fact)
-  guard array_map_symbol(index, inner_fact).id == symbol.id else {
+) -> MapFusionCandidate {
+  let symbol = array_map_symbol(context, outer.call)
+  guard array_map_symbol(context, inner.call).id == symbol.id else {
     raise Skip("different_map_symbols")
   }
-  let input_fact = expression_fact(source, inner.receiver)
-  let first_fact = expression_fact(source, inner.callback)
-  let second_fact = expression_fact(source, outer.callback)
-  let facts = [input_fact, inner_fact, outer_fact, first_fact, second_fact]
-  let shapes : Array[Json] = []
-  for fact in facts {
-    if fact.package_name != outer_fact.package_name {
-      raise Skip("different_package_views")
-    }
-    guard fact.type_id.bind(id => type_shape(index, id)) is Some(shape) else {
+  let shapes = []
+  for
+    node in [
+      inner.receiver,
+      inner.call,
+      outer.call,
+      inner.callback,
+      outer.callback,
+    ] {
+    guard (context.shape_at)(node) is Some(shape) else {
       raise Skip("unknown_type")
     }
     shapes.push(shape)
@@ -129,13 +98,13 @@ fn analyze_chain(
     raise Skip("inconsistent_type_flow")
   }
   {
-    package_name: outer_fact.package_name,
+    package_name: (context.package_name)(),
     map_symbol: symbol,
-    receiver: evidence(source, inner.receiver, input_fact),
-    inner_call: evidence(source, inner.call, inner_fact),
-    outer_call: evidence(source, outer.call, outer_fact),
-    first_callback: evidence(source, inner.callback, first_fact),
-    second_callback: evidence(source, outer.callback, second_fact),
+    receiver: context.evidence(inner.receiver),
+    inner_call: context.evidence(inner.call),
+    outer_call: context.evidence(outer.call),
+    first_callback: context.evidence(inner.callback),
+    second_callback: context.evidence(outer.callback),
     type_flow: {
       "input_element": a,
       "intermediate_element": b,
@@ -145,32 +114,40 @@ fn analyze_chain(
 }
 
 ///|
-/// Recognize adjacent Array.map calls using exact CST/semantic joins. Unknown or
-/// ambiguous facts yield explicit skipped results. No result authorizes an edit.
-pub fn find_map_fusion(
-  source : @semantic_source.Source,
-) -> MapFusionReport raise {
-  let chains : Array[(MapCall, MapCall)] = []
-  let seen : Map[(Int32, Int32), Bool] = Map([])
-  @cst.visit_expr_match_candidate_roots(source.root(), fn(candidate) {
-    if candidate is Direct(node) &&
+pub async fn Candidates::map_fusion(
+  self : Candidates,
+  session : @ide.Session,
+) -> MapFusionReport {
+  let report : MapFusionReport = { candidates: [], skipped: [], }
+  if self.matches.is_empty() {
+    return report
+  }
+  let context = self.context(session)
+  let jobs : Array[async () -> Result[MapFusionCandidate, SkippedCandidate]] = []
+  let seen : Set[(Int32, Int32)] = Set([])
+  for hit in self.matches {
+    if hit.check is ArrayMapFusion &&
+      hit.candidate is Direct(node) &&
       map_call(node) is Some(outer) &&
       map_call(outer.receiver) is Some(inner) &&
       !seen.contains(node.source_span) {
-      seen[node.source_span] = true
-      chains.push((outer, inner))
+      seen.add(node.source_span)
+      jobs.push(() => {
+        Ok(analyze_chain(context, outer, inner)) catch {
+          Skip(reason) => Err({ location: context.range(node), reason, })
+          e => raise e
+        }
+      })
     }
-    NodeVisitContinue
-  })
-  let report : MapFusionReport = { candidates: [], skipped: [], }
-  for (outer, inner) in chains {
-    report.candidates.push(analyze_chain(source, outer, inner)) catch {
-      Skip(reason) =>
-        report.skipped.push({
-          location: source.range_for_node(outer.call),
-          reason,
-        })
-      error => raise error
+  }
+  let outcomes = @async.all(jobs[:], max_concurrent=4) catch {
+    InactiveFile => return report
+    err => raise err
+  }
+  for result in outcomes {
+    match result {
+      Ok(candidate) => report.candidates.push(candidate)
+      Err(skipped) => report.skipped.push(skipped)
     }
   }
   report

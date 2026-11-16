@@ -9,15 +9,14 @@ the global help and version options.
 $ moonx moonbit-community/moongrep help
 Usage: moongrep <command>
 
-Scan MoonBit source files with structural and taint rules.
+Scan MoonBit source files with structural, semantic, and taint rules.
 
 Commands:
   scan        Scan MoonBit source files.
   lint        Scan MoonBit source files with embedded builtin rules.
   docs        Print embedded moongrep documentation.
   dump        Parse a MoonBit impl or expression and print untyped CST debug output.
-  semantics   Export compiler types, symbols, and source mappings as JSON.
-  map-fusion  Find Array.map fusion candidates in a checked semantic index.
+  map-fusion  Find and explain Array.map fusion candidates in MoonBit source.
   help        Print help for the subcommand(s).
 
 Options:
@@ -58,21 +57,20 @@ Usage: moongrep lint [options] [scan-root]
 Scan MoonBit source files with embedded builtin rules.
 
 Arguments:
-  scan-root  Directory or .mbt file to scan.
+  scan-root  Directory, .mbt file, or .mbtx script to scan.
 
 Options:
-  -h, --help                         Show help information.
-  --verbose                          Write loaded rule ids and traversal progress to stderr.
-  --strict-taint                     Exit with code 8 after scanning if taint analysis is incomplete.
-  --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
-  -r, --rules <rules>                Directory containing YAML rules.
-  --rule <rule>                      Single YAML rule file.
-  --pattern <pattern>                Anonymous structural pattern to match.
-  --guard <guard>                    YAML guard map for the preceding anonymous pattern.
-  --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
-  --disable <disable>                Rule id to disable after loading rules. May be repeated.
-  --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
-  --semantic-view <semantic-view>    Snapshot context: auto (default), ide, normal, wbtest, or bbtest.
+  -h, --help           Show help information.
+  --verbose            Write loaded rule ids and traversal progress to stderr.
+  --strict-taint       Exit with code 8 after scanning if taint analysis is incomplete.
+  --json               Write JSON Lines findings to stdout and diagnostics to stderr.
+  -r, --rules <rules>  Directory containing YAML rules.
+  --rule <rule>        Single YAML rule file.
+  --pattern <pattern>  Anonymous structural pattern to match.
+  --guard <guard>      YAML guard map for the preceding anonymous pattern.
+  --exclude <exclude>  File or directory name or path to skip while recursively scanning. May be repeated.
+  --disable <disable>  Rule id to disable after loading rules. May be repeated.
+  --target <target>    MoonBit backend for checking semantic candidates.
 ```
 
 ## moongrep scan --help
@@ -87,21 +85,20 @@ Usage: moongrep scan [options] [scan-root]
 Scan MoonBit source files.
 
 Arguments:
-  scan-root  Directory or .mbt file to scan.
+  scan-root  Directory, .mbt file, or .mbtx script to scan.
 
 Options:
-  -h, --help                         Show help information.
-  --verbose                          Write loaded rule ids and traversal progress to stderr.
-  --strict-taint                     Exit with code 8 after scanning if taint analysis is incomplete.
-  --json                             Write JSON Lines findings to stdout and diagnostics to stderr.
-  -r, --rules <rules>                Directory containing YAML rules. [default: ./.moongrep/rules]
-  --rule <rule>                      Single YAML rule file.
-  --pattern <pattern>                Anonymous structural pattern to match.
-  --guard <guard>                    YAML guard map for the preceding anonymous pattern.
-  --exclude <exclude>                File or directory name or path to skip while recursively scanning. May be repeated.
-  --disable <disable>                Rule id to disable after loading rules. May be repeated.
-  --semantic-index <semantic-index>  Checked semantic index for type-aware YAML rules.
-  --semantic-view <semantic-view>    Snapshot context: auto (default), ide, normal, wbtest, or bbtest.
+  -h, --help           Show help information.
+  --verbose            Write loaded rule ids and traversal progress to stderr.
+  --strict-taint       Exit with code 8 after scanning if taint analysis is incomplete.
+  --json               Write JSON Lines findings to stdout and diagnostics to stderr.
+  -r, --rules <rules>  Directory containing YAML rules. [default: ./.moongrep/rules]
+  --rule <rule>        Single YAML rule file.
+  --pattern <pattern>  Anonymous structural pattern to match.
+  --guard <guard>      YAML guard map for the preceding anonymous pattern.
+  --exclude <exclude>  File or directory name or path to skip while recursively scanning. May be repeated.
+  --disable <disable>  Rule id to disable after loading rules. May be repeated.
+  --target <target>    MoonBit backend for checking semantic candidates.
 ```
 
 ## moongrep dump --help

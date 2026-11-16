@@ -5,43 +5,38 @@ priv suberror MissingEvidence {
 
 ///|
 priv struct CheckContext {
-  source : @semantic_source.Source
-  facts_by_symbol : Map[String, Array[@semantic.Fact]]
-  mutable_bindings : Map[@semantic.Range, Bool]
+  file : String
+  text : String
+  package_name : async () -> String
+  shape_at : async (@untyped_cst.CstNode) -> Json?
+  symbol_at : async (@untyped_cst.CstNode) -> @semantic.SymbolInfo?
+  binding : async (String) -> @semantic.Range?
+  references : async (@untyped_cst.CstNode) -> Array[@semantic.Range]
+  binders : Map[@semantic.Range, Bool]
   previous : Map[(Int32, Int32), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
 }
 
 ///|
-fn CheckContext::new(source : @semantic_source.Source) -> CheckContext raise {
-  let facts_by_symbol : Map[String, Array[@semantic.Fact]] = Map([])
-  for fact in source.facts(include_generated=false) {
-    if fact.symbol_id is Some(id) {
-      if facts_by_symbol.get(id) is Some(facts) {
-        facts.push(fact)
-      } else {
-        facts_by_symbol[id] = [fact]
+fn CheckContext::inspect_syntax(
+  self : CheckContext,
+  root : @untyped_cst.CstNode,
+) -> Unit {
+  let pending = [root]
+  while pending.pop() is Some(node) {
+    if node.kind is Name_Binder {
+      let location = self.range(node)
+      if !self.binders.contains(location) {
+        self.binders[location] = false
       }
     }
-  }
-  let context : CheckContext = {
-    source,
-    facts_by_symbol,
-    mutable_bindings: Map([]),
-    previous: Map([]),
-  }
-  let pending = [source.root()]
-  while pending.pop() is Some(node) {
     if node.kind is Expr_LetMut && @cst.child(node, "pattern") is Some(pattern) {
-      context.mutable_bindings[source.range_for_node(pattern)] = true
+      self.binders[self.range(pattern)] = true
     }
     if node.kind is List_BlockStatementList {
       let statements = @cst.sequence_items(node)
       for i in 1..<statements.length() {
         if statement_call_syntax(statements[i]) is Some(call) {
-          context.previous[call.source_span] = (
-            statements[i - 1],
-            statements[i],
-          )
+          self.previous[call.source_span] = (statements[i - 1], statements[i])
         }
       }
     }
@@ -49,100 +44,63 @@ fn CheckContext::new(source : @semantic_source.Source) -> CheckContext raise {
       pending.push(child)
     }
   }
-  context
 }
 
 ///|
-fn CheckContext::facts(
+fn CheckContext::range(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> Array[@semantic.Fact] raise {
-  match authored_facts_for_node(self.source, node) {
-    Associated(facts) => facts
-    Unmatched =>
-      raise Unavailable("No exact compiler facts in the selected package view.")
-    Ambiguous(_) =>
-      raise Unavailable("Ambiguous compiler facts; select one package view.")
+) -> @semantic.Range {
+  node_range(self.file, node)
+}
+
+///|
+fn node_range(file : String, node : @untyped_cst.CstNode) -> @semantic.Range {
+  {
+    file,
+    start: { line: node.loc.start.lnum, column: node.loc.start.column(), },
+    end: { line: node.loc.end.lnum, column: node.loc.end.column(), },
   }
 }
 
 ///|
-fn CheckContext::expression(
+async fn CheckContext::shape(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> @semantic.Fact raise {
-  let facts = source_expression_facts(self.facts(node))
-  guard facts is [fact] else {
-    raise Unavailable("No unique typed expression at this exact source range.")
-  }
-  fact
-}
-
-///|
-fn CheckContext::shape(
-  self : CheckContext,
-  node : @untyped_cst.CstNode,
-) -> Json raise {
-  let fact = self.expression(node)
-  guard fact.type_id.bind(id => type_shape(self.source.index(), id))
-    is Some(shape) else {
+) -> Json {
+  guard (self.shape_at)(node) is Some(shape) else {
     raise Unavailable("The expression type is unresolved or unsupported.")
   }
   shape
 }
 
 ///|
-fn CheckContext::symbol_id(
+async fn CheckContext::symbol_id(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> String raise {
-  let ids : Map[String, Bool] = Map([])
-  for fact in self.facts(node) {
-    if fact.symbol_id is Some(id) &&
-      (
-        fact.kind == "binding" ||
-        fact.kind == "symbol_reference" ||
-        (fact.kind == "expression" && fact.node_kind == "identifier")
-      ) {
-      ids[id] = true
-    }
-  }
-  guard ids.length() == 1 else {
+) -> String {
+  guard (self.symbol_at)(node) is Some(symbol) else {
     raise Unavailable("No unique binding identity at this exact source range.")
   }
-  for id, _ in ids {
-    return id
-  }
-  abort("one symbol identity")
+  symbol.id
 }
 
 ///|
-fn CheckContext::method_is(
+async fn CheckContext::method_is(
   self : CheckContext,
   node : @untyped_cst.CstNode,
   owner : String,
   names : Array[String],
-) -> Bool raise {
-  let fact = self.expression(node)
-  if fact.details is { "dispatch": "unavailable", .. } {
-    raise Unavailable(
-      "The official IDE did not resolve a unique callable definition.",
-    )
+) -> Bool {
+  guard (self.symbol_at)(node) is Some(symbol) else {
+    raise Unavailable("The IDE did not resolve a unique callable definition.")
   }
-  guard fact.node_kind == "call" &&
-    fact.details
-    is { "dispatch": "resolved_symbol", "callee_symbol_id": String(id), .. } &&
-    fact.symbol_id == Some(id) &&
-    self.source.index().symbol(id) is Some(symbol) else {
+  guard symbol.kind == "global" &&
+    symbol.identity
+    is { "kind": "method", "name": String(name), "self_type": path, .. } else {
     return false
   }
-  match symbol.identity {
-    { "kind": "method", "name": String(name), "self_type": owner_type, .. } =>
-      symbol.kind == "global" &&
-      builtin_owner_is(owner_type, owner) &&
-      names.contains(name)
-    _ => false
-  }
+  builtin_owner_is(path, owner) && names.contains(name)
 }
 
 ///|
@@ -160,69 +118,51 @@ fn builtin_owner_is(path : Json, owner : String) -> Bool {
 }
 
 ///|
-fn CheckContext::builtin_value_call(
+async fn CheckContext::builtin_value_call(
   self : CheckContext,
   node : @untyped_cst.CstNode,
   name : String,
-) -> Bool raise {
-  let fact = self.expression(node)
-  guard fact.node_kind == "call" &&
-    fact.symbol_id is Some(id) &&
-    self.source.index().symbol(id) is Some(symbol) else {
-    return false
+) -> Bool {
+  guard (self.symbol_at)(node) is Some(symbol) else {
+    raise Unavailable("The IDE did not resolve a unique callable definition.")
   }
-  match symbol.identity {
-    {
-      "kind": "value",
-      "package": "moonbitlang/core/builtin",
-      "name": String(found),
-      ..
-    } => symbol.kind == "global" && found == name
-    _ => false
-  }
+  symbol.kind == "global" &&
+  symbol.identity
+  is {
+    "kind": "value",
+    "package": "moonbitlang/core/builtin",
+    "name": String(found),
+    ..
+  } &&
+  name == found
 }
 
 ///|
-fn CheckContext::stable_identifier(
+async fn CheckContext::stable_identifier(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> Bool raise {
-  guard node.kind is Expr_Ident else { return false }
-  let id = self.symbol_id(node)
-  guard self.source.index().symbol(id) is Some(symbol) else { return false }
+) -> Bool {
+  guard node.kind is Expr_Ident && (self.symbol_at)(node) is Some(symbol) else {
+    return false
+  }
   if symbol.kind == "global" {
     return true
   }
-  guard symbol.kind == "local" && self.facts_by_symbol.get(id) is Some(facts) else {
-    return false
-  }
-  let mut has_binding = false
-  for fact in facts {
-    if fact.kind == "binding" {
-      has_binding = true
-      if fact.location is Some(location) &&
-        self.mutable_bindings.contains(location) {
-        return false
-      }
-    }
-  }
-  has_binding
+  symbol.kind == "local" &&
+  (self.binding)(symbol.id) is Some(location) &&
+  self.binders.get(location) == Some(false)
 }
 
 ///|
-fn CheckContext::uses_only_at(
+async fn CheckContext::uses_only_at(
   self : CheckContext,
-  id : String,
+  binder : @untyped_cst.CstNode,
   allowed : Array[@untyped_cst.CstNode],
-) -> Bool raise {
-  let ranges = allowed.map(node => self.source.range_for_node(node))
-  guard self.facts_by_symbol.get(id) is Some(facts) else { return false }
-  for fact in facts {
-    if fact.location is Some(location) && !ranges.contains(location) {
-      return false
-    }
-  }
-  true
+) -> Bool {
+  let ranges = allowed.map(node => self.range(node))
+  let uses = (self.references)(binder)
+  uses.all(loc => ranges.contains(loc)) &&
+  ranges.all(loc => loc == self.range(binder) || uses.contains(loc))
 }
 
 ///|
@@ -268,10 +208,10 @@ fn no_abrupt_control(node : @untyped_cst.CstNode) -> Bool {
 }
 
 ///|
-fn CheckContext::simple_callback(
+async fn CheckContext::simple_callback(
   self : CheckContext,
   node : @untyped_cst.CstNode,
-) -> (Json, Json)? raise {
+) -> (Json, Json)? {
   guard callback_arrow(self.shape(node)) is Some(arrow) else { return None }
   if node.kind is Expr_Function {
     if no_abrupt_control(node) {

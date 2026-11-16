@@ -99,12 +99,14 @@ test "json scan traces use typed events" {
       render_scan_trace_json(DirectoryEntered("src")),
       render_scan_trace_json(PathSkipped("src/vendor")),
       render_scan_trace_json(FileStarted("src/main.mbt")),
+      render_scan_trace_json(SemanticQueries(6)),
     ].join("\n"),
     content=(
       #|{"type":"trace","event":"rule_loaded","rule_id":"example"}
       #|{"type":"trace","event":"directory_entered","path":"src"}
       #|{"type":"trace","event":"path_skipped","path":"src/vendor"}
       #|{"type":"trace","event":"file_started","path":"src/main.mbt"}
+      #|{"type":"trace","event":"semantic_queries","count":6}
     ),
   )
 }

@@ -1,5 +1,5 @@
 ///|
-/// Optional semantic builtins. The CLI enables them only with a checked index.
+/// Semantic builtins used by lint to select candidates before querying the IDE.
 pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
   let sources : Array[(String, String)] = [
     (

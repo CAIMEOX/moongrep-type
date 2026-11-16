@@ -3,8 +3,6 @@
 pub(all) struct ExpressionEvidence {
   location : @semantic.Range
   text : String
-  fact_id : Int32
-  type_id : Int32
 }
 
 ///|
@@ -58,12 +56,7 @@ fn range_json(range : @semantic.Range) -> Json {
 
 ///|
 fn ExpressionEvidence::to_json(self : ExpressionEvidence) -> Json {
-  {
-    "location": range_json(self.location),
-    "text": self.text,
-    "fact_id": self.fact_id,
-    "type_id": self.type_id,
-  }
+  { "location": range_json(self.location), "text": self.text }
 }
 
 ///|

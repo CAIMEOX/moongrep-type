@@ -60,7 +60,6 @@ async fn dispatch_cli(argv : Array[String], env : Map[String, String]) -> Unit {
   match command {
     Scan(options) => run_scan_command(options)
     Lint(options) => run_lint_command(options)
-    Semantics(options) => run_semantics_command(options)
     MapFusion(options) => run_map_fusion_command(options)
     DocsList | DocsShow(_) => write_cli_stdout(render_docs_command(command))
     DumpImpl(..) | DumpExpr(..) =>

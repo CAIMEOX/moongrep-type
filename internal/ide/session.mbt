@@ -161,15 +161,40 @@ async fn require_unchanged(snapshots : Map[String, Bytes?]) -> Unit {
 }
 
 ///|
-/// Export authored semantic evidence through the official language service.
-/// No serialized compiler representation is read, and no compiler version is
-/// pinned to a private layout. Missing IDE information stays explicit.
-pub async fn export_index(
-  project : String,
-  target? : String,
-) -> @semantic.Index {
-  let requested = @fs.realpath(project)
-  let directory_selection = @fs.kind(requested) is Directory
+pub struct Session {
+  priv target : String?
+  priv paths : Map[String, String]
+  priv opening : @async.Mutex
+  priv projects : Map[String, CheckedProject]
+}
+
+///|
+priv struct CheckedProject {
+  known_sources : Set[String]
+  catalog : Catalog
+  client : Client
+  version : String
+  inventory_root : String
+  selector : Json
+  snapshots : Map[String, Bytes?]
+  memberships : Map[String, Array[String]]
+}
+
+///|
+pub fn Session::new(target? : String) -> Session {
+  { target, paths: {}, opening: @async.Mutex::Mutex(), projects: {}, }
+}
+
+///|
+/// Open a checked context only after the syntax matcher selected candidates.
+/// A scan can cross module, workspace, and standalone file boundaries.
+pub async fn Session::file(
+  self : Session,
+  file : String,
+  text : String,
+  tree : @untyped_cst.CstNode,
+) -> CheckedFile? {
+  let requested = @fs.realpath(file)
   let environment : Map[String, String] = Map([])
   let workspace = match @env.get_env_var("MOON_WORK") {
     Some("off") => Some("off")
@@ -180,26 +205,68 @@ pub async fn export_index(
     }
     None => None
   }
-  let (root, disable_workspace) = config_root(requested, workspace)
-  if disable_workspace {
+  let (root, off) = config_root(requested, workspace)
+  if off {
     environment["MOON_WORK"] = "off"
   }
+  let standalone = !(@fs.exists(root + "/moon.mod") ||
+    @fs.exists(root + "/moon.mod.json") ||
+    @fs.exists(root + "/moon.work") ||
+    @fs.exists(root + "/moon.work.json"))
+  let key = if standalone { requested } else { root }
+  self.opening.acquire()
+  defer self.opening.release()
+  let project = if self.projects.get(key) is Some(project) {
+    project
+  } else {
+    let project = check_project(
+      root,
+      environment,
+      if standalone {
+        Some(requested)
+      } else {
+        None
+      },
+      self.target,
+    )
+    self.projects[key] = project
+    project
+  }
+  if self.paths.get(file) is Some(before) && before != requested {
+    fail("source path changed: \{file}")
+  }
+  self.paths[file] = requested
+  guard project.catalog.sources.get(requested) is Some(input) else {
+    if project.known_sources.contains(requested) {
+      return None
+    }
+    fail("source is outside the checked project: \{file}")
+  }
+  if input.text != text {
+    fail("source changed after syntax matching: \{file}")
+  }
+  project.catalog.documents[requested] = input.text
+  Some({ project, input, declarations: @cst.toplevel_nodes(tree), scopes: {}, })
+}
+
+///|
+async fn check_project(
+  root : String,
+  environment : Map[String, String],
+  standalone : String?,
+  target : String?,
+) -> CheckedProject {
   let version = command("moonc", ["-v"], root, environment).trim().to_owned()
   let args = ["check", "--no-mbti"]
   if target is Some(target) {
     args.append(["--target", target])
   }
-  let standalone = !directory_selection &&
-    !(@fs.exists(root + "/moon.mod") ||
-    @fs.exists(root + "/moon.mod.json") ||
-    @fs.exists(root + "/moon.work") ||
-    @fs.exists(root + "/moon.work.json"))
-  if standalone {
-    args.push(requested)
+  if standalone is Some(file) {
+    args.push(file)
   }
   ignore(command("moon", args, root, environment))
-  let inventory_root = if standalone {
-    root + "/_build/" + @path.Path(requested).basename().to_owned()
+  let inventory_root = if standalone is Some(file) {
+    root + "/_build/" + @path.Path(file).basename().to_owned()
   } else {
     root + "/_build"
   }
@@ -207,7 +274,7 @@ pub async fn export_index(
     @fs.read_file(inventory_root + "/index.json").json(),
   )
   guard backends is [backend] else {
-    fail("select one backend with --target for IDE export")
+    fail("select one backend with --target for semantic checks")
   }
   let selector = @fs.read_file(inventory_root + "/packages.json").json()
   guard selector is { "backend": String(active), "opt_level": "debug", .. } &&
@@ -224,10 +291,21 @@ pub async fn export_index(
   let package_roots : Map[String, String] = Map([])
   let snapshots : Map[String, Bytes?] = Map([])
   let memberships : Map[String, Array[String]] = Map([])
+  let known_sources : Set[String] = Set([])
   remember_config(root, snapshots)
   for package_entry in packages {
     guard package_entry is { "root-path": String(package_root), .. } else {
       fail("incomplete package inventory")
+    }
+    if package_entry is Object(metadata) &&
+      !(package_entry is { "is-third-party": true, .. }) {
+      for key in ["files", "test-files", "wbtest-files"] {
+        if metadata.get(key) is Some(Object(listed)) {
+          for path, _ in listed {
+            known_sources.add(path)
+          }
+        }
+      }
     }
     // Moon also inventories packages that have no check action for this
     // backend (for example, native-only test packages in a Wasm check).
@@ -238,7 +316,8 @@ pub async fn export_index(
     let package_root = @fs.realpath(package_root)
     package_roots[package_root] = name
     remember_config(package_root, snapshots)
-    if !memberships.contains(package_root) {
+    if (standalone is None || package_root != root) &&
+      !memberships.contains(package_root) {
       memberships[package_root] = source_membership(package_root)
     }
     for input in check {
@@ -259,12 +338,7 @@ pub async fn export_index(
         }
       }
     }
-    let selected = if directory_selection {
-      inside(requested, package_root)
-    } else {
-      inside(package_root, requested)
-    }
-    if !selected || package_entry is { "is-third-party": true, .. } {
+    if package_entry is { "is-third-party": true, .. } {
       continue
     }
     for key in ["check-command", "wbtest-check-command", "test-check-command"] {
@@ -287,8 +361,22 @@ pub async fn export_index(
             }
           }
         }
-        let context_types : Map[String, Json] = Map([])
         let context_package = command_option(inputs, "-pkg")
+        let context_texts : Array[String] = []
+        // Hover prints unqualified names in this file context. Read declarations
+        // only when a candidate actually needs to resolve a nominal type.
+        let context_types = @lazy.Lazy::Lazy(() => {
+          let names : Map[String, Json] = Map([])
+          for text in context_texts {
+            for
+              name, path in type_declarations(
+                text, context_package, context_aliases,
+              ) {
+              names[name] = path
+            }
+          }
+          names
+        })
         for input in inputs {
           if input is String(file) &&
             (file.has_suffix(".mbt") || file.has_suffix(".mbtx")) &&
@@ -301,14 +389,8 @@ pub async fn export_index(
               fail("input changed during source discovery: \{file}")
             }
             snapshots[file] = Some(data.binary())
-            for
-              name, path in type_declarations(
-                text, context_package, context_aliases,
-              ) {
-              context_types[name] = path
-            }
-            if (!directory_selection && file != requested) ||
-              sources.contains(file) {
+            context_texts.push(text)
+            if sources.contains(file) {
               continue
             }
             sources[file] = {
@@ -323,39 +405,62 @@ pub async fn export_index(
       }
     }
   }
-  guard !sources.is_empty() else {
-    fail("no checked sources own \{project} (check root: \{root})")
-  }
-  let source_entries = sources.values().to_array()
-  source_entries.sort_by((left, right) => left.path.compare(right.path))
   // The first check provides source inventory and prebuild outputs. Validate
   // the captured inputs with a second, normally cached check before querying.
   ignore(command("moon", args, root, environment))
   require_unchanged(snapshots)
-  let plan = plan(source_entries)
-  let builder : Builder = {
+  let catalog : Catalog = {
     types: TypeTable::new(),
-    symbols: [],
-    symbol_ids: Map([]),
-    facts: [],
-    documents: Map([]),
-    catalogs: Map([]),
+    symbols: {},
+    symbol_ids: {},
+    bindings: {},
+    documents: {},
+    catalogs: {},
     packages: package_roots,
     sources,
   }
-  for source in source_entries {
-    builder.documents[source.path] = source.text
+  let client : Client = { root, backend, environment, cache: {}, }
+  {
+    catalog,
+    client,
+    version,
+    inventory_root,
+    selector,
+    snapshots,
+    memberships,
+    known_sources,
   }
-  let client : Client = { root, backend, environment, cache: Map([]), }
-  client.prefetch(plan)
-  for query in plan.queries {
-    builder.query(client, query, backend)
+}
+
+///|
+pub async fn Session::validate(self : Session) -> Unit {
+  for path, initial in self.paths {
+    if @fs.realpath(path) != initial {
+      fail("source path changed: \{path}")
+    }
   }
+  for _, project in self.projects {
+    project.validate()
+  }
+}
+
+///|
+async fn CheckedProject::validate(self : CheckedProject) -> Unit {
+  let {
+    inventory_root,
+    snapshots,
+    memberships,
+    selector,
+    version,
+    catalog,
+    client,
+    ..
+  } = self
   require_unchanged(snapshots)
   let current_backends : Array[String] = @json.from_json(
     @fs.read_file(inventory_root + "/index.json").json(),
   )
-  if current_backends != backends ||
+  if current_backends != [client.backend] ||
     @fs.read_file(inventory_root + "/packages.json").json() != selector {
     fail("checked backend changed during IDE extraction")
   }
@@ -364,27 +469,41 @@ pub async fn export_index(
       fail("source membership changed during IDE extraction: \{directory}")
     }
   }
-  for file, text in builder.documents {
+  for file, text in catalog.documents {
     if @fs.read_file(file).text() != text {
       fail("definition source changed during IDE extraction: \{file}")
     }
   }
-  if command("moonc", ["-v"], root, environment).trim().to_owned() != version {
+  if command("moonc", ["-v"], client.root, client.environment).trim().to_owned() !=
+    version {
     fail("compiler changed during IDE extraction")
   }
-  let result : Json = {
-    "schema_version": 1,
-    "provider": "moon-ide",
-    "compiler_version": version,
-    "position_encoding": "unicode-scalar",
-    "context": "ide-file",
-    "backend": backend,
-    "sources": source_entries.map(source => {
-      ({ "path": source.path, "text": source.text } : Json)
-    }),
-    "types": builder.types.values,
-    "symbols": builder.symbols,
-    "facts": builder.facts,
+}
+
+///|
+/// Number of distinct IDE requests issued by this scan.
+pub fn Session::query_count(self : Session) -> Int32 {
+  self.projects
+  .values()
+  .fold(init=0, (n, project) => n + project.client.cache.length())
+}
+
+///|
+pub fn Session::parameter_names(self : Session) -> Map[(String, Int32), String] {
+  let names : Map[(String, Int32), String] = Map([])
+  for _, project in self.projects {
+    for ty in project.catalog.types.values {
+      if ty
+        is {
+          "kind": "parameter",
+          "owner": String(owner),
+          "index": Number(i, ..),
+          "name": String(name),
+          ..
+        } {
+        names[(owner, i.to_int())] = name
+      }
+    }
   }
-  @semantic.Index::from_json(result, compiler_version=version)
+  names
 }

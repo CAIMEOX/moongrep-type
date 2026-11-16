@@ -27,7 +27,7 @@ pub impl Show for SemanticError with fn output(self, logger) {
 
 ///|
 /// One-based line and Unicode scalar column. Range ends are exclusive.
-#derive(Eq, Hash, Debug)
+#derive(Eq, Hash, Debug, FromJson)
 pub(all) struct Position {
   line : Int32
   column : Int32
@@ -35,7 +35,7 @@ pub(all) struct Position {
 
 ///|
 /// The file is the original absolute path of the checked source snapshot.
-#derive(Eq, Hash, Debug)
+#derive(Eq, Hash, Debug, FromJson)
 pub(all) struct Range {
   file : String
   start : Position
@@ -234,3 +234,9 @@ pub extend Range with Hash::{hash, hash_combine}
 
 ///|
 pub extend SemanticError with Show::{to_string, output}
+
+///|
+pub extend Position with FromJson::{from_json}
+
+///|
+pub extend Range with FromJson::{from_json}

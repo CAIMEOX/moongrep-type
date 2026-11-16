@@ -12,103 +12,206 @@ pub(all) struct RuleReport {
 }
 
 ///|
-/// Apply YAML semantic rules to original nodes of a validated source. Regex
-/// guards and structural matching use the same matcher as ordinary rules.
-pub fn apply_rules(
-  source : @semantic_source.Source,
+priv struct Match {
+  candidate : @cst.ExprMatchCandidate
+  check : @rule_model.SemanticCheck
+  rule_id : String
+  description : String
+  pattern_index : Int32
+  loc : @basic.Location
+}
+
+///|
+/// Original syntax and only the candidates accepted by enabled YAML shapes and guards.
+pub struct Candidates {
+  priv file : String
+  priv text : String
+  priv tree : @untyped_cst.CstNode
+  priv matches : Array[Match]
+}
+
+///|
+pub fn Candidates::select(
+  file : String,
+  text : String,
+  tree : @untyped_cst.CstNode,
+  roots : Array[@untyped_cst.CstNode],
   rules : ArrayView[@rule_model.CompiledRule],
-  roots~ : Array[@untyped_cst.CstNode] = @cst.toplevel_nodes(source.root()),
-) -> RuleReport raise {
-  let context = CheckContext::new(source)
-  let candidates : Array[@cst.ExprMatchCandidate] = []
+) -> Candidates {
+  let matches : Array[Match] = []
+  let nodes : Array[@cst.ExprMatchCandidate] = []
   for root in roots {
-    ignore(source.range_for_node(root))
-    @cst.visit_expr_match_candidate_roots(root, fn(candidate) {
-      candidates.push(candidate)
+    @cst.visit_expr_match_candidate_roots(root, candidate => {
+      nodes.push(candidate)
       NodeVisitContinue
     })
   }
-  let report : RuleReport = { findings: [], warnings: [], }
   for rule in rules {
     guard rule.definition is Semantic(definition) else { continue }
-    let reported : Map[(Int32, Int32), Bool] = Map([])
-    let covered : Array[@basic.Location] = []
-    for candidate in candidates {
+    for candidate in nodes {
+      if candidate is Sequence(_) && !(definition.check is ArrayComprehension) {
+        continue
+      }
       for pattern_index, pattern in definition.patterns {
         guard @rule_apply.match_plain_rule_pattern(pattern, candidate)
           is Some(matched) else {
           continue
         }
-        if definition.check is IterComprehension &&
-          covered.any(loc => {
-            loc.start.cnum <= matched.loc.start.cnum &&
-            loc.end.cnum >= matched.loc.end.cnum
-          }) {
-          break
-        }
-        let location = evaluate_semantic_check(
-          context,
-          definition.check,
+        matches.push({
           candidate,
-        ) catch {
-          Unavailable(reason) => {
-            let key = (matched.loc.start.cnum, matched.loc.end.cnum)
-            if !reported.contains(key) {
-              reported[key] = true
-              report.warnings.push({
-                rule_id: rule.rule_id,
-                loc: matched.loc,
-                reason,
-              })
-            }
-            None
-          }
-          Skip(reason) => {
-            if [
-                "missing_exact_semantics", "ambiguous_semantics", "non_unique_expression_type",
-                "unknown_type",
-              ].contains(reason) {
-              let key = (matched.loc.start.cnum, matched.loc.end.cnum)
-              if !reported.contains(key) {
-                reported[key] = true
-                report.warnings.push({
-                  rule_id: rule.rule_id,
-                  loc: matched.loc,
-                  reason,
-                })
-              }
-            }
-            None
-          }
-          error => raise error
+          check: definition.check,
+          rule_id: rule.rule_id,
+          description: rule.description,
+          pattern_index,
+          loc: matched.loc,
+        })
+        break
+      }
+    }
+  }
+  { file, text, tree, matches, }
+}
+
+///|
+pub fn Candidates::is_empty(self : Candidates) -> Bool {
+  self.matches.is_empty()
+}
+
+///|
+priv suberror InactiveFile
+
+///|
+async fn Candidates::context(
+  self : Candidates,
+  session : @ide.Session,
+) -> CheckContext {
+  let path = @fs.realpath(self.file)
+  // Even a YAML match can be rejected using only syntax. Share the first
+  // real demand for project information across every verifier in this file.
+  let checked = @async.Lazy::Lazy(() => {
+    guard session.file(self.file, self.text, self.tree) is Some(file) else {
+      raise InactiveFile
+    }
+    guard file.path() == path else {
+      fail("candidate source path changed: \{self.file}")
+    }
+    file
+  })
+  let context : CheckContext = {
+    file: path,
+    text: self.text,
+    package_name: () => checked.wait().package_name(),
+    shape_at: node => {
+      let file = checked.wait()
+      file.type_at(node).bind(id => type_shape(i => file.raw_type(i), id))
+    },
+    symbol_at: node => checked.wait().symbol_at(node),
+    binding: id => checked.wait().binding(id),
+    references: node => checked.wait().references(node),
+    binders: {},
+    previous: {},
+  }
+  context.inspect_syntax(self.tree)
+  context
+}
+
+///|
+priv enum Outcome {
+  Finding(@basic.Location)
+  Warning(String)
+  Rejected
+}
+
+///|
+async fn verify_match(context : CheckContext, hit : Match) -> Outcome {
+  try {
+    match evaluate_semantic_check(context, hit.check, hit.candidate) {
+      Some(loc) => Finding(loc)
+      None => Rejected
+    }
+  } catch {
+    Unavailable(reason) => Warning(reason)
+    Skip(reason) =>
+      if [
+          "missing_exact_semantics", "ambiguous_semantics", "non_unique_expression_type",
+          "unknown_type",
+        ].contains(reason) {
+        Warning(reason)
+      } else {
+        Rejected
+      }
+    e => raise e
+  }
+}
+
+///|
+pub async fn Candidates::verify(
+  self : Candidates,
+  session : @ide.Session,
+) -> RuleReport {
+  let report : RuleReport = { findings: [], warnings: [], }
+  if self.matches.is_empty() {
+    return report
+  }
+  let context = self.context(session)
+  let jobs : Array[async () -> Outcome] = self.matches.map(hit => {
+    () => verify_match(context, hit)
+  })
+  let outcomes = @async.all(jobs[:], max_concurrent=4) catch {
+    InactiveFile => return report
+    err => raise err
+  }
+  let seen : Set[(String, Int32, Int32)] = Set([])
+  let covered : Map[String, Array[@basic.Location]] = Map([])
+  for i, hit in self.matches {
+    if hit.check is IterComprehension &&
+      covered.get(hit.rule_id) is Some(outer) &&
+      outer.any(loc => {
+        loc.start.cnum <= hit.loc.start.cnum && loc.end.cnum >= hit.loc.end.cnum
+      }) {
+      continue
+    }
+    match outcomes[i] {
+      Finding(loc) => {
+        let key = (hit.rule_id, loc.start.cnum, loc.end.cnum)
+        if seen.contains(key) {
+          continue
         }
-        if location is Some(loc) {
-          let key = (loc.start.cnum, loc.end.cnum)
-          if !reported.contains(key) {
-            reported[key] = true
-            covered.push(loc)
-            report.findings.push({
-              file: source.file(),
-              rule_id: rule.rule_id,
-              description: rule.description,
-              pattern_index,
-              loc,
-            })
+        seen.add(key)
+        if hit.check is IterComprehension {
+          if covered.get(hit.rule_id) is Some(locs) {
+            locs.push(loc)
+          } else {
+            covered[hit.rule_id] = [loc]
           }
-          break
+        }
+        report.findings.push({
+          file: self.file,
+          rule_id: hit.rule_id,
+          description: hit.description,
+          pattern_index: hit.pattern_index,
+          loc,
+        })
+      }
+      Warning(reason) => {
+        let key = (hit.rule_id, hit.loc.start.cnum, hit.loc.end.cnum)
+        if !seen.contains(key) {
+          seen.add(key)
+          report.warnings.push({ rule_id: hit.rule_id, loc: hit.loc, reason, })
         }
       }
+      Rejected => ()
     }
   }
   report
 }
 
 ///|
-fn evaluate_semantic_check(
+async fn evaluate_semantic_check(
   context : CheckContext,
   check : @rule_model.SemanticCheck,
   candidate : @cst.ExprMatchCandidate,
-) -> @basic.Location? raise {
+) -> @basic.Location? {
   match check {
     ArrayComprehension =>
       check_array_builder(context, candidate_items(candidate))
@@ -151,7 +254,7 @@ fn evaluate_semantic_check(
             map_call(outer.receiver) is Some(inner) else {
             return None
           }
-          ignore(analyze_chain(context.source, outer, inner))
+          ignore(analyze_chain(context, outer, inner))
           Some(node.loc)
         }
         ArrayComprehension => None

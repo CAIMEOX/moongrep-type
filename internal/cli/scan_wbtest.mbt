@@ -129,8 +129,7 @@ fn skip_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -164,8 +163,7 @@ fn excluded_entry_scan_options() -> CliOptions {
     verbose: true,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -182,8 +180,7 @@ fn excluded_scan_root_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -202,8 +199,7 @@ fn single_rule_file_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -226,8 +222,7 @@ fn guarded_cli_pattern_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -244,8 +239,7 @@ fn verbose_rules_scan_options() -> CliOptions {
     verbose: true,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -262,8 +256,7 @@ fn block_prefilter_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -280,8 +273,7 @@ fn irrelevant_broken_block_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -298,8 +290,7 @@ fn matched_broken_block_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -316,8 +307,7 @@ fn disabled_rule_scan_options() -> CliOptions {
     verbose: true,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -334,8 +324,7 @@ fn unknown_disabled_rule_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -366,8 +355,7 @@ fn builtin_api_options() -> CliOptions {
     verbose: false,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -390,8 +378,7 @@ fn non_bmp_scan_options() -> CliOptions {
     verbose: false,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
 }
 
@@ -578,8 +565,7 @@ async test "scan skips a symlink cycle" {
     verbose: true,
     no_color: false,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
   let result = capture_scan_events(Scan, options)
   guard result.hits is [hit] else { fail("expected exactly one scan hit") }
@@ -821,8 +807,7 @@ async test "scan classifies rule source, rule content, and scan input failures" 
     verbose: false,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
   try capture_scan_events(Scan, invalid_pattern_options) catch {
     CliError::RuleContent(diagnostic~) as err => {
@@ -877,8 +862,7 @@ async test "scan classifies rule source, rule content, and scan input failures" 
     verbose: false,
     no_color: true,
     output_json: false,
-    semantic_index: None,
-    semantic_view: "normal",
+    target: None,
   }
   try capture_scan_events(Scan, missing_scan_root_options) catch {
     CliError::ScanInput(diagnostic~) as err => {

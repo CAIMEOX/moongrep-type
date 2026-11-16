@@ -1,6 +1,5 @@
 ///|
 priv struct Fixture {
-  data : Json
   types : Array[Json]
   facts : Array[Json]
   symbols : Array[Json]
@@ -97,21 +96,7 @@ fn fixture() -> Fixture {
       },
     })
   }
-  {
-    data: {
-      "schema_version": 1,
-      "compiler_version": "fixture",
-      "position_encoding": "unicode-scalar",
-      "sources": [{ "path": "/fixture/maps.mbt", "text": text }],
-      "types": types,
-      "symbols": symbols,
-      "facts": facts,
-    },
-    types,
-    facts,
-    symbols,
-    text,
-  }
+  { types, facts, symbols, text, }
 }
 
 ///|
@@ -121,22 +106,31 @@ fn put(value : Json, key : String, replacement : Json) -> Unit {
 }
 
 ///|
-fn Fixture::report(self : Fixture) -> MapFusionReport raise {
-  put(self.data, "types", Json::array(self.types))
-  put(self.data, "facts", Json::array(self.facts))
-  put(self.data, "symbols", Json::array(self.symbols))
-  let index = @semantic.Index::from_json(self.data, compiler_version="fixture")
-  find_map_fusion(
-    @semantic_source.Source::parse(
-      index,
-      file="/fixture/maps.mbt",
-      text=self.text,
-    ),
+async fn Fixture::report(self : Fixture) -> MapFusionReport {
+  let (context, tree) = fixture_context(
+    "/fixture/maps.mbt",
+    self.text,
+    self.types,
+    self.symbols,
+    self.facts,
   )
+  let outer = map_call(
+    identity_test_node(tree, n => {
+      map_call(n) is Some(call) && map_call(call.receiver) is Some(_)
+    }),
+  ).unwrap()
+  let inner = map_call(outer.receiver).unwrap()
+  let report : MapFusionReport = { candidates: [], skipped: [], }
+  report.candidates.push(analyze_chain(context, outer, inner)) catch {
+    Skip(reason) =>
+      report.skipped.push({ location: context.range(outer.call), reason, })
+    e => raise e
+  }
+  report
 }
 
 ///|
-test "map fusion joins evidence and compares types rather than handles" {
+async test "map fusion joins evidence and compares types rather than handles" {
   let report = fixture().report()
   inspect(report.skipped.length(), content="0")
   inspect(report.candidates.length(), content="1")
@@ -145,8 +139,6 @@ test "map fusion joins evidence and compares types rather than handles" {
   inspect(candidate.outer_call.text, content="xs.map(g).map(f)")
   inspect(candidate.first_callback.text, content="g")
   inspect(candidate.second_callback.text, content="f")
-  inspect(candidate.first_callback.fact_id, content="3")
-  inspect(candidate.second_callback.fact_id, content="4")
   inspect(candidate.outer_call.location.start.column, content="3")
   inspect(candidate.outer_call.location.end.column, content="19")
   inspect(
@@ -156,7 +148,7 @@ test "map fusion joins evidence and compares types rather than handles" {
 }
 
 ///|
-test "map fusion rejects unresolved and cyclic types even at identical handles" {
+async test "map fusion rejects unresolved and cyclic types even at identical handles" {
   let unresolved = fixture()
   unresolved.types[0] = {
     "id": 0,
@@ -174,7 +166,7 @@ test "map fusion rejects unresolved and cyclic types even at identical handles" 
 }
 
 ///|
-test "map fusion checks generic ownership and every edge of the type flow" {
+async test "map fusion checks generic ownership and every edge of the type flow" {
   let data = fixture()
   data.types[0] = {
     "id": 0,
@@ -199,7 +191,7 @@ test "map fusion checks generic ownership and every edge of the type flow" {
 }
 
 ///|
-test "map fusion requires authoritative method identity and direct dispatch" {
+async test "map fusion requires authoritative method identity and direct dispatch" {
   let data = fixture()
   put(data.symbols[0], "identity", {
     "kind": "method",
@@ -220,7 +212,7 @@ test "map fusion requires authoritative method identity and direct dispatch" {
 }
 
 ///|
-test "map fusion fails closed on missing facts duplicates and package views" {
+async test "map fusion rejects missing and ambiguous expression types" {
   let missing = fixture()
   ignore(missing.facts.pop())
   inspect(missing.report().skipped[0].reason, content="missing_exact_semantics")
@@ -233,12 +225,10 @@ test "map fusion fails closed on missing facts duplicates and package views" {
     duplicate.report().skipped[0].reason,
     content="non_unique_expression_type",
   )
-  put(copy, "package", Json::string("fixture@wasm:wbtest"))
-  inspect(duplicate.report().skipped[0].reason, content="ambiguous_semantics")
 }
 
 ///|
-test "map fusion excludes raising and async callbacks" {
+async test "map fusion excludes raising and async callbacks" {
   let data = fixture()
   data.types.push({ "id": 6, "kind": "builtin", "name": "Error" })
   put(data.types[2], "error", { "kind": "typed", "type_id": 6 })

@@ -3,14 +3,34 @@ package "moonbit-community/moongrep/internal/ide"
 
 import {
   "moonbit-community/moongrep/semantic",
+  "moonbitlang/core/json",
+  "moonbitlang/parser/untyped_cst/node",
 }
 
 // Values
-pub async fn export_index(String, target? : String) -> @semantic.Index
 
 // Errors
 
 // Types and methods
+pub struct CheckedFile {
+  // private fields
+}
+pub fn CheckedFile::binding(Self, String) -> @semantic.Range?
+pub fn CheckedFile::package_name(Self) -> String
+pub fn CheckedFile::path(Self) -> String
+pub fn CheckedFile::raw_type(Self, Int32) -> @json.Json?
+pub async fn CheckedFile::references(Self, @node.CstNode) -> Array[@semantic.Range]
+pub async fn CheckedFile::symbol_at(Self, @node.CstNode) -> @semantic.SymbolInfo?
+pub async fn CheckedFile::type_at(Self, @node.CstNode) -> Int32?
+
+pub struct Session {
+  // private fields
+}
+pub async fn Session::file(Self, String, String, @node.CstNode) -> CheckedFile?
+pub fn Session::new(target? : String) -> Self
+pub fn Session::parameter_names(Self) -> Map[(String, Int32), String]
+pub fn Session::query_count(Self) -> Int32
+pub async fn Session::validate(Self) -> Unit
 
 // Type aliases
 

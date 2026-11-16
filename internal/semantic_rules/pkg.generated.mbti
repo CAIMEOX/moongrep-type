@@ -2,8 +2,8 @@
 package "moonbit-community/moongrep/internal/semantic_rules"
 
 import {
+  "moonbit-community/moongrep/internal/ide",
   "moonbit-community/moongrep/internal/rule/model",
-  "moonbit-community/moongrep/internal/semantic_source",
   "moonbit-community/moongrep/semantic",
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
@@ -12,19 +12,22 @@ import {
 }
 
 // Values
-pub fn apply_rules(@semantic_source.Source, ArrayView[@model.CompiledRule], roots? : Array[@node.CstNode]) -> RuleReport raise
-
-pub fn find_map_fusion(@semantic_source.Source) -> MapFusionReport raise
 
 // Errors
 
 // Types and methods
+pub struct Candidates {
+  // private fields
+}
+pub fn Candidates::is_empty(Self) -> Bool
+pub async fn Candidates::map_fusion(Self, @ide.Session) -> MapFusionReport
+pub fn Candidates::select(String, String, @node.CstNode, Array[@node.CstNode], ArrayView[@model.CompiledRule]) -> Self
+pub async fn Candidates::verify(Self, @ide.Session) -> RuleReport
+
 #derive(@debug.Debug)
 pub(all) struct ExpressionEvidence {
   location : @semantic.Range
   text : String
-  fact_id : Int32
-  type_id : Int32
 }
 pub fn ExpressionEvidence::to_repr(Self) -> @debug.Repr
 

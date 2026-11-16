@@ -1,8 +1,8 @@
 import {
   "moonbit-community/moongrep/internal/ide" @provider,
   "moonbit-community/moongrep/internal/cst",
-  "moonbit-community/moongrep/semantic",
-  "moonbit-community/moongrep/internal/semantic_source",
+  "moonbitlang/parser/untyped_cst",
+  "moonbit-community/moongrep/internal/rule/model" @rule_model,
   "moonbit-community/moongrep/internal/semantic_rules",
   "moonbit-community/moongrep/internal/rule/builtin",
   "moonbit-community/moongrep/internal/rule/compile",
