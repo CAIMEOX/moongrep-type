@@ -2,7 +2,7 @@
 
 Semantic YAML entries are retained and prefiltered by `ScanPlan`, exposed through
 `semantic_rules()`, and dispatched by the CLI to `internal/semantic_rules` with a
-checked whole-file source. `without_semantic_rules()` selects the existing
+whole-file CST. The matching candidates determine which IDE queries execute. `without_semantic_rules()` selects the existing
 block-oriented structural/taint path. Semantic candidate matching reuses
 `match_plain_rule_pattern`, including the same regex-guard evaluator.
 

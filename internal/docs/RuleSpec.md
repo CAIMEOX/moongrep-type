@@ -111,7 +111,7 @@ is invalid in these entries.
 ### Semantic Rules
 
 Semantic rules use the same loader, rule-id derivation, matcher, regex guards,
-and prefilter. They require a checked index supplied through `--semantic-index`.
+and prefilter. Each check requests IDE evidence only for matching candidates.
 
 ```yaml
 id: avoid_collect_for_count
@@ -157,10 +157,8 @@ unresolved evidence produces a semantic warning instead of a definite finding.
 First successful alternatives at one range are deduplicated. Iter-comprehension
 prefers the enclosing immediately-collected form over its nested lazy pipeline.
 
-Semantic rule evidence excludes compiler-generated top-level bodies, including
-derive implementations, using `details.generated_top_level: true` before source
-association. Generated-only candidates are skipped quietly; handwritten impls
-remain eligible. Raw semantic queries still retain the generated facts.
+Rules select authored CST nodes, including handwritten implementations.
+Compiler-generated derive bodies do not participate in candidate matching.
 
 YAML configures the id, description, structural alternatives, and regex guards;
 new semantic analyses are implemented in MoonBit. All findings are advisory and

@@ -1,108 +1,59 @@
-# Official IDE semantic backend
+# Semantic checks with moon ide
 
-`moongrep semantics` uses official `moon ide hover` and `moon ide peek-def`
-commands after a successful `moon check --no-mbti`. The query scheduler, type
-parser, symbol resolution, and index builder are MoonBit. No compiler source, compiler
-libraries, serialized frontend representation, or version-specific layout is
-used. The former decoder, adapter, runner, and build scripts have been removed.
+Run `moongrep lint <path>` to include the builtin semantic rules, or
+`moongrep scan <path> --rule <yaml>` for a custom rule. An optional
+`--target wasm` (or another backend) selects the compilation context.
 
-```sh
-moon run --target native . -- semantics examples/semantic-theorems --target wasm > /tmp/index.json
-moon run --target native . -- lint examples/semantic-theorems/collections.mbt --semantic-index /tmp/index.json
-moon test tests/ide --target native
-```
+The scanner matches enabled YAML shapes and regex guards on the original CST.
+It drops declarations marked `#moongrep.skip`. A scan with no semantic
+candidates ends here and needs neither a compiler check nor an IDE process.
 
-Use a toolchain compatible with the current upstream dependencies. Validation
-covers the official 0.10.20 release and 0.10.21 nightly (2026-11-13); the backend
-does not pin a compiler layout.
-`MOON_HOME`, when set, selects the compiler and IDE tool
-together. The original installation is not changed by exporting an index.
+When a candidate first needs semantic evidence, a scan session prepares the
+owning MoonBit project. Syntax-only rejections can therefore skip this step. The
+first `moon check --no-mbti` supplies the checked source inventory, including
+generated inputs. A cached check validates those captured inputs. Files share
+this preparation across packages in the same workspace. Independent nested
+modules and standalone scripts get their own context. The selected backend,
+normal or test file context, and `MOON_WORK` apply to every query.
 
-## Evidence contract
+Each rule asks for evidence while verifying one candidate. For example,
+`xs.filter(p).length()` needs two `peek-def` calls for the methods and four
+`hover` calls for the receiver, predicate, intermediate call, and final result.
+A failed guard stops the remaining lookups. A check that proves exclusive
+use of a local accumulator asks `find-references` about that binding. A check
+for an already-consumed iterator may inspect its preceding statement.
 
-The source planner reuses MoonGrep's CST parser. It selects authored declarations
-containing calls/iteration and enumerates their expression and binding queries.
-Derived bodies do not exist in that CST. The snapshot covers those queries,
-not every internal compiler node. An unqueried node remains `Unmatched`.
+The official CLI receives `--no-check --target <backend> --json`. Up to four
+candidates are verified concurrently. Identical requests share the same
+in-flight or completed result within the scan. A later scan starts fresh.
+Use `--verbose` to see the number of distinct IDE queries.
 
-Hover ranges must match the source expression. Constructor/member anchors and
-the result type of an already-resolved operator signature have explicit syntax
-roles. Non-overloadable language forms such as `is` have their language-defined
-Bool type after the project check. No arbitrary enclosing hover is substituted.
-Implicit conversions are not exported as extra source expressions.
+Hover results must match exact source ranges, or the appropriate constructor,
+field, or operator token. Positions use one-based Unicode scalar columns and
+exclusive ends. The adapter parses MoonBit type syntax, preserves package names,
+generic scopes, checked errors and async types, and distinguishes polymorphic
+declarations from instantiated expression types. Definitions and re-exports
+must resolve to one symbol. Derived bodies have no authored CST candidate.
 
-Hover's MoonBit type syntax is parsed with the existing parser. Types preserve
-nominal package paths, function arguments/results, error effects, async status,
-and lexical generic owners. Generic declaration schemes carry `polymorphic:
-true`; rule type equality does not treat them as instantiated expression types.
-Unsupported syntax, unresolved aliases, missing hover results, and ambiguous
-definitions remain unavailable. Type strings are never compared for equality.
+Before emitting semantic findings, the scanner rechecks input contents, source
+membership, definition files, the backend selector and the compiler version.
+Input failures produce a scan-input error. The rule reports only verified
+findings. See the [examples](../../examples/semantic-rules/README.md).
 
-Definitions identify local variables by canonical file and exact binder range.
-Global methods and constructors are checked against their public source
-declarations. Alias and re-export locations are canonicalized only when all
-returned definitions agree. Qualified constructors query the constructor leaf,
-not the type qualifier. A same-spelled user method is a distinct symbol.
+## Measured scan costs
 
-The CLI supplies one-based source ranges. They must agree with the authored
-CST's scalar columns and exclusive ends. Non-BMP characters, CRLF, qualified
-constructor leaves, and field anchors have integration regressions. The adapter
-does not translate undocumented LSP offsets or compare types by printed names.
+These are wall times for one native CLI run per corpus against the 2026-11-13
+nightly with `--target wasm`. Each corpus contains the same three demonstration
+files as the previous benchmark, with a fresh project build directory. The
+current timings include candidate selection, project checks, IDE queries,
+validation and lint output.
 
-## Snapshot and lifecycle
+| Corpus | Previous export alone | Previous IDE queries | Current lint | Current IDE queries |
+| --- | ---: | ---: | ---: | ---: |
+| Collection rules, 18 semantic findings | 110.9 s | 839 | 22.5 s | 187 |
+| Theorems, 40 semantic findings | 154.5 s | 1,174 | 33.3 s | 293 |
 
-The first check supplies Moon's JSON source inventory and prebuild outputs.
-A second cached check validates captured inputs before queries. Source text,
-configuration (including absent configuration files), directory membership,
-definition sources, and the active compiler version are rechecked before
-publication. Failed checks and input changes publish no partial index.
-
-An enclosing workspace is used when it includes the selected module. An
-independent nested module gets its own check with `MOON_WORK=off`; an explicit
-`MOON_WORK` manifest remains authoritative. Workspace membership is read with
-the existing public syntax parser, not a handwritten manifest lexer.
-
-Queries use `--no-check --target <backend>` against those checked inputs, with
-four processes at most and a timeout per query. Results are cached within one
-snapshot, then consumed in deterministic source order. Process handles are
-closed on success, timeout, or cancellation. There is no persistent cache that
-could silently serve data from an earlier source revision.
-
-The direct LSP path was rejected during validation: opening or querying a
-project can trigger a check for its preferred target, replacing an explicitly
-checked target. The official CLI preserves that selection with `--no-check`.
-The backend verifies Moon's active backend inventory before publication.
-
-The official CLI starts a process per unique query. A measurement with the
-2026-11-13 nightly, the compiled native MoonGrep CLI, `--target wasm`, and four
-concurrent queries produced these wall times on the validation machine:
-
-| Fixture | Export, empty project build | Export, cached project build | Lint, existing index |
-| --- | ---: | ---: | ---: |
-| Seven collection checks, 18 semantic findings | 110.9 s | 109.9 s | 0.307 s |
-| Twenty theorem checks, 40 semantic findings | 154.5 s | 154.3 s | 0.376 s |
-
-Both fixtures contain three source files, excluding `*_test.mbt` and
-`*_wbtest.mbt`. The collection fixture has 606 facts and makes 839 IDE CLI
-queries; the theorem fixture has 803 facts and makes 1,174 queries.
-
-Each export column is one run. Lint times are medians of ten separate CLI runs,
-including version/source validation, index loading, builtin rule loading, and
-JSON output. MoonGrep compilation is excluded. Standard-library and OS caches
-were not cleared; an empty project build is not a cold-machine measurement.
-
-IDE queries take about 98% of export time. Deduplication applies within one
-snapshot; a second export queries the IDE again even when `moon check` is
-cached. Existing-index scans stay fast, while source changes require exporting
-a new index. Current full-index regeneration is too slow for an edit/scan loop.
-
-`provider: "moon-ide"` snapshots use the IDE's file context, including the
-context selected for test files. They do not combine alternative normal,
-whitebox, and blackbox compiler trees. `--semantic-view auto` is the default;
-`ide` explicitly selects that label. Other labels apply to imported snapshots
-that actually contain them.
-
-The schema, source validation, YAML rules, guards, scan/lint reporting,
-`#moongrep.skip`, disables, and the standalone map-fusion report reuse the
-existing infrastructure. Missing evidence remains a diagnostic or skipped
-candidate; no source edit is authorized by a finding.
+All rule IDs and source ranges matched the previous reports. Selecting just
+`array_filter_count.yaml` on the theorem corpus took 2.9 s with the project
+build cached. Its four candidates issued 24 queries. A scan with no candidates
+issued zero queries and created no build directory.

@@ -10,9 +10,8 @@ suggestions; they do not rewrite code or produce machine-checked proofs.
 From the repository root, with a toolchain compatible with upstream dependencies:
 
 ```sh
-moon run --target native . -- semantics examples/semantic-theorems > /tmp/theorems-index.json
 for file in collections option_fusion identities; do
-  moon run --target native . -- lint "examples/semantic-theorems/$file.mbt" --semantic-index /tmp/theorems-index.json
+  moon run --target native . -- lint "examples/semantic-theorems/$file.mbt"
 done
 ```
 
@@ -26,8 +25,7 @@ so checking the examples may produce compiler deprecation warnings.
 
 Set `NO_COLOR=1` for plain terminal output; add `--json` for JSON Lines. The
 `*_test.mbt` files exercise behavior. The IDE selects each file's context; the
-command above scans only the demonstration files. Regenerate the index after
-editing any source.
+command above scans only the demonstration files.
 
 ## Catalogue
 
@@ -74,8 +72,7 @@ scheme is marked `polymorphic` and is not treated as an instantiated value type.
 Missing or unsupported information stays unavailable instead of being guessed.
 
 Derived implementation bodies are absent from the authored CST and are not
-queried. Handwritten impls remain eligible. The shared snapshot API can still
-retain or filter explicitly marked generated facts from imported indexes.
+queried. Handwritten impls remain eligible.
 
 The count laws unfold to the same full traversal and predicate call sequence.
 The search laws stop at the same successful pull, or at the same exhaustion

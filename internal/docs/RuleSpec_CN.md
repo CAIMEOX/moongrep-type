@@ -72,7 +72,7 @@ shape 必须是字符串；guard 是带 $ 前缀的捕获名到正则字符串�
 ### 语义规则
 
 语义规则复用既有加载器、规则 id、结构 matcher、regex guard 和 prefilter，
-运行时需要 `--semantic-index` 指定已检查的索引：
+在候选匹配后按需获取 IDE 证据。
 
 ```yaml
 id: avoid_collect_for_count
@@ -111,9 +111,7 @@ inside-toplevel、match-mode 都会报错。
 证据缺失、歧义或未解析时输出 semantic warning，不生成确定命中。同范围的多个
 成功 alternative 只报告一次。Iter comprehension 优先报告最外层立即 collect 的形式。
 
-规则取证会在源码关联前排除 `details.generated_top_level: true` 的编译器生成节点，
-包括 derive 实现及其子节点。只有生成事实的候选会直接跳过，手写 impl 仍正常分析。
-原始语义索引和默认查询保留全部事实，不按函数名或源码位置猜测是否为生成代码。
+规则从手写 CST 选出候选，包括手写 impl。编译器生成的 derive 实现没有对应的手写候选。
 
 YAML 可配置 id、描述、结构 alternative 和正则 guard；新的语义分析需要 MoonBit
 实现。所有结果均为建议，不修改源码。具体限制和当前 nightly 的行为见

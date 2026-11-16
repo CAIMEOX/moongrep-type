@@ -1,6 +1,6 @@
 # Semantic rules
 
-The YAML-driven checks run through `scan` and `lint` with `--semantic-index`.
+The YAML-driven checks run through `scan` and `lint`.
 See [the examples](../../examples/semantic-rules/README.md) for configuration,
 commands, and each check's scope. Rule loading, compilation, regex guards,
 structural matching, prefiltering, disables, source display, and diagnostics use
@@ -21,34 +21,14 @@ standard library's `Array::map`. The map law is
 ## Architecture
 
 ```text
-moon check + official moon ide hover / peek-def
-  → MoonBit CST/type-syntax adapter
-  → semantic.Index (validated types, symbols, source snapshots)
-  → semantic_source.Source (original CST + exact source ranges)
-  → semantic_rules.find_map_fusion (candidates + evidence + skipped reasons)
-  → moongrep map-fusion (existing CLI renderers, or --json)
+source CST → enabled YAML shapes and guards → candidate expressions
+           → rule-specific IDE lookups → checked findings or warnings
 ```
 
-The [official IDE backend](../ide/README.md) owns protocol queries and parsing
-of the language syntax returned by hover. Rules depend on the shared semantic
-index and existing CST traversal. The rule accepts a checked source and returns data; it performs no
-I/O and never edits source. The CLI shares compiler-version and file-freshness
-checks with `semantics`. Candidates adapt to `RuleFinding` and `ScanHit` and use
-the existing source-context renderer, highlighting, and `NO_COLOR` behavior.
-The command also shares argparse, diagnostics, output errors, and exit codes.
-`cmd/map-fusion` is a thin compatibility entrypoint to that same CLI.
-
-JSON values and parsing use MoonBit's standard library. Fixed report structures
-use `derive(ToJson)`, and fixed display metadata uses `derive(FromJson)`.
-Semantic graph validation and rendering MoonBit type names remain domain logic.
-
-The common checks and source-view selection are shared by the YAML analyses.
-The existing syntax-only YAML rules still run without compiler artifacts.
-
-The provider queries authored CST scopes. Compiler-generated derive bodies
-are not traversed; handwritten impls remain eligible. Source and symbol facts
-are joined by exact source/definition locations, not names. The common snapshot
-API retains its generated-fact filter for imported snapshots.
+Rules ask the [IDE backend](../ide/README.md) for exact types, definitions,
+and binding references as their checks evaluate. The CLI verifies the inputs
+and reuses its existing terminal and JSON renderers. The standalone map-fusion
+report uses the same candidates and evidence.
 
 ## Recognition contract
 
@@ -69,7 +49,7 @@ API retains its generated-fact filter for imported snapshots.
    This does **not** establish purity or termination.
 
 Candidates include source snippets and ranges, package view, resolved symbol,
-fact IDs, type IDs, and the normalized type flow. Skipped results explain which
+and normalized type flow. Skipped results explain which
 condition could not be established. A three-map chain produces two overlapping
 candidates. Qualified function-call syntax and maps separated by bindings are
 outside this first recognizer.
@@ -104,8 +84,7 @@ non-raising arrow from moonc alone is insufficient.
 From the repository root, with a toolchain compatible with upstream dependencies:
 
 ```sh
-moon run --target native . -- semantics tools/map-fusion/fixture > /tmp/map-index.json
-moon run --target native . -- map-fusion --index /tmp/map-index.json
+moon run --target native . -- map-fusion tools/map-fusion/fixture
 ```
 
 The default output is a terminal report with source ranges, numbered code
@@ -134,11 +113,9 @@ the same colors as `scan` and `lint`.
 Use `--json` for the structured report, or run the integration checks:
 
 ```sh
-moon run --target native . -- map-fusion --index /tmp/map-index.json --json
+moon run --target native . -- map-fusion tools/map-fusion/fixture --json
 moon test tests/ide --target native
 ```
 
-The command checks the installed `moonc -v` independently, validates the index,
-and checks the source files before analysis and before emitting the report.
-It fails on stale snapshots rather than returning a misleading empty report.
-Input failures use `scan_input` and exit code 6; usage errors use exit code 2.
+The command validates the inputs used for the matched files before emitting
+its report. Input failures use exit code 6 and usage errors use exit code 2.

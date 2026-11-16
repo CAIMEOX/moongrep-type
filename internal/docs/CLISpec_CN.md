@@ -33,13 +33,12 @@ moonrun path/to/moongrep.wasm -- <command> [arguments]
 
 ### 顶层命令
 
-moongrep 提供六个命令：
+moongrep 提供五个命令：
 
 - `scan` 使用显式选择或默认规则扫描 MoonBit 源码。
 - `lint` 默认启用内嵌 builtin 规则扫描 MoonBit 源码。
 - `docs` 列出或打印内嵌文档。
-- `semantics` 校验并导出编译器语义索引 JSON。
-- `map-fusion` 从语义索引中报告 Array.map 融合候选。
+- `map-fusion` 从源码中查找并报告 Array.map 融合候选。
 - `dump` 解析一个 MoonBit 实现项或表达式，并打印 CST 调试输出、写出结构化 dump
   记录，或通过退出状态报告校验是否成功。
 
@@ -62,7 +61,6 @@ moongrep 提供六个命令：
 - `lint` 使用扫描根 `.` 并启用 builtin 规则开始正常扫描。
 - `docs` 打印 `docs` 帮助并以状态码 0 退出。
 - `dump` 打印 `dump` 帮助并以状态码 0 退出。
-- `semantics` 打印 `semantics` 帮助并以状态码 0 退出。
 - `map-fusion` 打印 `map-fusion` 帮助并以状态码 0 退出。
 
 帮助文本写入标准输出。
@@ -89,10 +87,7 @@ moongrep lint [options] [scan-root]
 - `--guard <yaml>`：为前面的匿名模式附加 YAML guard 映射。
 - `--exclude <name-or-path>`：跳过匹配的文件或目录条目。
 - `--disable <rule-id>`：禁用一个已加载规则 id。
-- `--semantic-index <file>`：为语义 YAML 规则加载已检查的索引。
-- `--semantic-view <view>`：选择 auto（默认）、ide、normal、wbtest 或 bbtest，
-  必须同时提供 `--semantic-index`。官方 IDE 索引用 auto 或 ide；其余标签用于
-  实际包含对应视图的外部索引。
+- `--target <backend>` 选择语义规则使用的 MoonBit 编译目标。
 - `--verbose`：把规则加载和遍历事件写入标准错误。
 - `--json`：以 JSON Lines 格式输出命中。
 - `-h` 或 `--help`：打印命令帮助。
@@ -105,24 +100,21 @@ moongrep lint [options] [scan-root]
 
 ### 语义分析
 
-指定 `--semantic-index` 后，`lint` 额外加载七条内嵌语义 YAML 规则；`scan` 通过
-既有规则文件或目录选项选择语义规则，继续使用 `--disable`。不提供索引时普通 lint
-行为不变；显式加载已启用的语义规则却不提供索引，属于状态码 2 的用法错误。
+默认的 `lint` 加载 27 条内建语义规则。`scan` 可以用规则文件或目录选择语义规则。
+扫描器先应用 YAML 形状、正则 guard、禁用项和 `#moongrep.skip`。只有通过这些
+筛选的候选才进入语义验证。规则按需查询类型、定义或绑定的引用。相同项目共享编译
+检查，同一次扫描中相同位置的同类请求共享结果。
 
-索引必须匹配当前编译器版本及磁盘源码。索引不兼容、源码过期或扫描文件不在索引中，
-使用 `scan_input` 和状态码 6。应选择索引覆盖的扫描范围，或排除其他模块。
-选定视图只过滤事实，不删除索引中的其他视图。
-
-语义规则对相关文件进行一次全文件解析，保留原始 CST 身份和位置，遵守
-`#moongrep.skip`，并沿用 finding 输出与源码展示。同一文件内先输出语义命中，
-按配置的规则顺序排列，再输出普通 structural/taint 命中。候选缺失事实或存在歧义时，
-输出含 file、rule_id、range、reason 的 semantic warning。沿用流式扫描行为：
-后续文件校验失败不会撤回已经输出的记录。
+普通命中在遍历时输出。语义结果在校验本次分析的输入后按文件和规则顺序输出。
+编译检查失败、IDE 命令失败或输入在分析期间发生变化时返回状态码 6。
+缺失或有歧义的语义证据不能产生确定命中，规则可通过 semantic warning 解释原因。
+启用语义规则时，`--verbose` 显示去重后的 IDE 查询次数。JSON trace 使用
+`semantic_queries` 事件和整数 `count` 字段。
 
 ### 扫描根
 
 `scan-root` 可以指向目录或一个普通文件。目录目标会被递归遍历。普通文件目标的
-路径以小写 `.mbt` 结尾时会被扫描。
+路径以小写 `.mbt` 或 `.mbtx` 结尾时会被扫描。目录遍历只选择 `.mbt`。
 目录 symlink 会被跟随。每个解析后的目录最多进入一次，因此 symlink 环和后续
 指向已访问目录的别名都会被跳过。命中和事件保留遍历路径，不使用解析后的身份
 路径。
@@ -376,10 +368,10 @@ description 末尾的换行字符会被移除，剩余每一行前面缩进两�
 
 ### 协议和模式识别
 
-对于 `scan`、`lint`、`dump`、`semantics` 和 `map-fusion`，`--json` 会选择结构化诊断。该选项必须
+对于 `scan`、`lint`、`dump` 和 `map-fusion`，`--json` 会选择结构化诊断。该选项必须
 作为独立参数出现在选项终止符之前，例如 `scan -- --json` 和
 `dump -- --json` 都不会启用 JSON 模式。首个命令必须是 `scan`、`lint`、
-`dump`、`semantics` 或 `map-fusion`。
+`dump` 或 `map-fusion`。
 
 对于 `scan` 和 `lint`，两个标准流中的每个非空应用输出行都是一个紧凑 JSON
 object。对于 `dump`，成功且未启用 exit-code 模式时，会向标准输出写出一个紧凑
@@ -545,52 +537,15 @@ match-mode 选项。
 未提供输入时输出 JSON usage error 并以状态码 2 退出；`dump --json --help` 仍打印
 普通帮助并以状态码 0 退出。
 
-## `semantics`
-
-```text
-moongrep semantics <project-or-file> [--target <target>] [--json]
-```
-
-该命令通过官方 MoonBit language service 导出源码语义证据，后端由 MoonBit 实现。
-无需独立 reader、编译器源码、私有前端产物或版本专用解码器。`MOON_HOME` 可选择
-同一工具链中的 `moon` 和 `moonc`。
-
-后端先检查项目并捕获输入快照，再通过官方 `moon ide hover` 和 `peek-def` 查询
-类型与定义。查询使用 `--no-check` 和固定 backend，限制并发并在快照内缓存结果。
-类型文本由已有 MoonBit 语法解析器解析；定义位置确定方法、构造器和局部
-绑定身份。alias 和 re-export 必须指向同一个规范身份。无法提供或尚未实例化的
-类型保留为不可用。derive 实现正文不属于手写 CST，因此不会成为规则候选。
-
-成功时输出一个 JSON 索引，包含 `provider: "moon-ide"`、当前编译器版本、源码
-快照、结构化类型、符号和源码事实。位置采用从 1 开始的 Unicode scalar 列，末端
-不包含在范围内。索引使用 IDE 按文件选择的语境，包括测试文件语境，不合并其他
-编译视图。默认 `--semantic-view auto` 直接使用此语境；`ide` 可显式选择它。其他
-view 标签仅适用于包含这些标签的外部索引。
-
-缺少参数使用状态码 2。IDE 不可用、检查失败、响应无效、backend 或输入变化时，
-输出 `scan_input` 错误并使用状态码 6，不发布部分索引。
-`--json` 选择结构化错误诊断；成功的索引始终是 JSON。输出前再次检查源码、配置、
-目录成员和定义源码。该命令不运行 lint 规则，也不修改源码。
-
 ## `map-fusion`
 
 ```text
-moongrep map-fusion --index <semantic-index.json> [--json]
+moongrep map-fusion <path> [--target <backend>] [--json]
 ```
 
-这个 POC 读取 `semantics` 导出的索引，独立核对当前编译器版本，并要求索引内的
-源码仍与磁盘一致。它识别相邻的标准库 `Array::map` 点调用，并检查回调与元素类型。
-
-默认报告复用 `scan` 的 finding 布局、源码上下文、高亮和 `NO_COLOR=1` 行为，
-同时显示候选与跳过数量、类型流及可读的跳过原因。候选仍需检查回调副作用与终止性；
-命令不会修改源码。
-
-`--json` 输出一个完整报告对象，保留事实 ID、类型 ID、符号身份、源码范围和跳过
-原因；致命诊断沿用既有 JSON Lines error 格式。该报告不是 scan finding 记录流。
-
-用法错误使用状态码 2；输入不可读、不兼容或过期使用 `scan_input` 和状态码 6。
-输入失败不会输出部分报告。原来的 `moon run cmd/map-fusion -- ...` 入口也转调
-这套 CLI，诊断与退出码完全一致。
+该命令从源码中筛出连续的 `map` 调用，复用 lint 的 IDE 查询和类型检查。
+终端报告显示源码范围、类型流和跳过候选的原因。`--json` 输出 schema 2 的完整报告。
+修改源码之前仍需确认回调副作用、终止性及求值顺序。
 
 ## 诊断和退出状态
 

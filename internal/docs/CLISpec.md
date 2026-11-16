@@ -36,13 +36,12 @@ behavior.
 
 ### Top-Level Commands
 
-moongrep provides six commands:
+moongrep provides five commands:
 
 - `scan` scans MoonBit source with explicitly selected or default rules.
 - `lint` scans MoonBit source with embedded builtin rules enabled by default.
 - `docs` lists or prints embedded documentation.
-- `semantics` exports a validated compiler semantic index as JSON.
-- `map-fusion` reports Array.map fusion candidates from a semantic index.
+- `map-fusion` reports Array.map fusion candidates in the selected source.
 - `dump` parses one MoonBit implementation item or expression and either
   prints CST debug output, writes a structured dump record, or reports
   validation success through its exit status.
@@ -68,7 +67,6 @@ With no additional arguments, each command behaves as follows:
 - `lint` starts a normal scan with scan root `.` and builtin rules enabled.
 - `docs` prints `docs` help and exits with status 0.
 - `dump` prints `dump` help and exits with status 0.
-- `semantics` prints `semantics` help and exits with status 0.
 - `map-fusion` prints `map-fusion` help and exits with status 0.
 
 Help text is written to standard output.
@@ -96,10 +94,7 @@ Both commands accept:
 - `--guard <yaml>`: attach a YAML guard map to a preceding anonymous pattern.
 - `--exclude <name-or-path>`: skip matching file or directory entries.
 - `--disable <rule-id>`: disable a loaded rule id.
-- `--semantic-index <file>`: load a checked semantic index for semantic YAML rules.
-- `--semantic-view <view>`: select `auto` (default), `ide`, `normal`, `wbtest`,
-  or `bbtest`; requires `--semantic-index`. Official IDE snapshots use `auto`
-  or `ide`. Other labels filter imported snapshots that contain those views.
+- `--target <backend>` selects the MoonBit backend for semantic checks.
 - `--verbose`: write rule-loading and traversal events to standard error.
 - `--json`: write findings as JSON Lines records.
 - `-h` or `--help`: print command help.
@@ -113,30 +108,25 @@ Long options that take values accept both `--option value` and
 
 ### Semantic Analysis
 
-With `--semantic-index`, `lint` also loads the seven semantic builtin YAML rules.
-`scan` runs semantic rules selected through its ordinary rule-file or directory
-options. The same `--disable` mechanism applies. Without an index, ordinary lint
-is unchanged; explicitly loading an enabled semantic rule without an index is a
-usage error (status 2).
+Lint loads all 27 semantic builtins. Scan runs semantic rules selected by its
+rule file or directory. Disabled rules, skipped declarations, and failed YAML
+shapes or regex guards generate no IDE requests. Each remaining rule verifies
+its candidates with the active toolchain in the selected backend. Files in
+the same project share the check and repeated requests share one result.
 
-The index must match the installed compiler and the exact current source text.
-Input incompatibility, stale text, or scanned files absent from the index use
-`scan_input` and status 6. Use a scan scope covered by the index, or exclude other
-modules. The selected view filters facts without modifying the stored index.
-
-Semantic rules parse each relevant source once as a whole file. They preserve
-original CST identity and ranges, honor `#moongrep.skip`, and emit ordinary finding
-records through the existing renderer. Within each file, semantic findings precede
-ordinary structural/taint findings and follow configured rule order.
-Missing or ambiguous facts at a candidate produce a `semantic` warning containing
-`file`, `rule_id`, `range`, and `reason`. Existing streaming behavior still applies;
-earlier records are not withdrawn if a later input fails validation.
+Ordinary scan events stream during traversal. Semantic findings and warnings
+follow in file and rule order after validating the checked inputs. A project
+check, tool, or freshness failure uses `scan_input` (status 6). A candidate
+with insufficient evidence cannot produce a finding. An ambiguous or missing
+type can produce a semantic warning with the rule ID, range and reason.
+When semantic rules are enabled, `--verbose` reports the number of distinct
+IDE queries. Its JSON trace event is `semantic_queries` with an integer `count`.
 
 ### Scan Root
 
 `scan-root` may name a directory or one regular file. Directory targets are
 traversed recursively. A regular target is scanned when its path ends in
-lowercase `.mbt`.
+lowercase `.mbt` or `.mbtx`. Directory scans visit `.mbt` files.
 Directory symlinks are followed. Each resolved directory is entered at most
 once, so symlink cycles and later aliases of an already visited directory are
 skipped. Findings and events keep the traversal path rather than the resolved
@@ -245,8 +235,8 @@ whose path has another suffix completes successfully with no findings.
 
 Directory entries are sorted, then visited with depth-first traversal. The
 scanner completely traverses one entry before visiting the next sibling.
-Findings, warnings, and verbose events use this traversal order as their final
-streaming order.
+Structural and taint events stream in traversal order. Verified semantic events
+follow in the same file order.
 
 Filesystem kind checks follow symbolic links, both at the scan root and below
 it. Rendered paths retain the symbolic-link path. Directory identities are
@@ -442,10 +432,10 @@ while nonmatching context rows use ` | `.
 
 ### Protocol and Mode Detection
 
-For `scan`, `lint`, `dump`, `semantics`, and `map-fusion`, `--json` selects structured diagnostics. The
+For `scan`, `lint`, `dump`, and `map-fusion`, `--json` selects structured diagnostics. The
 option must be a standalone argument before an option terminator. For example,
 `scan -- --json` and `dump -- --json` do not enable JSON mode.
-The initial command must be `scan`, `lint`, `dump`, `semantics`, or `map-fusion`.
+The initial command must be `scan`, `lint`, `dump`, or `map-fusion`.
 
 For `scan` and `lint`, every nonempty application-output line on both standard
 streams is a compact JSON object. For `dump`, a successful non-exit-code dump
@@ -636,66 +626,17 @@ zero or multiple top-level items exit with status 3 before strict validation
 runs. `dump --json` without an input is a JSON usage error with status 2.
 `dump --json --help` still prints ordinary help and exits with status 0.
 
-## `semantics`
-
-```text
-moongrep semantics <project-or-file> [--target <target>] [--json]
-```
-
-This command exports authored semantic evidence through the official MoonBit
-language service. The implementation is MoonBit. No separate reader, compiler
-checkout, private frontend artifact, or version-specific decoder is required.
-Use the active toolchain's `moon` and `moonc` executables; `MOON_HOME`
-selects one toolchain consistently when set.
-
-The backend checks the project, captures its sources and configuration, then
-uses official `moon ide hover` and `peek-def` queries with `--no-check`, a fixed
-backend, and bounded concurrency. Results are cached within that snapshot.
-Hover types are parsed with the existing MoonBit syntax parser. Definition
-locations identify global methods, constructors, and local bindings; aliases
-and re-exports must agree on a single canonical identity. Unsupported or
-uninstantiated type information remains unavailable. Derived implementation
-bodies are not in the authored CST and are never queried as rule candidates.
-
-Success writes one compact JSON index with `provider: "moon-ide"`, the active
-compiler version, checked source snapshots, structured types, symbols, and
-source facts. Indexed positions use one-based Unicode scalar columns with
-exclusive ends. The index represents the IDE's file context, including the
-context chosen for test files; it does not merge alternative compiler views.
-The default `--semantic-view auto` consumes that context. `ide` selects it
-explicitly. Other view labels apply only to imported snapshots that contain them.
-
-Missing arguments use status 2. An unavailable language service, failed check,
-invalid response, changed backend, or changed input uses
-`scan_input` and status 6. No partial index is published. `--json` selects the
-ordinary structured error diagnostics; the successful index is always JSON.
-Source files, configuration, directory membership, and definition sources are
-rechecked before output. The command does not run lint rules or edit source.
-
 ## `map-fusion`
 
 ```text
-moongrep map-fusion --index <semantic-index.json> [--json]
+moongrep map-fusion <path> [--target <backend>] [--json]
 ```
 
-This POC reads the index exported by `semantics`, independently checks the
-installed compiler version, and requires the indexed source files to be current.
-It recognizes adjacent dot calls to the standard library's `Array::map` and
-checks their callback and element types.
-
-The default report uses the same finding layout, source context, highlighting,
-and `NO_COLOR=1` behavior as `scan`. It includes a count of candidates and skipped
-chains, type flow, and readable skip reasons. Candidates require review of
-callback effects and termination; the command does not edit source.
-
-`--json` emits one full report object, preserving fact IDs, type IDs, symbol
-identities, source ranges, and skipped reasons. Fatal diagnostics use the common
-JSON Lines error schema. This report is not a stream of scan finding records.
-
-Usage failures use status 2; unreadable, incompatible, or stale input uses
-`scan_input` and status 6. No partial report is emitted on an input failure.
-The original `moon run cmd/map-fusion -- ...` entrypoint delegates to this same
-CLI, including its diagnostics and exit codes.
+This command selects adjacent `map` calls from source and verifies them
+through the same IDE session as lint. The terminal report shows source
+ranges, type flow, and reasons for skipped chains. The JSON report (schema 2)
+includes each file with syntax candidates, its verified candidates, and skipped
+chains. Review callback effects and termination before changing code.
 
 ## Diagnostics and Exit Status
 
@@ -754,7 +695,6 @@ Status 0 means the requested command completed successfully. It includes:
 
 - help output;
 - successful `docs` listing or lookup;
-- a validated semantic-index export;
 - a successful CST dump or `dump --exit-code` check, including requested
   strict pattern validation;
 - scans with findings;
@@ -809,8 +749,8 @@ directory traversal failures, and MoonBit source-file reading failures. A
 MoonBit source parse failure encountered during scanning remains a warning and
 returns status 0.
 
-Semantic-input failures also use status 6, including IDE failures, compiler
-version mismatches, invalid indices, and source changes since compilation.
+Semantic-input failures also use status 6, including failed project checks, IDE errors,
+or changes to checked inputs during the scan.
 
 ### Exit Status 7
 

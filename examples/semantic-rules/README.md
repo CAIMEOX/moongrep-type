@@ -7,8 +7,7 @@ defines lookalike methods to show why spelling alone is insufficient.
 Run from the MoonGrep repository root with the active MoonBit toolchain:
 
 ```sh
-moon run --target native . -- semantics examples/semantic-rules > /tmp/collection-index.json
-moon run --target native . -- lint examples/semantic-rules --semantic-index /tmp/collection-index.json
+moon run --target native . -- lint examples/semantic-rules
 ```
 
 The default output uses MoonGrep's existing source context and highlighting.
@@ -20,8 +19,7 @@ There are 18 semantic findings in this example, plus any ordinary lint findings.
 
 The seven checks demonstrated here have YAML rule files in
 [`internal/rule/lintrules/moonbitlang`](../../internal/rule/lintrules/moonbitlang).
-`lint --semantic-index` enables these builtins alongside the ordinary rules.
-`lint` without an index keeps its existing syntax-only behavior.
+Ordinary `lint` includes the semantic builtins. It queries the IDE only after a YAML shape and its guards match.
 
 The additional [20 semantic theorems](../semantic-theorems/README.md) use the
 same pipeline and have separate runnable examples.
@@ -42,7 +40,7 @@ semantic:
 Run that rule alone through the normal rule loader:
 
 ```sh
-moon run --target native . -- scan examples/semantic-rules --rule examples/semantic-rules/custom-count.yaml --semantic-index /tmp/collection-index.json
+moon run --target native . -- scan examples/semantic-rules --rule examples/semantic-rules/custom-count.yaml
 ```
 
 YAML controls the rule id, description, structural alternatives, and regex
@@ -54,7 +52,7 @@ Regex guards use the same id/constant capture restrictions as structural rules.
 Disable a loaded builtin with its ordinary qualified rule id:
 
 ```sh
-moon run --target native . -- lint examples/semantic-rules --semantic-index /tmp/collection-index.json --disable moonbitlang/array_map_fusion
+moon run --target native . -- lint examples/semantic-rules --disable moonbitlang/array_map_fusion
 ```
 
 ## Checks and limits
@@ -73,17 +71,8 @@ The checks confirm resolved compiler identities and types. Missing, ambiguous,
 or unresolved evidence yields a semantic warning rather than an asserted match.
 `#moongrep.skip` suppresses these findings just as it suppresses structural rules.
 
-The default context is `--semantic-view auto`. Official IDE indexes contain one
-file context, including the IDE-selected context for test files. They do not
-combine normal, whitebox, and blackbox compilation artifacts. Use `ide` only to
-select that snapshot label explicitly; other view labels require an imported
-snapshot that supplies them.
-
-The scan scope must be covered by the index. Unreadable, incompatible,
-missing-source, or stale snapshots fail with exit code 6. Regenerate after
-changing input. An enabled semantic rule without `--semantic-index` is a usage
-error (exit code 2). Rules preserve source/callback evaluation and never turn
-an eager Array pipeline into a lazy Iter pipeline.
+Use `--target` to check a specific backend. Each candidate uses the IDE context
+for its source file. Failed checks or changes to checked sources use exit code 6.
 
 Run the integration checks:
 
