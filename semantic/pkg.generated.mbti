@@ -9,52 +9,8 @@ import {
 // Values
 
 // Errors
-#derive(@debug.Debug)
-pub(all) suberror SemanticError {
-  Invalid(String)
-  StaleSource(String)
-  MissingSource(String)
-  CompilerMismatch(expected~ : String, found~ : String)
-}
-pub fn SemanticError::output(Self, &Logger) -> Unit
-pub fn SemanticError::to_repr(Self) -> @debug.Repr
-pub fn SemanticError::to_string(Self) -> String
-pub impl Show for SemanticError
 
 // Types and methods
-#derive(@debug.Debug)
-pub(all) struct Fact {
-  id : Int32
-  package_name : String
-  kind : String
-  node_kind : String
-  location : Range?
-  type_id : Int32?
-  symbol_id : String?
-  details : @json.Json
-  raw : @json.Json
-}
-pub fn Fact::to_repr(Self) -> @debug.Repr
-
-pub struct Index {
-  // private fields
-}
-pub fn Index::compiler_version(Self) -> String
-pub fn Index::enclosing_facts(Self, Range) -> Array[Fact]
-pub fn Index::facts(Self) -> ArrayView[Fact]
-pub fn Index::facts_for_file(Self, String) -> Array[Fact]
-pub fn Index::facts_for_range(Self, Range) -> Array[Fact]
-pub fn Index::from_json(@json.Json, compiler_version~ : String) -> Self raise SemanticError
-pub fn Index::parse(String, compiler_version~ : String) -> Self raise SemanticError
-pub fn Index::raw_json(Self) -> @json.Json
-pub fn Index::require_source(Self, String, String) -> Unit raise SemanticError
-pub fn Index::source(Self, String) -> SourceFile?
-pub fn Index::sources(Self) -> ArrayView[SourceFile]
-pub fn Index::symbol(Self, String) -> SymbolInfo?
-pub fn Index::symbols(Self) -> ArrayView[SymbolInfo]
-pub fn Index::type_info(Self, Int32) -> TypeInfo?
-pub fn Index::types(Self) -> ArrayView[TypeInfo]
-
 #derive(Eq, Hash, @debug.Debug, @json.FromJson)
 pub(all) struct Position {
   line : Int32
@@ -81,13 +37,6 @@ pub fn Range::not_equal(Self, Self) -> Bool
 pub fn Range::to_repr(Self) -> @debug.Repr
 
 #derive(@debug.Debug)
-pub(all) struct SourceFile {
-  path : String
-  text : String
-}
-pub fn SourceFile::to_repr(Self) -> @debug.Repr
-
-#derive(@debug.Debug)
 pub(all) struct SymbolInfo {
   id : String
   kind : String
@@ -96,14 +45,6 @@ pub(all) struct SymbolInfo {
   raw : @json.Json
 }
 pub fn SymbolInfo::to_repr(Self) -> @debug.Repr
-
-#derive(@debug.Debug)
-pub(all) struct TypeInfo {
-  id : Int32
-  kind : String
-  raw : @json.Json
-}
-pub fn TypeInfo::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
