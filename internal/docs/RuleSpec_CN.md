@@ -113,6 +113,8 @@ semantic:
 另有 9 条标准库惯用法和 16 条手写实现识别规则。将规则 ID 的下划线换成连字符
 即可得到 YAML 的 check 名称，例如 `match-result-bind`。各规则的匹配范围、
 语义前提和运行示例见[标准库规则清单](../../examples/stdlib-patterns/README.md)。
+四个语法迁移检查分别为 `loop-tuple-unpack`、`repeated-classifier`、`iterator-literal`
+和 `conditional-array-spread`。适用范围和命令见[语法规则](../../examples/syntax-adoption/RULES.md)。
 
 patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
 YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、

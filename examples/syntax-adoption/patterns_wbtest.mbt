@@ -166,3 +166,20 @@ test "a nested prefix pattern checks the constructor and the first character" {
   let branch : SyntaxTree = Branch
   assert_false(branch is Leaf([';', ..]))
 }
+
+///|
+test "verified scalar alternatives keep byte and integer boundaries" {
+  for n in 0..<256 {
+    let b = n.to_byte()
+    assert_eq(line_break(b), b is (b'\n' | b'\r'))
+  }
+  for code in [-2, -1, 0, 1, 2, 3, 4] {
+    assert_eq(small_code(code), code is (-1 | 0 | 2 | 3))
+  }
+  for n in [0UL, 1UL, 0xffff_ffff_ffff_fffeUL, 0xffff_ffff_ffff_ffffUL] {
+    assert_eq(edge_numbers(n), n is (0UL | 18446744073709551615UL))
+  }
+  for word in ["", "http", "HTTP", "https", "https:"] {
+    assert_eq(protocol(word), word is ("http" | "https"))
+  }
+}

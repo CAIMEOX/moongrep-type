@@ -108,7 +108,7 @@ Long options that take values accept both `--option value` and
 
 ### Semantic Analysis
 
-Lint loads all 52 semantic builtins. Scan runs semantic rules selected by its
+Lint loads all 56 semantic builtins. Scan runs semantic rules selected by its
 rule file or directory. Disabled rules, skipped declarations, and failed YAML
 shapes or regex guards generate no IDE requests. Each remaining rule verifies
 its candidates with the active toolchain in the selected backend. Files in

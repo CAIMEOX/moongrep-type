@@ -95,4 +95,5 @@ callback escape, wrapper identity, reserved capacity, queued work and partial re
 
 The [MoonBit syntax adoption study](../syntax-adoption/README.md) compares
 17 further Mooncakes releases with core PRs, including source locations,
-replay results and three structural survey queries.
+replay results and three structural survey queries. Four new checks are included
+in the [builtin syntax-adoption rules](../syntax-adoption/RULES.md).

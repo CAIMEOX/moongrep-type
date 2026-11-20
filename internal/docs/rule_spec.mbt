@@ -149,7 +149,10 @@ let _embed_rulespec_md : String =
   #|The [standard-library catalogue](../../examples/stdlib-patterns/README.md) adds
   #|9 idioms and 16 handwritten implementations. Their YAML check names use the
   #|rule ID with underscores replaced by hyphens (for example, `match-result-bind`).
-  #|All these checks use the same YAML schema and verify their semantic conditions.
+  #|The [syntax-adoption rules](../../examples/syntax-adoption/RULES.md) add
+  #|`loop-tuple-unpack`, `repeated-classifier`, `iterator-literal` and
+  #|`conditional-array-spread`. All these checks use the same YAML schema and verify
+  #|their semantic conditions.
   #|
   #|`patterns` is a nonempty array of ordinary `shape` / `guard` objects. A structural
   #|match and all regex guards must succeed before the selected check runs. Semantic
