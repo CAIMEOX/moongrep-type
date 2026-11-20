@@ -1,0 +1,9 @@
+id: map_get_contains
+description: |
+  Use map.contains(key) to test key presence, or !map.contains(key) to test absence.
+semantic:
+  check: map-get-contains
+  patterns:
+    - shape: "$(source:exp).get($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).get($(arg:exp)).is_some()"
+    - shape: "$(source:exp).get($(arg:exp)).is_none()"

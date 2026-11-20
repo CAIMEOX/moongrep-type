@@ -1,0 +1,9 @@
+id: string_find_contains
+description: |
+  Use text.contains(needle) for a successful substring search, or !text.contains(needle) for absence.
+semantic:
+  check: string-find-contains
+  patterns:
+    - shape: "$(source:exp).find($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).find($(arg:exp)).is_some()"
+    - shape: "$(source:exp).find($(arg:exp)).is_none()"

@@ -1,0 +1,7 @@
+id: map_get_default
+description: |
+  Use map.get_or_default(key, fallback) for a lookup with a fixed fallback value.
+semantic:
+  check: map-get-default
+  patterns:
+    - shape: "$(map:exp).get($(key:exp)).unwrap_or($(fallback:exp))"

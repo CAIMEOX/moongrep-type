@@ -236,3 +236,57 @@ dev_build(
   input: "cstyle_backward_array_iteration.yaml",
   output: "cstyle_backward_array_iteration.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "collection_is_empty.yaml",
+  output: "collection_is_empty.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "string_find_contains.yaml",
+  output: "string_find_contains.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "string_prefix_presence.yaml",
+  output: "string_prefix_presence.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "string_suffix_presence.yaml",
+  output: "string_suffix_presence.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "map_get_contains.yaml",
+  output: "map_get_contains.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "array_search_contains.yaml",
+  output: "array_search_contains.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "array_search_by_any.yaml",
+  output: "array_search_by_any.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "iter_drop_next.yaml",
+  output: "iter_drop_next.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "map_get_default.yaml",
+  output: "map_get_default.mbt",
+)

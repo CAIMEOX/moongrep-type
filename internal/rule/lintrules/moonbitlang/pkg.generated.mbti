@@ -6,6 +6,10 @@ pub let array_filter_count_yaml : String
 
 pub let array_map_fusion_yaml : String
 
+pub let array_search_by_any_yaml : String
+
+pub let array_search_contains_yaml : String
+
 pub let avoid_collect_for_count_yaml : String
 
 pub let boolean_if_yaml : String
@@ -13,6 +17,8 @@ pub let boolean_if_yaml : String
 pub let boolean_match_yaml : String
 
 pub let catch_all_yaml : String
+
+pub let collection_is_empty_yaml : String
 
 pub let consumed_iterator_yaml : String
 
@@ -30,6 +36,8 @@ pub let inspect_boolean_yaml : String
 
 pub let inspect_number_yaml : String
 
+pub let iter_drop_next_yaml : String
+
 pub let iter_filter_count_yaml : String
 
 pub let iter_filter_next_yaml : String
@@ -37,6 +45,10 @@ pub let iter_filter_next_yaml : String
 pub let iter_find_first_exists_yaml : String
 
 pub let iter_map_flatten_yaml : String
+
+pub let map_get_contains_yaml : String
+
+pub let map_get_default_yaml : String
 
 pub let match_option_early_exit_yaml : String
 
@@ -81,6 +93,12 @@ pub let result_unwrap_err_yaml : String
 pub let result_unwrap_ok_yaml : String
 
 pub let simplifiable_assignment_yaml : String
+
+pub let string_find_contains_yaml : String
+
+pub let string_prefix_presence_yaml : String
+
+pub let string_suffix_presence_yaml : String
 
 pub let unnecessary_else_yaml : String
 

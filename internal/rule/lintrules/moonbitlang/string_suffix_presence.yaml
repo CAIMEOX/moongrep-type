@@ -1,0 +1,9 @@
+id: string_suffix_presence
+description: |
+  Use text.has_suffix(suffix) when only the presence of a suffix matters. Negate the result for None.
+semantic:
+  check: string-suffix-presence
+  patterns:
+    - shape: "$(source:exp).strip_suffix($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).strip_suffix($(arg:exp)).is_some()"
+    - shape: "$(source:exp).strip_suffix($(arg:exp)).is_none()"

@@ -1,0 +1,9 @@
+id: array_search_contains
+description: |
+  Use contains(value) when only the presence of an element matters. Negate the result for None.
+semantic:
+  check: array-search-contains
+  patterns:
+    - shape: "$(source:exp).search($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).search($(arg:exp)).is_some()"
+    - shape: "$(source:exp).search($(arg:exp)).is_none()"

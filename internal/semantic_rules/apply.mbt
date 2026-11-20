@@ -17,6 +17,7 @@ priv struct Match {
   check : @rule_model.SemanticCheck
   rule_id : String
   description : String
+  enclosing_method : String?
   pattern_index : Int32
   loc : @basic.Location
 }
@@ -39,16 +40,19 @@ pub fn Candidates::select(
   rules : ArrayView[@rule_model.CompiledRule],
 ) -> Candidates {
   let matches : Array[Match] = []
-  let nodes : Array[@cst.ExprMatchCandidate] = []
+  let nodes : Array[(@cst.ExprMatchCandidate, String?)] = []
   for root in roots {
+    let enclosing_method = @cst.raw_child(root, "method").bind(
+      @cst.normalized_name,
+    )
     @cst.visit_expr_match_candidate_roots(root, candidate => {
-      nodes.push(candidate)
+      nodes.push((candidate, enclosing_method))
       NodeVisitContinue
     })
   }
   for rule in rules {
     guard rule.definition is Semantic(definition) else { continue }
-    for candidate in nodes {
+    for (candidate, enclosing_method) in nodes {
       if candidate is Sequence(_) && !(definition.check is ArrayComprehension) {
         continue
       }
@@ -62,6 +66,7 @@ pub fn Candidates::select(
           check: definition.check,
           rule_id: rule.rule_id,
           description: rule.description,
+          enclosing_method,
           pattern_index,
           loc: matched.loc,
         })
@@ -126,7 +131,14 @@ priv enum Outcome {
 async fn verify_match(context : CheckContext, hit : Match) -> Outcome {
   try {
     match evaluate_semantic_check(context, hit.check, hit.candidate) {
-      Some(loc) => Finding(loc)
+      Some(loc) => {
+        if hit.check is Stdlib(check) &&
+          hit.enclosing_method == Some(check.suggested_method()) &&
+          (context.package_name)().has_prefix("moonbitlang/core/builtin@") {
+          return Rejected
+        }
+        Finding(loc)
+      }
       None => Rejected
     }
   } catch {
@@ -218,6 +230,7 @@ async fn evaluate_semantic_check(
     _ => {
       guard candidate is Direct(node) else { return None }
       match check {
+        Stdlib(check) => check_standard_library(context, node, check)
         FilterMapComprehension => check_filter_map(context, node)
         IterComprehension => check_iter_pipeline(context, node)
         CollectCount => check_collect_count(context, node)

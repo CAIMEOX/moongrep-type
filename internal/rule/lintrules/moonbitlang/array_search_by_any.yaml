@@ -1,0 +1,9 @@
+id: array_search_by_any
+description: |
+  Use any(predicate) when only the presence of a matching element matters. Negate the result for None.
+semantic:
+  check: array-search-by-any
+  patterns:
+    - shape: "$(source:exp).search_by($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).search_by($(arg:exp)).is_some()"
+    - shape: "$(source:exp).search_by($(arg:exp)).is_none()"

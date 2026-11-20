@@ -35,6 +35,15 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("option_unwrap_some", @moonbitlang_rules.option_unwrap_some_yaml),
     ("result_unwrap_ok", @moonbitlang_rules.result_unwrap_ok_yaml),
     ("result_unwrap_err", @moonbitlang_rules.result_unwrap_err_yaml),
+    ("collection_is_empty", @moonbitlang_rules.collection_is_empty_yaml),
+    ("string_find_contains", @moonbitlang_rules.string_find_contains_yaml),
+    ("string_prefix_presence", @moonbitlang_rules.string_prefix_presence_yaml),
+    ("string_suffix_presence", @moonbitlang_rules.string_suffix_presence_yaml),
+    ("map_get_contains", @moonbitlang_rules.map_get_contains_yaml),
+    ("array_search_contains", @moonbitlang_rules.array_search_contains_yaml),
+    ("array_search_by_any", @moonbitlang_rules.array_search_by_any_yaml),
+    ("iter_drop_next", @moonbitlang_rules.iter_drop_next_yaml),
+    ("map_get_default", @moonbitlang_rules.map_get_default_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

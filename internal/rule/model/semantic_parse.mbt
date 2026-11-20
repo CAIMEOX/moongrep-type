@@ -36,7 +36,11 @@ fn expect_semantic_rule(
     Some(String("result-unwrap-ok")) => ResultUnwrapOk
     Some(String("result-unwrap-err")) => ResultUnwrapErr
     Some(String(name)) =>
-      raise invalid_rule(path~, info="unknown semantic.check: \{name}")
+      match stdlib_check(name) {
+        Some(check) => Stdlib(check)
+        None =>
+          raise invalid_rule(path~, info="unknown semantic.check: \{name}")
+      }
     _ =>
       raise invalid_rule(
         path~,

@@ -1,0 +1,12 @@
+id: collection_is_empty
+description: |
+  Use is_empty() for a zero length or !is_empty() for a nonempty collection.
+semantic:
+  check: collection-is-empty
+  patterns:
+    - shape: "$(source:exp).length() == 0"
+    - shape: "0 == $(source:exp).length()"
+    - shape: "$(source:exp).length() != 0"
+    - shape: "0 != $(source:exp).length()"
+    - shape: "$(source:exp).length() > 0"
+    - shape: "0 < $(source:exp).length()"

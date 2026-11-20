@@ -134,6 +134,7 @@ pub(all) struct RulePrefilter {
 }
 
 pub(all) enum SemanticCheck {
+  Stdlib(StdlibCheck)
   ArrayComprehension
   FilterMapComprehension
   IterComprehension
@@ -167,6 +168,19 @@ pub(all) struct SemanticRuleSpec {
   check : SemanticCheck
   patterns : Array[RulePatternSpec]
 }
+
+pub(all) enum StdlibCheck {
+  CollectionIsEmpty
+  StringFindContains
+  StringStripPrefixTest
+  StringStripSuffixTest
+  MapGetContains
+  ArraySearchContains
+  ArraySearchByAny
+  IterDropNext
+  MapGetDefault
+}
+pub fn StdlibCheck::suggested_method(Self) -> String
 
 pub(all) struct StructuralPatternGroupSpec {
   patterns : Array[StructuralPatternSpec]

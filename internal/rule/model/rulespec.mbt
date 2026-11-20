@@ -144,6 +144,7 @@ pub(all) enum RuleDefinitionSpec {
 /// Versioned, built-in semantic checks. YAML selects the check and narrows its
 /// candidates with ordinary structural patterns and regex guards.
 pub(all) enum SemanticCheck {
+  Stdlib(StdlibCheck)
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

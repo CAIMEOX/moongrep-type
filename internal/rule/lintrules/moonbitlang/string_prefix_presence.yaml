@@ -1,0 +1,9 @@
+id: string_prefix_presence
+description: |
+  Use text.has_prefix(prefix) when only the presence of a prefix matters. Negate the result for None.
+semantic:
+  check: string-prefix-presence
+  patterns:
+    - shape: "$(source:exp).strip_prefix($(arg:exp)) is $(presence:pat)"
+    - shape: "$(source:exp).strip_prefix($(arg:exp)).is_some()"
+    - shape: "$(source:exp).strip_prefix($(arg:exp)).is_none()"

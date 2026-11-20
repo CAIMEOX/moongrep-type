@@ -92,8 +92,8 @@ fn nominal_path(name : @syntax.LongIdent, source : InputSource) -> Json? {
   if ["Option", "Result", "FixedArray"].contains(name) {
     Some({ "kind": "builtin", "name": name })
   } else if [
-      "Array", "ArrayView", "ReadOnlyArray", "Iter", "Iter2", "StringView", "BytesView",
-      "Ref", "Eq", "Compare", "Hash", "Show", "Default",
+      "Array", "ArrayView", "ReadOnlyArray", "Map", "Iter", "Iter2", "StringView",
+      "BytesView", "Ref", "Eq", "Compare", "Hash", "Show", "Default",
     ].contains(name) {
     Some({
       "kind": "named",

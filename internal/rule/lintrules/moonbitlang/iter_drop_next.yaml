@@ -1,0 +1,7 @@
+id: iter_drop_next
+description: |
+  Use iter.nth(n) to consume through a known nonnegative position and return that element.
+semantic:
+  check: iter-drop-next
+  patterns:
+    - shape: "$(iter:exp).drop($(n:const)).next()"
