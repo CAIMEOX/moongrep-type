@@ -134,6 +134,10 @@ pub(all) struct RulePrefilter {
 }
 
 pub(all) enum SemanticCheck {
+  BuilderStreamInterpolation
+  SliceToEnd
+  DirectViewIteration
+  IterNextLoop
   Stdlib(StdlibCheck)
   LoopTupleUnpack
   RepeatedClassifier

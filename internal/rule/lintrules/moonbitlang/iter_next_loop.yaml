@@ -1,0 +1,10 @@
+id: iter_next_loop
+description: |
+  Iterate with for x in it, keeping the original body, early exits and nobreak result.
+semantic:
+  check: iter-next-loop
+  patterns:
+    - shape: "while $(it:id).next() is Some($(item:pat)) { $$$steps; $(last:exp) }"
+    - shape: "while $(it:id).next() is Some($(item:pat)) { $$$steps; $(last:exp) } nobreak { $(done:exp) }"
+    - shape: "while $(it:id).next() is Option::Some($(item:pat)) { $$$steps; $(last:exp) }"
+    - shape: "while $(it:id).next() is Option::Some($(item:pat)) { $$$steps; $(last:exp) } nobreak { $(done:exp) }"

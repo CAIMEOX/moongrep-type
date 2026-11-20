@@ -8,6 +8,10 @@ fn expect_semantic_rule(
   }
   ensure_allowed_keys(path, "semantic", body, ["check", "patterns"])
   let check = match body.get("check") {
+    Some(String("builder-stream-interpolation")) => BuilderStreamInterpolation
+    Some(String("slice-to-end")) => SliceToEnd
+    Some(String("direct-view-iteration")) => DirectViewIteration
+    Some(String("iter-next-loop")) => IterNextLoop
     Some(String("loop-tuple-unpack")) => LoopTupleUnpack
     Some(String("repeated-classifier")) => RepeatedClassifier
     Some(String("iterator-literal")) => IteratorLiteral

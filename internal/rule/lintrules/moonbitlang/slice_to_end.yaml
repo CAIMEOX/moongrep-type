@@ -1,0 +1,8 @@
+id: slice_to_end
+description: |
+  Omit the explicit length at the end of this slice, keeping its original start.
+semantic:
+  check: slice-to-end
+  patterns:
+    - shape: "$(value:exp)[$(start:exp):$(value:exp).length()]"
+    - shape: "$(value:exp)[:$(value:exp).length()]"

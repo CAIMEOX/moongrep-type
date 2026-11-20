@@ -1,0 +1,8 @@
+id: direct_view_iteration
+description: |
+  Use the string or bytes value directly as the input to this single-element for-in loop.
+semantic:
+  check: direct-view-iteration
+  patterns:
+    - shape: "for $(item:pat) in $(value:exp).iter() { $$$steps; $(last:exp) }"
+    - shape: "for $(item:pat) in $(value:exp).iter() { $$$steps; $(last:exp) } nobreak { $(done:exp) }"

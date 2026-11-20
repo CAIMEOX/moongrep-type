@@ -262,6 +262,10 @@ async fn evaluate_semantic_check(
       guard candidate is Direct(node) else { return None }
       match check {
         Stdlib(check) => check_standard_library(context, node, check)
+        SliceToEnd => check_slice_to_end(context, node)
+        BuilderStreamInterpolation => check_builder_stream(context, node)
+        IterNextLoop => check_iter_next_loop(context, node)
+        DirectViewIteration => check_direct_view_iteration(context, node)
         LoopTupleUnpack => check_loop_tuple_unpack(context, node)
         RepeatedClassifier => check_repeated_classifier(context, node)
         IteratorLiteral => check_iterator_literal(context, node)

@@ -71,6 +71,12 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
       "conditional_array_spread", @moonbitlang_rules.conditional_array_spread_yaml,
     ),
     ("float_finiteness", @moonbitlang_rules.float_finiteness_yaml),
+    ("iter_next_loop", @moonbitlang_rules.iter_next_loop_yaml),
+    ("direct_view_iteration", @moonbitlang_rules.direct_view_iteration_yaml),
+    ("slice_to_end", @moonbitlang_rules.slice_to_end_yaml),
+    (
+      "builder_stream_interpolation", @moonbitlang_rules.builder_stream_interpolation_yaml,
+    ),
     ("integer_min", @moonbitlang_rules.integer_min_yaml),
     ("integer_max", @moonbitlang_rules.integer_max_yaml),
   ]

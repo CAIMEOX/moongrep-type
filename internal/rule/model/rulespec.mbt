@@ -144,6 +144,10 @@ pub(all) enum RuleDefinitionSpec {
 /// Versioned, built-in semantic checks. YAML selects the check and narrows its
 /// candidates with ordinary structural patterns and regex guards.
 pub(all) enum SemanticCheck {
+  BuilderStreamInterpolation
+  SliceToEnd
+  DirectViewIteration
+  IterNextLoop
   Stdlib(StdlibCheck)
   LoopTupleUnpack
   RepeatedClassifier

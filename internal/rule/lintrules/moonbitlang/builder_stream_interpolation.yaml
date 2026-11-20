@@ -1,0 +1,7 @@
+id: builder_stream_interpolation
+description: |
+  Write this template directly to the StringBuilder with <+ instead of building an intermediate string.
+semantic:
+  check: builder-stream-interpolation
+  patterns:
+    - shape: "$(buf:id).write_string($(text:exp))"

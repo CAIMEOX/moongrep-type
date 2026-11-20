@@ -16,6 +16,8 @@ pub let boolean_if_yaml : String
 
 pub let boolean_match_yaml : String
 
+pub let builder_stream_interpolation_yaml : String
+
 pub let catch_all_yaml : String
 
 pub let char_ascii_digit_yaml : String
@@ -38,6 +40,8 @@ pub let cstyle_forward_array_iteration_yaml : String
 
 pub let cstyle_forward_simple_forloop_yaml : String
 
+pub let direct_view_iteration_yaml : String
+
 pub let discarded_array_map_yaml : String
 
 pub let float_finiteness_yaml : String
@@ -59,6 +63,8 @@ pub let iter_filter_next_yaml : String
 pub let iter_find_first_exists_yaml : String
 
 pub let iter_map_flatten_yaml : String
+
+pub let iter_next_loop_yaml : String
 
 pub let iterator_literal_yaml : String
 
@@ -139,6 +145,8 @@ pub let result_unwrap_err_yaml : String
 pub let result_unwrap_ok_yaml : String
 
 pub let simplifiable_assignment_yaml : String
+
+pub let slice_to_end_yaml : String
 
 pub let string_find_contains_yaml : String
 

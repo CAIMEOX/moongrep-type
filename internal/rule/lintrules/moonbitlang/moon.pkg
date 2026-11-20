@@ -409,6 +409,26 @@ dev_build(
   output: "float_finiteness.mbt",
 )
 
+dev_build(
+  rule: "embed",
+  input: "iter_next_loop.yaml",
+  output: "iter_next_loop.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "direct_view_iteration.yaml",
+  output: "direct_view_iteration.mbt",
+)
+
+dev_build(rule: "embed", input: "slice_to_end.yaml", output: "slice_to_end.mbt")
+
+dev_build(
+  rule: "embed",
+  input: "builder_stream_interpolation.yaml",
+  output: "builder_stream_interpolation.mbt",
+)
+
 dev_build(rule: "embed", input: "integer_min.yaml", output: "integer_min.mbt")
 
 dev_build(rule: "embed", input: "integer_max.yaml", output: "integer_max.mbt")
