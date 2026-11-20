@@ -91,3 +91,40 @@ pub fn computed_items(xs : Array[Int32], f : (Int32) -> Int32) -> Iter[Int32] {
 pub fn spread_items(xs : Array[Int32]) -> Iter[Int32] {
   [..xs].iter()
 }
+
+///|
+pub fn observe_room(flag : Bool) -> Int32 {
+  let items = []
+  if flag {
+    items.push(4)
+  }
+  items.push(9)
+  for item in items {
+    ignore(item)
+  }
+  items.capacity()
+}
+
+///|
+pub fn expose_array(inspect_items : (Array[Int32]) -> Bool) -> Unit {
+  let items = []
+  if inspect_items(items) {
+    items.push(4)
+  }
+  items.push(9)
+  for item in items {
+    ignore(item)
+  }
+}
+
+///|
+pub fn reserved_array(flag : Bool) -> Unit {
+  let items : Array[Int32] = Array(capacity=32)
+  if flag {
+    items.push(4)
+  }
+  items.push(9)
+  for item in items {
+    ignore(item)
+  }
+}

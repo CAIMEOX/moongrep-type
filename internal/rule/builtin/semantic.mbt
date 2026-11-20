@@ -67,6 +67,9 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("loop_tuple_unpack", @moonbitlang_rules.loop_tuple_unpack_yaml),
     ("repeated_classifier", @moonbitlang_rules.repeated_classifier_yaml),
     ("iterator_literal", @moonbitlang_rules.iterator_literal_yaml),
+    (
+      "conditional_array_spread", @moonbitlang_rules.conditional_array_spread_yaml,
+    ),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

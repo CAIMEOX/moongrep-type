@@ -1,0 +1,31 @@
+id: conditional_array_spread
+description: |
+  Build the array as [..if condition { [optional] }, required] before the loop.
+  Keep the original type annotation, condition and element order.
+semantic:
+  check: conditional-array-spread
+  patterns:
+    - shape: |
+        let $(out:id) = []
+        if $(condition:exp) { $(out:id).push($(optional:exp)) }
+        $(out:id).push($(required:exp))
+        for $(item:pat) in $(out:id) { $(body:exp) }
+    - shape: |
+        let $(out:id) : $(T:type) = []
+        if $(condition:exp) { $(out:id).push($(optional:exp)) }
+        $(out:id).push($(required:exp))
+        for $(item:pat) in $(out:id) { $(body:exp) }
+    - shape: |
+        let $(out:id) = []
+        if $(condition:exp) { $(out:id).push($(optional:exp)) }
+        $(out:id).push($(required:exp))
+        for $(item:pat) in $(out:id) { $(body:exp) }
+        $$$rest
+        $(last:exp)
+    - shape: |
+        let $(out:id) : $(T:type) = []
+        if $(condition:exp) { $(out:id).push($(optional:exp)) }
+        $(out:id).push($(required:exp))
+        for $(item:pat) in $(out:id) { $(body:exp) }
+        $$$rest
+        $(last:exp)

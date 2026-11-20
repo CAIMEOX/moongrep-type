@@ -53,7 +53,8 @@ pub fn Candidates::select(
   for rule in rules {
     guard rule.definition is Semantic(definition) else { continue }
     for (candidate, enclosing_method) in nodes {
-      if candidate is Sequence(_) && !(definition.check is ArrayComprehension) {
+      if candidate is Sequence(_) &&
+        !(definition.check is (ArrayComprehension | ConditionalArraySpread)) {
         continue
       }
       for pattern_index, pattern in definition.patterns {
@@ -232,6 +233,8 @@ async fn evaluate_semantic_check(
   candidate : @cst.ExprMatchCandidate,
 ) -> @basic.Location? {
   match check {
+    ConditionalArraySpread =>
+      check_conditional_array_spread(context, candidate_items(candidate))
     ArrayComprehension =>
       check_array_builder(context, candidate_items(candidate))
     _ => {
@@ -280,7 +283,7 @@ async fn evaluate_semantic_check(
           ignore(analyze_chain(context, outer, inner))
           Some(node.loc)
         }
-        ArrayComprehension => None
+        ArrayComprehension | ConditionalArraySpread => None
       }
     }
   }

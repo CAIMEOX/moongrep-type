@@ -26,6 +26,8 @@ pub let char_ascii_uppercase_yaml : String
 
 pub let collection_is_empty_yaml : String
 
+pub let conditional_array_spread_yaml : String
+
 pub let consumed_iterator_yaml : String
 
 pub let cstyle_backward_array_iteration_yaml : String

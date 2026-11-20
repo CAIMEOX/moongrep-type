@@ -148,6 +148,7 @@ pub(all) enum SemanticCheck {
   LoopTupleUnpack
   RepeatedClassifier
   IteratorLiteral
+  ConditionalArraySpread
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

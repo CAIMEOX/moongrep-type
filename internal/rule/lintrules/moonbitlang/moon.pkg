@@ -396,3 +396,9 @@ dev_build(
   input: "iterator_literal.yaml",
   output: "iterator_literal.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "conditional_array_spread.yaml",
+  output: "conditional_array_spread.mbt",
+)

@@ -21,6 +21,23 @@ fn positional_args(node : @untyped_cst.CstNode) -> Array[@untyped_cst.CstNode]? 
 }
 
 ///|
+fn ordinary_array_items(
+  node : @untyped_cst.CstNode,
+) -> Array[@untyped_cst.CstNode]? {
+  guard node.kind is Expr_Array &&
+    @cst.raw_child(node, "array_kind") is Some({ kind: ArrayKind_Array, .. }) &&
+    @cst.child(node, "body") is Some(body) else {
+    return None
+  }
+  let items = @cst.items(body)
+  if items.all(item => item.kind is ArrayElement_Regular) {
+    Some(items)
+  } else {
+    None
+  }
+}
+
+///|
 fn dot_call(node : @untyped_cst.CstNode) -> DotCall? {
   guard node.kind is Expr_DotApply &&
     @cst.child(node, "self") is Some(receiver) &&

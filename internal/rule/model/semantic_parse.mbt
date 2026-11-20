@@ -11,6 +11,7 @@ fn expect_semantic_rule(
     Some(String("loop-tuple-unpack")) => LoopTupleUnpack
     Some(String("repeated-classifier")) => RepeatedClassifier
     Some(String("iterator-literal")) => IteratorLiteral
+    Some(String("conditional-array-spread")) => ConditionalArraySpread
     Some(String("array-comprehension")) => ArrayComprehension
     Some(String("filter-map-comprehension")) => FilterMapComprehension
     Some(String("iter-comprehension")) => IterComprehension

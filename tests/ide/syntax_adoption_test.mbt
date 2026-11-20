@@ -78,3 +78,17 @@ async test "iterator literals require core constructors or an immediate ordinary
   )
   assert_eq(counts, Map([(id, 3)]))
 }
+
+///|
+async test "conditional spread needs a private array used only by two pushes and iteration" {
+  let root = @fs.tmpdir(prefix="moongrep-conditional-spread-")
+  defer @fs.rmdir(root, recursive=true)
+  copy_ide_fixture("examples/syntax-adoption", root)
+  let id = "moonbitlang/conditional_array_spread"
+  let counts = run_ide_fixture_rules(
+    [root + "/spreads.mbt", root + "/negative.mbt"],
+    @provider.Session::new(target="wasm"),
+    only=id,
+  )
+  assert_eq(counts, Map([(id, 2)]))
+}

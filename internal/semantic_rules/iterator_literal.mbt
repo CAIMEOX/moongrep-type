@@ -22,11 +22,7 @@ async fn check_iterator_literal(
       guard dot_call(node) is Some(call) &&
         call.name == "iter" &&
         call.args.is_empty() &&
-        call.receiver.kind is Expr_Array &&
-        @cst.raw_child(call.receiver, "array_kind")
-        is Some({ kind: ArrayKind_Array, .. }) &&
-        @cst.child(call.receiver, "body") is Some(items) &&
-        @cst.items(items).all(item => item.kind is ArrayElement_Regular) &&
+        ordinary_array_items(call.receiver) is Some(_) &&
         standard_call(context, call, ["Array"]) is Some([element]) &&
         container_element(context.shape(node), "Iter") == Some(element) else {
         return None
