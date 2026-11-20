@@ -146,6 +146,7 @@ pub(all) enum RuleDefinitionSpec {
 pub(all) enum SemanticCheck {
   Stdlib(StdlibCheck)
   LoopTupleUnpack
+  RepeatedClassifier
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

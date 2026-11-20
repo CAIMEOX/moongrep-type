@@ -32,3 +32,42 @@ pub fn keep_prior_work(
   }
   total
 }
+
+///|
+pub fn consumes_two(read : () -> Int32) -> Bool {
+  read() == 1 || read() == 2
+}
+
+///|
+pub fn different_values(x : Int32, y : Int32) -> Bool {
+  x == 1 || y == 2
+}
+
+///|
+pub fn redundant_range(c : Char) -> Bool {
+  c is ('a'..<='z') || c == 'b'
+}
+
+///|
+pub fn duplicate_spelling(n : Int32) -> Bool {
+  n == 15 || n == 0x0f
+}
+
+///|
+pub fn rebindable(n : Int32) -> Bool {
+  let mut pos = n
+  if pos < 0 {
+    pos = 0
+  }
+  pos == 1 || pos == 3
+}
+
+///|
+pub fn inspect_payload(n : Int32?) -> Bool {
+  n is Some(1) || n is Some(2)
+}
+
+///|
+pub fn float_values(n : Double) -> Bool {
+  n == 0.0 || n == 1.0
+}

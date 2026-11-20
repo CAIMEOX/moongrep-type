@@ -82,6 +82,25 @@ fn declarations(source : InputSource) -> Array[Declaration] {
           }
         }
       }
+      TopImpl(trait_~, method_name~, ..) => {
+        guard nominal_path(trait_.name, source) is Some(trait_path) else {
+          continue
+        }
+        let range = syntax_span(method_name.loc)
+        result.push({
+          range,
+          kind: "global",
+          name: method_name.name,
+          identity: {
+            "kind": "trait_impl",
+            "package": source.package_name,
+            "trait": trait_path,
+            "name": method_name.name,
+            "definition": definition_key({ file: source.path, range, }),
+          },
+          alias_name: None,
+        })
+      }
       TopLetDef(binder~, ..) =>
         result.push({
           range: syntax_span(binder.loc),

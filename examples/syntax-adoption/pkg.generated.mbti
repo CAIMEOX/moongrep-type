@@ -6,13 +6,37 @@ pub fn add_pairs(Array[(Int32, Int32)]) -> Int32
 
 pub fn collect_counts(Map[String, (Bool, Int32)]) -> Int32
 
+pub fn consumes_two(() -> Int32) -> Bool
+
+pub fn different_values(Int32, Int32) -> Bool
+
+pub fn duplicate_spelling(Int32) -> Bool
+
+pub fn edge_numbers(UInt64) -> Bool
+
+pub fn float_values(Double) -> Bool
+
+pub fn inspect_payload(Int32?) -> Bool
+
 pub fn keep_pair(Array[(Int32, Int32)], ((Int32, Int32), Int32) -> Unit) -> Unit
 
 pub fn keep_prior_work(Array[(Int32, Int32)], () -> Unit) -> Int32
 
 pub fn key_shadows_header(Map[Int32, (Int32, Int32)]) -> Int32
 
+pub fn line_break(Byte) -> Bool
+
+pub fn protocol(String) -> Bool
+
+pub fn rebindable(Int32) -> Bool
+
+pub fn redundant_range(Char) -> Bool
+
+pub fn small_code(Int32) -> Bool
+
 pub fn sum_keys(Map[(Int32, Int32), Int32]) -> Int32
+
+pub fn yaml_word(Char) -> Bool
 
 // Errors
 

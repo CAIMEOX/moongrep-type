@@ -1,0 +1,8 @@
+id: repeated_classifier
+description: |
+  Combine the tests on this value into one is-pattern, for example c is ('a' | 'b').
+semantic:
+  check: repeated-classifier
+  patterns:
+    # The verifier checks every leaf of the OR chain before requesting IDE evidence.
+    - shape: '$(left:exp) || $(right:exp)'

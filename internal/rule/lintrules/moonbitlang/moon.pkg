@@ -384,3 +384,9 @@ dev_build(
   input: "loop_tuple_unpack.yaml",
   output: "loop_tuple_unpack.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "repeated_classifier.yaml",
+  output: "repeated_classifier.mbt",
+)

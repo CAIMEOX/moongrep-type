@@ -136,6 +136,7 @@ pub(all) struct RulePrefilter {
 pub(all) enum SemanticCheck {
   Stdlib(StdlibCheck)
   LoopTupleUnpack
+  RepeatedClassifier
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

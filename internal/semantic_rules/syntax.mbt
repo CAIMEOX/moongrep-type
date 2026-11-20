@@ -39,6 +39,11 @@ fn ungroup(node : @untyped_cst.CstNode) -> @untyped_cst.CstNode {
   match node.kind {
     Expr_Group =>
       match @cst.child(node, "body") {
+        Some(body) if body.kind is List_TupleElementList =>
+          match @cst.items(body) {
+            [item] => ungroup(item)
+            _ => node
+          }
         Some(body) => ungroup(body)
         None => node
       }

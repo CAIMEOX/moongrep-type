@@ -182,7 +182,8 @@ pub async fn Candidates::verify(
   let seen : Set[(String, Int32, Int32)] = Set([])
   let covered : Map[String, Array[@basic.Location]] = Map([])
   for i, hit in self.matches {
-    if hit.check is IterComprehension &&
+    let prefer_outer = hit.check is (IterComprehension | RepeatedClassifier)
+    if prefer_outer &&
       covered.get(hit.rule_id) is Some(outer) &&
       outer.any(loc => {
         loc.start.cnum <= hit.loc.start.cnum && loc.end.cnum >= hit.loc.end.cnum
@@ -196,7 +197,7 @@ pub async fn Candidates::verify(
           continue
         }
         seen.add(key)
-        if hit.check is IterComprehension {
+        if prefer_outer {
           if covered.get(hit.rule_id) is Some(locs) {
             locs.push(loc)
           } else {
@@ -238,6 +239,7 @@ async fn evaluate_semantic_check(
       match check {
         Stdlib(check) => check_standard_library(context, node, check)
         LoopTupleUnpack => check_loop_tuple_unpack(context, node)
+        RepeatedClassifier => check_repeated_classifier(context, node)
         FilterMapComprehension => check_filter_map(context, node)
         IterComprehension => check_iter_pipeline(context, node)
         CollectCount => check_collect_count(context, node)

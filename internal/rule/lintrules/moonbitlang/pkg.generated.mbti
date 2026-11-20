@@ -110,6 +110,8 @@ pub let prefer_filter_map_comprehension_yaml : String
 
 pub let prefer_iter_comprehension_yaml : String
 
+pub let repeated_classifier_yaml : String
+
 pub let result_bind_identity_yaml : String
 
 pub let result_bind_map_yaml : String
