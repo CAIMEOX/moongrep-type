@@ -52,6 +52,8 @@ pub let iter_find_first_exists_yaml : String
 
 pub let iter_map_flatten_yaml : String
 
+pub let iterator_literal_yaml : String
+
 pub let loop_all_yaml : String
 
 pub let loop_any_yaml : String

@@ -35,7 +35,7 @@ fn query_anchor(node : @untyped_cst.CstNode) -> @untyped_cst.CstNode {
     Expr_DotApply => @cst.child(node, "field").unwrap_or(node)
     Expr_Function | Expr_Infix | Expr_Unary =>
       @cst.raw_child(node, "op").unwrap_or(node)
-    Expr_Field => @cst.raw_child(node, "field").unwrap_or(node)
+    Expr_Field | Expr_Method => @cst.raw_child(node, "field").unwrap_or(node)
     Expr_Apply => @cst.child(node, "func").map(query_anchor).unwrap_or(node)
     Expr_Constr | Pattern_Constr => {
       let names = @cst.raw_children(node, "name")

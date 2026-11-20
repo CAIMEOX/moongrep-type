@@ -155,3 +155,40 @@ test "optional spread preserves config lookup and path precedence" {
     trace.clear()
   }
 }
+
+///|
+test "changing an ordinary collection comprehension to a lazy iterator defers its reads" {
+  let trace = []
+  let read = (x : Int32) => {
+    trace.push(x)
+    x
+  }
+  let eager = computed_items([1, 2], read)
+  assert_eq(trace, [1, 2])
+  assert_eq(eager.next(), Some(1))
+  trace.clear()
+  let lazy_it = [| for x in [1, 2] => read(x) |]
+  assert_true(trace.is_empty())
+  assert_eq(lazy_it.next(), Some(1))
+  assert_eq(trace, [1])
+}
+
+///|
+test "an ordinary iterator literal can raise during construction" {
+  fn bad() -> Int32 raise {
+    fail("element")
+  }
+  let before = try {
+    let _it = Iter::singleton(bad())
+    false
+  } catch {
+    _ => true
+  }
+  let after = try {
+    let _it = [|bad()|]
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(before && after)
+}

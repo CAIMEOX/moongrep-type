@@ -1,0 +1,20 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moongrep/syntax-adoption-example/lookalike"
+
+import {
+  "moonbitlang/core/builtin",
+}
+
+// Values
+pub fn local_constructors() -> (@builtin.Iter[Int32], @builtin.Iter[Int32])
+
+// Errors
+
+// Types and methods
+pub(all) struct Iter(Int32)
+pub fn Iter::empty() -> @builtin.Iter[Int32]
+pub fn Iter::singleton(Int32) -> @builtin.Iter[Int32]
+
+// Type aliases
+
+// Traits

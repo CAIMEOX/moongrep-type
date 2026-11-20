@@ -147,6 +147,7 @@ pub(all) enum SemanticCheck {
   Stdlib(StdlibCheck)
   LoopTupleUnpack
   RepeatedClassifier
+  IteratorLiteral
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

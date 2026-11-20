@@ -10,6 +10,7 @@ fn expect_semantic_rule(
   let check = match body.get("check") {
     Some(String("loop-tuple-unpack")) => LoopTupleUnpack
     Some(String("repeated-classifier")) => RepeatedClassifier
+    Some(String("iterator-literal")) => IteratorLiteral
     Some(String("array-comprehension")) => ArrayComprehension
     Some(String("filter-map-comprehension")) => FilterMapComprehension
     Some(String("iter-comprehension")) => IterComprehension

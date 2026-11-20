@@ -1,0 +1,10 @@
+id: iterator_literal
+description: |
+  Use an iterator literal such as [||], [|value|], or [|a, b|].
+  Ordinary literal elements are evaluated in order when the iterator is created.
+semantic:
+  check: iterator-literal
+  patterns:
+    - shape: 'Iter::empty()'
+    - shape: 'Iter::singleton($(value:exp))'
+    - shape: '[$$$(items:exp)].iter()'

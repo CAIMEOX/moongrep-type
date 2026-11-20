@@ -60,3 +60,21 @@ async test "a broad user shape cannot turn effectful or redundant tests into sem
   assert_eq(session.query_count(), 0)
   assert_false(@fs.exists(root + "/_build"))
 }
+
+///|
+async test "iterator literals require core constructors or an immediate ordinary Array literal" {
+  let root = @fs.tmpdir(prefix="moongrep-iterator-literal-")
+  defer @fs.rmdir(root, recursive=true)
+  copy_ide_fixture("examples/syntax-adoption", root)
+  let id = "moonbitlang/iterator_literal"
+  let counts = run_ide_fixture_rules(
+    [
+      root + "/iterators.mbt",
+      root + "/negative.mbt",
+      root + "/lookalike/negative.mbt",
+    ],
+    @provider.Session::new(target="wasm"),
+    only=id,
+  )
+  assert_eq(counts, Map([(id, 3)]))
+}

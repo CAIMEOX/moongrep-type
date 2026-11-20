@@ -71,3 +71,23 @@ pub fn inspect_payload(n : Int32?) -> Bool {
 pub fn float_values(n : Double) -> Bool {
   n == 0.0 || n == 1.0
 }
+
+///|
+pub fn from_storage(xs : Array[Int32]) -> Iter[Int32] {
+  xs.iter()
+}
+
+///|
+pub fn slice_items(xs : Array[Int32]) -> Iter[Int32] {
+  xs[1:].iter()
+}
+
+///|
+pub fn computed_items(xs : Array[Int32], f : (Int32) -> Int32) -> Iter[Int32] {
+  [ for x in xs => f(x) ].iter()
+}
+
+///|
+pub fn spread_items(xs : Array[Int32]) -> Iter[Int32] {
+  [..xs].iter()
+}

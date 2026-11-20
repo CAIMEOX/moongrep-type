@@ -390,3 +390,9 @@ dev_build(
   input: "repeated_classifier.yaml",
   output: "repeated_classifier.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "iterator_literal.yaml",
+  output: "iterator_literal.mbt",
+)

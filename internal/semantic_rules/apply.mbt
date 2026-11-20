@@ -240,6 +240,7 @@ async fn evaluate_semantic_check(
         Stdlib(check) => check_standard_library(context, node, check)
         LoopTupleUnpack => check_loop_tuple_unpack(context, node)
         RepeatedClassifier => check_repeated_classifier(context, node)
+        IteratorLiteral => check_iterator_literal(context, node)
         FilterMapComprehension => check_filter_map(context, node)
         IterComprehension => check_iter_pipeline(context, node)
         CollectCount => check_collect_count(context, node)

@@ -6,6 +6,8 @@ pub fn add_pairs(Array[(Int32, Int32)]) -> Int32
 
 pub fn collect_counts(Map[String, (Bool, Int32)]) -> Int32
 
+pub fn computed_items(Array[Int32], (Int32) -> Int32) -> Iter[Int32]
+
 pub fn consumes_two(() -> Int32) -> Bool
 
 pub fn different_values(Int32, Int32) -> Bool
@@ -14,7 +16,11 @@ pub fn duplicate_spelling(Int32) -> Bool
 
 pub fn edge_numbers(UInt64) -> Bool
 
+pub fn empty_numbers() -> Iter[Int32]
+
 pub fn float_values(Double) -> Bool
+
+pub fn from_storage(Array[Int32]) -> Iter[Int32]
 
 pub fn inspect_payload(Int32?) -> Bool
 
@@ -26,15 +32,23 @@ pub fn key_shadows_header(Map[Int32, (Int32, Int32)]) -> Int32
 
 pub fn line_break(Byte) -> Bool
 
+pub fn[T] one(T) -> Iter[T]
+
 pub fn protocol(String) -> Bool
 
 pub fn rebindable(Int32) -> Bool
 
 pub fn redundant_range(Char) -> Bool
 
+pub fn slice_items(Array[Int32]) -> Iter[Int32]
+
 pub fn small_code(Int32) -> Bool
 
+pub fn spread_items(Array[Int32]) -> Iter[Int32]
+
 pub fn sum_keys(Map[(Int32, Int32), Int32]) -> Int32
+
+pub fn two_reads(() -> Int32 raise?) -> Iter[Int32] raise?
 
 pub fn yaml_word(Char) -> Bool
 
