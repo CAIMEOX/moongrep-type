@@ -91,7 +91,7 @@ async fn run_ide_fixture_rules(
 
 ///|
 #cfg(target="native")
-async test "official IDE preserves seven collection checks and all eighteen findings" {
+async test "official IDE preserves the collection findings and recognizes the nested Option.map" {
   let root = @fs.tmpdir(prefix="moongrep-ide-collections-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/semantic-rules", root)
@@ -106,10 +106,11 @@ async test "official IDE preserves seven collection checks and all eighteen find
       ("discarded_array_map", 1),
       ("consumed_iterator", 2),
       ("array_map_fusion", 1),
+      ("match_option_map", 1),
     ] {
     assert_eq(counts.get("moonbitlang/" + name), Some(expected), msg=name)
   }
-  assert_eq(counts.length(), 7)
+  assert_eq(counts.length(), 8)
 }
 
 ///|
