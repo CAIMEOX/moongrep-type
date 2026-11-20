@@ -56,7 +56,7 @@ async test "short circuit loops and exact ASCII bounds resolve at their original
   )
   for
     (name, n) in [
-      ("loop_any", 1),
+      ("loop_any", 2),
       ("loop_all", 2),
       ("loop_find_first", 1),
       ("char_ascii_digit", 1),
@@ -66,4 +66,16 @@ async test "short circuit loops and exact ASCII bounds resolve at their original
     assert_eq(counts.get("moonbitlang/" + name), Some(n), msg=name)
   }
   assert_eq(counts.length(), 6)
+}
+
+///|
+async test "counterexamples from core and Mooncakes retain their original behavior" {
+  let root = @fs.tmpdir(prefix="moongrep-counterexamples-")
+  defer @fs.rmdir(root, recursive=true)
+  copy_ide_fixture("examples/stdlib-patterns", root)
+  let counts = run_ide_fixture_rules(
+    [root + "/counterexamples.mbt"],
+    @provider.Session::new(target="wasm"),
+  )
+  assert_eq(counts, Map([]))
 }

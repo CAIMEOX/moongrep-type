@@ -14,6 +14,7 @@ priv struct CheckContext {
   binding : async (String) -> @semantic.Range?
   references : async (@untyped_cst.CstNode) -> Array[@semantic.Range]
   binders : Map[@semantic.Range, Bool]
+  local_callbacks : Set[@semantic.Position]
   previous : Map[(Int32, Int32), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
 }
 
@@ -22,6 +23,9 @@ fn CheckContext::inspect_syntax(
   self : CheckContext,
   root : @untyped_cst.CstNode,
 ) -> Unit {
+  for declaration in @cst.toplevel_nodes(root) {
+    self.record_local_callbacks(declaration)
+  }
   let pending = [root]
   while pending.pop() is Some(node) {
     if node.kind is Name_Binder {

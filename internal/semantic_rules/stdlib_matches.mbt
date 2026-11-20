@@ -79,7 +79,7 @@ async fn sync_arity(
       "The IDE did not resolve the function signature at this call.",
     )
   }
-  mode == "sync" && count == arity
+  mode == "sync" && count == arity && context.can_capture_callback(callee)
 }
 
 ///|

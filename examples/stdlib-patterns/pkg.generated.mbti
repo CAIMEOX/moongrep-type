@@ -60,6 +60,14 @@ pub fn increment_other(Int32?, Int32) -> Int32?
 
 pub fn[A, E] keep_success(Result[A, E]) -> A?
 
+pub fn[T, E] local_default(Result[T, E], () -> T) -> T
+
+pub fn[T] local_predicate(Array[T], (T) -> Bool) -> Bool
+
+pub fn[T] local_search(Iter[T], p~ : (T) -> Bool) -> T?
+
+pub fn[A, B] local_transform(A?, (A) -> B) -> B?
+
 pub fn lowercase(Char) -> Bool
 
 pub fn namesake_empty(Other) -> Bool
@@ -97,6 +105,8 @@ pub fn result_default(Result[Int32, String]) -> Int32
 pub fn result_read(Result[Int32, String], () -> Int32 raise?) -> Int32 raise?
 
 pub fn[T] searched(Array[T], (T) -> Bool raise) -> Bool raise
+
+pub fn shadowed_predicate(Array[Int32], (Int32) -> Bool) -> Bool
 
 pub fn substring(String, StringView) -> Bool
 

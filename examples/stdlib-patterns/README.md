@@ -74,6 +74,10 @@ primitive literal. `all` also accepts a `guard`. Core array types and `Iter`
 support `any` and `all`. The element-returning `find_first` requires `Iter`.
 A successful iterator search leaves the next element available to the caller.
 
+Match and loop rules that introduce a closure check the binding of each named
+callback. MoonBit requires a parameter marked `#locals` to stay in its
+declaring function. An ordinary binding with the same spelling can still qualify.
+
 The three ASCII checks accept either order of inclusive comparisons on the
 same stable `Char` binding, or a single inclusive range pattern. Each bound
 is exact. Range tests on UTF-16 code units have a different receiver type.

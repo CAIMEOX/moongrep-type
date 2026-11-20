@@ -54,3 +54,19 @@ pub fn lowercase(c : Char) -> Bool {
 pub fn uppercase(c : Char) -> Bool {
   'Z' >= c && c >= 'A'
 }
+
+///|
+#locals(p)
+pub fn shadowed_predicate(xs : Array[Int32], p : (Int32) -> Bool) -> Bool {
+  if p(0) {
+    return true
+  }
+  let p = (x : Int32) => x > 10
+  for x in xs {
+    if p(x) {
+      break true
+    }
+  } nobreak {
+    false
+  }
+}
