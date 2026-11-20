@@ -19,11 +19,14 @@ async test "authored derives manual impls and implicit conversions have unique e
     #|}
     #|///|
     #|pub impl Eq for Manual with fn equal(self, other) {
-    #|  self.value.map(x => x) == other.value
+    #|  match self.value.map(x => x) {
+    #|    Some(x) => other.value is Some(y) && x == y
+    #|    None => other.value is None
+    #|  }
     #|}
     #|///|
     #|pub fn implicit_debug(value : Int?) -> Unit raise {
-    #|  @debug.debug_inspect(value.map(x => x), content="unused")
+    #|  @debug.debug_inspect(value.map(x => x).unwrap_or(0), content="unused")
     #|}
     #|///|
     #|pub fn manual_array(xs : Array[Int]) -> Array[Int] {

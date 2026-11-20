@@ -4,8 +4,8 @@
 let _embed_option_bind_identity_yaml : String =
   #|id: option_bind_identity
   #|description: |
-  #|  Option.bind that wraps its own payload in Some preserves the optional value.
-  #|  Simplify value.bind(x => Some(x)) to value.
+  #|  Use value in place of value.bind(x => Some(x)). The enclosing operation
+  #|  consumes the Option tag or payload, so allocation identity is unobservable here.
   #|semantic:
   #|  check: option-bind-identity
   #|  patterns:

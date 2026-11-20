@@ -39,3 +39,29 @@ pub fn[T, E] local_default(value : Result[T, E], read : () -> T) -> T {
     Err(_) => read()
   }
 }
+
+///|
+pub fn notify_if_rebuilt(
+  value : Result[Int32, String],
+  notify : (Result[Int32, String]) -> Unit,
+) -> Unit {
+  notify(value.map(x => x))
+}
+
+///|
+pub fn same_optional_box(value : Int64?) -> Bool {
+  physical_equal(value, value.bind(x => Some(x)))
+}
+
+///|
+pub fn export_nested(value : Int32??) -> Int32?? {
+  value.map(x => x)
+}
+
+///|
+pub fn match_whole(value : Result[Int32, String]) -> Bool {
+  match value.bind(x => Ok(x)) {
+    Ok(_) as rebuilt => physical_equal(value, rebuilt)
+    _ => false
+  }
+}

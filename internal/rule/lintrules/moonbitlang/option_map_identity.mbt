@@ -4,8 +4,8 @@
 let _embed_option_map_identity_yaml : String =
   #|id: option_map_identity
   #|description: |
-  #|  Option.map with an identity lambda preserves the same optional value.
-  #|  Simplify value.map(x => x) to value; the lambda must return its own binder.
+  #|  Use value in place of value.map(x => x). The enclosing operation
+  #|  consumes the Option tag or payload, so allocation identity is unobservable here.
   #|semantic:
   #|  check: option-map-identity
   #|  patterns:

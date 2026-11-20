@@ -38,6 +38,8 @@ pub fn error_is_used(Result[Int32, Int32]) -> Int32
 
 pub fn excluded_uppercase(Char) -> Bool
 
+pub fn export_nested(Int32??) -> Int32??
+
 pub fn fallback_reads_mutable(Int32?) -> Int32
 
 pub fn first_indexed_value(Array[Int32], (Int32) -> Bool) -> Int32?
@@ -70,6 +72,8 @@ pub fn[A, B] local_transform(A?, (A) -> B) -> B?
 
 pub fn lowercase(Char) -> Bool
 
+pub fn match_whole(Result[Int32, String]) -> Bool
+
 pub fn namesake_empty(Other) -> Bool
 
 pub fn namesake_find(Other) -> Bool
@@ -81,6 +85,8 @@ pub fn negative_drop(Iter[Int32]) -> Int32?
 pub fn none_as_value(Map[String, Int32?]) -> Bool
 
 pub fn not_empty_test(Array[Int32]) -> Bool
+
+pub fn notify_if_rebuilt(Result[Int32, String], (Result[Int32, String]) -> Unit) -> Unit
 
 pub fn only_positive(Int32?) -> Int32?
 
@@ -103,6 +109,8 @@ pub fn records_before_testing(Array[Int32], (Int32) -> Unit, (Int32) -> Bool) ->
 pub fn result_default(Result[Int32, String]) -> Int32
 
 pub fn result_read(Result[Int32, String], () -> Int32 raise?) -> Int32 raise?
+
+pub fn same_optional_box(Int64?) -> Bool
 
 pub fn[T] searched(Array[T], (T) -> Bool raise) -> Bool raise
 

@@ -119,6 +119,7 @@ async fn Candidates::context(
     references: node => checked.wait().references(node),
     binders: {},
     local_callbacks: Set([]),
+    sum_uses: Map([]),
     previous: {},
   }
   context.inspect_syntax(self.tree)

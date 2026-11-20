@@ -15,6 +15,7 @@ priv struct CheckContext {
   references : async (@untyped_cst.CstNode) -> Array[@semantic.Range]
   binders : Map[@semantic.Range, Bool]
   local_callbacks : Set[@semantic.Position]
+  sum_uses : Map[(Int32, Int32), @untyped_cst.CstNode]
   previous : Map[(Int32, Int32), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
 }
 
@@ -28,6 +29,7 @@ fn CheckContext::inspect_syntax(
   }
   let pending = [root]
   while pending.pop() is Some(node) {
+    self.record_sum_use(node)
     if node.kind is Name_Binder {
       let location = self.range(node)
       if !self.binders.contains(location) {

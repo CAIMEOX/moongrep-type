@@ -22,6 +22,7 @@ async fn check_map_identity(
     call.args is [callback] &&
     unary_lambda_parts(callback) is Some((binder, body)) &&
     body.kind is Expr_Ident &&
+    context.consumes_sum(node, owner) &&
     context.method_is(node, owner, ["map"]) &&
     context.symbol_id(binder) == context.symbol_id(body) else {
     return None
@@ -51,6 +52,7 @@ async fn check_bind_identity(
     body.kind is Expr_Apply &&
     positional_args(body) is Some([payload]) &&
     payload.kind is Expr_Ident &&
+    context.consumes_sum(node, owner) &&
     context.method_is(node, owner, ["bind"]) &&
     context.symbol_id(binder) == context.symbol_id(payload) &&
     context.constructor_is(

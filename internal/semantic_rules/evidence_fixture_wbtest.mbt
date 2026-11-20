@@ -96,6 +96,7 @@ fn fixture_context(
     },
     binders: Map([]),
     local_callbacks: Set([]),
+    sum_uses: Map([]),
     previous: Map([]),
   }
   context.inspect_syntax(tree)

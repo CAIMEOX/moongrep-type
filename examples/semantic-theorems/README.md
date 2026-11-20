@@ -65,6 +65,13 @@ ambiguous facts produce diagnostics instead of definite findings. Method syntax
 must have the expected positional arguments; cascade calls and extra arguments
 do not qualify. All callbacks must be synchronous.
 
+The four map/bind identity rules also check the immediate consumer. They
+accept a tag test, a match on standard constructors without a whole-value
+binder, or a standard payload accessor such as `unwrap_or`. A reconstructed
+`Some`, `Ok` or `Err` can have a different physical identity. Passing it to
+another function, storing it, returning it, or binding the whole variant can
+expose that difference to callers.
+
 The official IDE supplies source-expression types directly. No generated
 conversion nodes are traversed. The backend parses language type syntax and
 keeps generic parameter scopes, errors, and async status. A generic declaration
@@ -113,9 +120,10 @@ variables are insufficient. The callback must contain only the identity body;
 extra statements cannot be discarded. Constructor elimination requires an
 empty unwrap argument list, preserves payload evaluation once, and retains
 references to mutable payloads. None of these identities applies to Array
-copying operations. As in the standard library, allocation failures and results
-of `physical_equal` are outside these laws; ordinary aliasing, iterator state,
-callback effects, exceptions, and termination behavior are not ignored.
+copying operations. The four wrapper identities additionally require the
+consumer check above. The other value laws concern ordinary aliasing, iterator
+state, callback effects, checked errors and termination. They exclude
+allocation failures.
 
 The laws use the installed standard library's Array, Iter, Option, and Result
 operations. Evidence comes from the official IDE protocol, not a compiler-private

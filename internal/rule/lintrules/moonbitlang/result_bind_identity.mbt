@@ -4,8 +4,8 @@
 let _embed_result_bind_identity_yaml : String =
   #|id: result_bind_identity
   #|description: |
-  #|  Result.bind that wraps its own payload in Ok preserves the result.
-  #|  Simplify value.bind(x => Ok(x)) to value, preserving the error type.
+  #|  Use value in place of value.bind(x => Ok(x)). The enclosing operation
+  #|  consumes the Result tag or payload, so allocation identity is unobservable here.
   #|semantic:
   #|  check: result-bind-identity
   #|  patterns:

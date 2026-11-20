@@ -38,8 +38,8 @@ fn identity_theorem_fixture(
     "Ok"
   }
   let expression = match operation {
-    "map" => "value.map(x => x)"
-    "bind" => "value.bind(x => \{ctor_name}(x))"
+    "map" => "value.map(x => x).unwrap()"
+    "bind" => "value.bind(x => \{ctor_name}(x)).unwrap()"
     _ => "\{ctor_name}(value).\{operation}()"
   }
   let text = "fn example(value) { \{expression} }\n"
@@ -118,7 +118,9 @@ fn identity_theorem_fixture(
   ]
   let facts : Array[Json] = []
   let tree = @untyped_cst.parse_structure(text).root()
-  let call_node = identity_test_node(tree, node => node.kind is Expr_DotApply)
+  let call_node = identity_test_node(tree, node => {
+    dot_call(node) is Some(call) && call.name == operation
+  })
   let call = dot_call(call_node).unwrap()
   let add = fn(
     node,
@@ -198,6 +200,22 @@ fn identity_theorem_fixture(
       add(body, "expression", "constructor", 2, None)
     }
   }
+  if !is_unwrap {
+    let observer = identity_test_node(tree, node => {
+      dot_call(node) is Some(call) && call.name == "unwrap"
+    })
+    symbols.push({
+      "id": "observer",
+      "kind": "global",
+      "name": "unwrap",
+      "identity": {
+        "kind": "method",
+        "name": "unwrap",
+        "self_type": { "kind": "builtin", "name": owner },
+      },
+    })
+    add(observer, "expression", "call", 0, Some("observer"))
+  }
   { types, facts, symbols, owner, operation, text, }
 }
 
@@ -210,7 +228,9 @@ async fn IdentityTheoremFixture::matches(self : IdentityTheoremFixture) -> Bool 
     self.symbols,
     self.facts,
   )
-  let node = identity_test_node(tree, node => node.kind is Expr_DotApply)
+  let node = identity_test_node(tree, node => {
+    dot_call(node) is Some(call) && call.name == self.operation
+  })
   let location = match self.operation {
     "map" => check_map_identity(context, node, self.owner)
     "bind" => check_bind_identity(context, node, self.owner)
