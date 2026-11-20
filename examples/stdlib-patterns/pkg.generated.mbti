@@ -1,0 +1,99 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moongrep/stdlib-patterns-example"
+
+// Values
+pub fn bind_position(Array[Int32], Int32) -> Int32
+
+pub fn bumped(Int32?) -> Int32?
+
+pub fn changes_map(Map[String, Int32]) -> Int32
+
+pub fn contains_number(Array[Int32], Int32) -> Bool
+
+pub fn[A, B, E] continue_result(Result[A, E], (A) -> Result[B, E] raise?) -> Result[B, E] raise?
+
+pub fn[A, B, E] convert(Result[A, E], (A) -> B raise?) -> Result[B, E] raise?
+
+pub fn[A, E, F] convert_error(Result[A, E], (E) -> F raise?) -> Result[A, F] raise?
+
+pub fn double_wrapped(Result[Int32?, String]) -> Int32?
+
+pub fn[T] empty_list(Array[T]) -> Bool
+
+pub fn error_from_elsewhere(Result[Int32, String], String) -> Result[Int32, String]
+
+pub fn error_is_used(Result[Int32, Int32]) -> Int32
+
+pub fn fallback_reads_mutable(Int32?) -> Int32
+
+pub fn[T] fourth(Iter[T]) -> T?
+
+pub fn frequency(Map[String, Int32], String) -> Int32
+
+pub fn has_bytes(Bytes) -> Bool
+
+pub fn increment_other(Int32?, Int32) -> Int32?
+
+pub fn[A, E] keep_success(Result[A, E]) -> A?
+
+pub fn namesake_empty(Other) -> Bool
+
+pub fn namesake_find(Other) -> Bool
+
+pub fn namesake_key(Other) -> Bool
+
+pub fn negative_drop(Iter[Int32]) -> Int32?
+
+pub fn none_as_value(Map[String, Int32?]) -> Bool
+
+pub fn not_empty_test(Array[Int32]) -> Bool
+
+pub fn only_positive(Int32?) -> Int32?
+
+pub fn optional_default(Int32?, Int32) -> Int32
+
+pub fn[A, B] optional_lookup(A?, (A) -> B? raise?) -> B? raise?
+
+pub fn optional_read(Int32?, () -> Int32 raise?) -> Int32 raise?
+
+pub fn other_sum(MaybeCount) -> MaybeCount
+
+pub fn prefix(StringView, StringView) -> Bool
+
+pub fn present_key(Map[String, Int32?], String) -> Bool
+
+pub fn result_default(Result[Int32, String]) -> Int32
+
+pub fn result_read(Result[Int32, String], () -> Int32 raise?) -> Int32 raise?
+
+pub fn[T] searched(Array[T], (T) -> Bool raise) -> Bool raise
+
+pub fn substring(String, StringView) -> Bool
+
+pub fn suffix(String, StringView) -> Bool
+
+pub fn tests_index(String) -> Bool
+
+pub fn unknown_drop(Iter[Int32], Int32) -> Int32?
+
+// Errors
+
+// Types and methods
+pub(all) enum MaybeCount {
+  Some(Int32)
+  None
+}
+
+pub(all) struct Other(Int32)
+pub fn Other::find(Self, String) -> Int32?
+pub fn Other::get(Self, String) -> Int32?
+pub fn Other::length(Self) -> Int32
+
+pub(all) struct WordList {
+  words : Array[String]
+}
+pub fn WordList::is_empty(Self) -> Bool
+
+// Type aliases
+
+// Traits

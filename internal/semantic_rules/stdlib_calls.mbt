@@ -250,6 +250,16 @@ async fn check_standard_library(
     | ArraySearchByAny => presence_test(context, node, check)
     IterDropNext => iter_drop_next(context, node)
     MapGetDefault => map_get_default(context, node)
+    MatchOptionMap
+    | MatchOptionBind
+    | MatchOptionUnwrapOr
+    | MatchOptionUnwrapOrElse => standard_match(context, node, check, "Option")
+    MatchResultMap
+    | MatchResultBind
+    | MatchResultUnwrapOr
+    | MatchResultUnwrapOrElse
+    | MatchResultMapErr
+    | MatchResultToOption => standard_match(context, node, check, "Result")
   }
   if matches {
     Some(node.loc)

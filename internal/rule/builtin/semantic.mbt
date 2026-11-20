@@ -44,6 +44,20 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("array_search_by_any", @moonbitlang_rules.array_search_by_any_yaml),
     ("iter_drop_next", @moonbitlang_rules.iter_drop_next_yaml),
     ("map_get_default", @moonbitlang_rules.map_get_default_yaml),
+    ("match_option_map", @moonbitlang_rules.match_option_map_yaml),
+    ("match_option_bind", @moonbitlang_rules.match_option_bind_yaml),
+    ("match_option_unwrap_or", @moonbitlang_rules.match_option_unwrap_or_yaml),
+    (
+      "match_option_unwrap_or_else", @moonbitlang_rules.match_option_unwrap_or_else_yaml,
+    ),
+    ("match_result_map", @moonbitlang_rules.match_result_map_yaml),
+    ("match_result_bind", @moonbitlang_rules.match_result_bind_yaml),
+    ("match_result_unwrap_or", @moonbitlang_rules.match_result_unwrap_or_yaml),
+    (
+      "match_result_unwrap_or_else", @moonbitlang_rules.match_result_unwrap_or_else_yaml,
+    ),
+    ("match_result_map_err", @moonbitlang_rules.match_result_map_err_yaml),
+    ("match_result_to_option", @moonbitlang_rules.match_result_to_option_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

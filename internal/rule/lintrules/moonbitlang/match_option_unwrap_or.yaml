@@ -1,0 +1,26 @@
+id: match_option_unwrap_or
+description: |
+  Use value.unwrap_or(default) for a fixed fallback value.
+semantic:
+  check: match-option-unwrap-or
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Some($(x:id)) => $(x:id)
+          None => $(d:const)
+        }
+    - shape: |
+        match $(src:exp) {
+          None => $(d:const)
+          Some($(x:id)) => $(x:id)
+        }
+    - shape: |
+        match $(src:exp) {
+          Some($(x:id)) => $(x:id)
+          None => $(d:id)
+        }
+    - shape: |
+        match $(src:exp) {
+          None => $(d:id)
+          Some($(x:id)) => $(x:id)
+        }

@@ -1,0 +1,16 @@
+id: match_result_map
+description: |
+  Use value.map(x => body) to transform the Ok payload and preserve the other branch.
+semantic:
+  check: match-result-map
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Ok($(x:id)) => Ok($(body:exp))
+          Err($(err:id)) => Err($(err:id))
+        }
+    - shape: |
+        match $(src:exp) {
+          Err($(err:id)) => Err($(err:id))
+          Ok($(x:id)) => Ok($(body:exp))
+        }

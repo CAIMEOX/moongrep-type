@@ -74,14 +74,7 @@ async fn simple_filter_map_body(
     option_element(context.shape(scrutinee)) is Some(_) else {
     return false
   }
-  let cases : Array[@untyped_cst.CstNode] = []
-  for node in @cst.raw_children(body, "case") {
-    if node.kind is Case_MatchCase {
-      cases.push(node)
-    } else {
-      cases.append(@cst.raw_children(node, "case"))
-    }
-  }
+  let cases = match_cases(body)
   guard cases.length() == 2 else { return false }
   let mut some_body : @untyped_cst.CstNode? = None
   let mut none_body : @untyped_cst.CstNode? = None

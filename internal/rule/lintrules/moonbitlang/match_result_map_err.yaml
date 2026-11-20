@@ -1,0 +1,16 @@
+id: match_result_map_err
+description: |
+  Use value.map_err(e => body) to transform the error and preserve the successful payload.
+semantic:
+  check: match-result-map-err
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Ok($(x:id)) => Ok($(x:id))
+          Err($(err:id)) => Err($(body:exp))
+        }
+    - shape: |
+        match $(src:exp) {
+          Err($(err:id)) => Err($(body:exp))
+          Ok($(x:id)) => Ok($(x:id))
+        }

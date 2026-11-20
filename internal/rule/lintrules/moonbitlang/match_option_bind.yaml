@@ -1,0 +1,16 @@
+id: match_option_bind
+description: |
+  Use value.bind(x => f(x)) when only the Some branch calls a function returning Option.
+semantic:
+  check: match-option-bind
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Some($(x:id)) => $(f:id)($(x:id))
+          None => None
+        }
+    - shape: |
+        match $(src:exp) {
+          None => None
+          Some($(x:id)) => $(f:id)($(x:id))
+        }

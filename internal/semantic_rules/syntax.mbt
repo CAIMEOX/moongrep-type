@@ -127,3 +127,16 @@ fn unary_lambda_parts(
   }
   Some((binder, ungroup(body)))
 }
+
+///|
+fn match_cases(node : @untyped_cst.CstNode) -> Array[@untyped_cst.CstNode] {
+  let cases : Array[@untyped_cst.CstNode] = []
+  for node in @cst.raw_children(node, "case") {
+    if node.kind is Case_MatchCase {
+      cases.push(node)
+    } else {
+      cases.append(@cst.raw_children(node, "case"))
+    }
+  }
+  cases
+}

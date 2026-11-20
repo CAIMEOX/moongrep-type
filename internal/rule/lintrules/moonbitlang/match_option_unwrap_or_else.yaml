@@ -1,0 +1,16 @@
+id: match_option_unwrap_or_else
+description: |
+  Use value.unwrap_or_else(() => fallback()) to evaluate the fallback only when needed.
+semantic:
+  check: match-option-unwrap-or-else
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Some($(x:id)) => $(x:id)
+          None => $(fallback:id)()
+        }
+    - shape: |
+        match $(src:exp) {
+          None => $(fallback:id)()
+          Some($(x:id)) => $(x:id)
+        }

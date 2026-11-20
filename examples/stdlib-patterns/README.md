@@ -28,3 +28,29 @@ The presence checks also accept `is None` (negate the suggested predicate)
 and the legacy Option methods `is_some()` and `is_none()`. A pattern testing
 a payload or binding a value needs more than a presence test. Source methods
 and constructors must resolve to the standard library.
+
+## Handwritten Option and Result operations
+
+Scan `examples/stdlib-patterns/matches.mbt` for these examples. Both case
+orders qualify. The matcher resolves constructors and checks that forwarded
+values refer to the corresponding pattern binder.
+
+| Rule | Match arms | Standard-library expression |
+| --- | --- | --- |
+| `match_option_map` | `Some(x) => Some(f(x))`, `None => None` | `v.map(x => f(x))` |
+| `match_option_bind` | `Some(x) => f(x)`, `None => None` | `v.bind(x => f(x))` |
+| `match_option_unwrap_or` | `Some(x) => x`, `None => d` | `v.unwrap_or(d)` |
+| `match_option_unwrap_or_else` | `Some(x) => x`, `None => read()` | `v.unwrap_or_else(() => read())` |
+| `match_result_map` | `Ok(x) => Ok(f(x))`, `Err(e) => Err(e)` | `r.map(x => f(x))` |
+| `match_result_map_err` | `Ok(x) => Ok(x)`, `Err(e) => Err(f(e))` | `r.map_err(e => f(e))` |
+| `match_result_bind` | `Ok(x) => f(x)`, `Err(e) => Err(e)` | `r.bind(x => f(x))` |
+| `match_result_to_option` | `Ok(x) => Some(x)`, `Err(_) => None` | `r.to_option()` |
+| `match_result_unwrap_or` | `Ok(x) => x`, `Err(_) => d` | `r.unwrap_or(d)` |
+| `match_result_unwrap_or_else` | `Ok(x) => x`, `Err(_) => read()` | `r.unwrap_or_else(() => read())` |
+
+A transform may be a synchronous unary call (including a checked error) or
+primitive arithmetic/comparison with a literal, such as `Some(x + 1)`.
+`bind` requires a callback returning the expected sum type. An eager default
+must be a primitive literal or an immutable local. A nullary fallback call
+stays in a closure and may raise. Guards, complex payload patterns and extra
+statements need individual review.

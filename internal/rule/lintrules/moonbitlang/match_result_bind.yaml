@@ -1,0 +1,16 @@
+id: match_result_bind
+description: |
+  Use value.bind(x => f(x)) when only the Ok branch calls a function returning Result.
+semantic:
+  check: match-result-bind
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Ok($(x:id)) => $(f:id)($(x:id))
+          Err($(err:id)) => Err($(err:id))
+        }
+    - shape: |
+        match $(src:exp) {
+          Err($(err:id)) => Err($(err:id))
+          Ok($(x:id)) => $(f:id)($(x:id))
+        }

@@ -1,0 +1,16 @@
+id: match_result_to_option
+description: |
+  Use value.to_option() to retain the successful payload and discard the error.
+semantic:
+  check: match-result-to-option
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Ok($(x:id)) => Some($(x:id))
+          Err(_) => None
+        }
+    - shape: |
+        match $(src:exp) {
+          Err(_) => None
+          Ok($(x:id)) => Some($(x:id))
+        }

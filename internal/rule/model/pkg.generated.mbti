@@ -179,6 +179,16 @@ pub(all) enum StdlibCheck {
   ArraySearchByAny
   IterDropNext
   MapGetDefault
+  MatchOptionMap
+  MatchOptionBind
+  MatchOptionUnwrapOr
+  MatchOptionUnwrapOrElse
+  MatchResultMap
+  MatchResultBind
+  MatchResultUnwrapOr
+  MatchResultUnwrapOrElse
+  MatchResultMapErr
+  MatchResultToOption
 }
 pub fn StdlibCheck::suggested_method(Self) -> String
 

@@ -50,9 +50,29 @@ pub let map_get_contains_yaml : String
 
 pub let map_get_default_yaml : String
 
+pub let match_option_bind_yaml : String
+
 pub let match_option_early_exit_yaml : String
 
+pub let match_option_map_yaml : String
+
+pub let match_option_unwrap_or_else_yaml : String
+
+pub let match_option_unwrap_or_yaml : String
+
 pub let match_option_yaml : String
+
+pub let match_result_bind_yaml : String
+
+pub let match_result_map_err_yaml : String
+
+pub let match_result_map_yaml : String
+
+pub let match_result_to_option_yaml : String
+
+pub let match_result_unwrap_or_else_yaml : String
+
+pub let match_result_unwrap_or_yaml : String
 
 pub let match_single_case_yaml : String
 

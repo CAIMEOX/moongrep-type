@@ -290,3 +290,63 @@ dev_build(
   input: "map_get_default.yaml",
   output: "map_get_default.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "match_option_map.yaml",
+  output: "match_option_map.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_option_bind.yaml",
+  output: "match_option_bind.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_option_unwrap_or.yaml",
+  output: "match_option_unwrap_or.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_option_unwrap_or_else.yaml",
+  output: "match_option_unwrap_or_else.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_map.yaml",
+  output: "match_result_map.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_bind.yaml",
+  output: "match_result_bind.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_unwrap_or.yaml",
+  output: "match_result_unwrap_or.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_unwrap_or_else.yaml",
+  output: "match_result_unwrap_or_else.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_map_err.yaml",
+  output: "match_result_map_err.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "match_result_to_option.yaml",
+  output: "match_result_to_option.mbt",
+)

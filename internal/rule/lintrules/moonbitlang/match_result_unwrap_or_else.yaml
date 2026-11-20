@@ -1,0 +1,16 @@
+id: match_result_unwrap_or_else
+description: |
+  Use value.unwrap_or_else(() => fallback()) to evaluate the fallback only when needed.
+semantic:
+  check: match-result-unwrap-or-else
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Ok($(x:id)) => $(x:id)
+          Err(_) => $(fallback:id)()
+        }
+    - shape: |
+        match $(src:exp) {
+          Err(_) => $(fallback:id)()
+          Ok($(x:id)) => $(x:id)
+        }

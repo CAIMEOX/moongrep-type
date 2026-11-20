@@ -1,0 +1,16 @@
+id: match_option_map
+description: |
+  Use value.map(x => body) to transform the Some payload and preserve the other branch.
+semantic:
+  check: match-option-map
+  patterns:
+    - shape: |
+        match $(src:exp) {
+          Some($(x:id)) => Some($(body:exp))
+          None => None
+        }
+    - shape: |
+        match $(src:exp) {
+          None => None
+          Some($(x:id)) => Some($(body:exp))
+        }

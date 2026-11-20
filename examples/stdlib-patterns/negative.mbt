@@ -76,3 +76,73 @@ pub fn changes_map(m : Map[String, Int32]) -> Int32 {
 pub fn none_as_value(m : Map[String, Int32?]) -> Bool {
   m.get("x") is Some(None)
 }
+
+///|
+pub(all) enum MaybeCount {
+  Some(Int32)
+  None
+}
+
+///|
+pub fn other_sum(n : MaybeCount) -> MaybeCount {
+  match n {
+    Some(x) => Some(x + 1)
+    None => None
+  }
+}
+
+///|
+pub fn increment_other(n : Int32?, y : Int32) -> Int32? {
+  match n {
+    Some(_) => Some(y + 1)
+    None => None
+  }
+}
+
+///|
+pub fn error_from_elsewhere(
+  r : Result[Int32, String],
+  msg : String,
+) -> Result[Int32, String] {
+  match r {
+    Ok(x) => Ok(x + 1)
+    Err(_) => Err(msg)
+  }
+}
+
+///|
+pub fn error_is_used(r : Result[Int32, Int32]) -> Int32 {
+  match r {
+    Ok(x) => x
+    Err(e) => e + 3
+  }
+}
+
+///|
+pub fn only_positive(n : Int32?) -> Int32? {
+  match n {
+    Some(x) if x > 0 => Some(x + 1)
+    _ => None
+  }
+}
+
+///|
+pub fn fallback_reads_mutable(n : Int32?) -> Int32 {
+  let mut fallback = 0
+  match
+    ({
+      fallback += 1
+      n
+    }) {
+    Some(x) => x
+    None => fallback
+  }
+}
+
+///|
+pub fn double_wrapped(r : Result[Int32?, String]) -> Int32? {
+  match r {
+    Err(_) => None
+    Ok(x) => x
+  }
+}

@@ -23,3 +23,23 @@ async test "standard collection string and map calls match only core operations"
   }
   assert_eq(counts.length(), 9)
 }
+
+///|
+async test "handwritten Option and Result matches use core constructors and the exact payload binding" {
+  let root = @fs.tmpdir(prefix="moongrep-stdlib-match-")
+  defer @fs.rmdir(root, recursive=true)
+  copy_ide_fixture("examples/stdlib-patterns", root)
+  let counts = run_ide_fixture_rules(
+    [root + "/matches.mbt", root + "/negative.mbt"],
+    @provider.Session::new(target="wasm"),
+  )
+  for
+    name in [
+      "match_option_map", "match_option_bind", "match_option_unwrap_or", "match_option_unwrap_or_else",
+      "match_result_map", "match_result_map_err", "match_result_bind", "match_result_to_option",
+      "match_result_unwrap_or", "match_result_unwrap_or_else",
+    ] {
+    assert_eq(counts.get("moonbitlang/" + name), Some(1), msg=name)
+  }
+  assert_eq(counts.length(), 10)
+}
