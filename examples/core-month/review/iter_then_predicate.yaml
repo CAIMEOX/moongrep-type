@@ -1,0 +1,7 @@
+id: review_iter_then_predicate
+description: |
+  Check whether this collection has a direct predicate with the same traversal.
+  A callback factory or mutation can change which elements a snapshot visits.
+patterns:
+  - shape: '$(source:exp).iter().all($(predicate:exp))'
+  - shape: '$(source:exp).iter().any($(predicate:exp))'

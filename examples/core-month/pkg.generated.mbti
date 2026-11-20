@@ -1,0 +1,107 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moongrep/core-month-example"
+
+// Values
+pub fn array_iteration(Array[Int32], (Int32) -> Unit) -> Unit
+
+pub fn bytes_suffix(Bytes, Int32) -> BytesView
+
+pub fn changes_field(Source) -> StringView
+
+pub fn choose_other(Int32, Int32, Int32) -> Int32
+
+pub fn compare_with_oracle(Double) -> Unit raise
+
+pub fn cookie_item(StringView) -> (StringView, StringView)?
+
+pub fn copy_prefix(FixedArray[Int32], Int32) -> FixedArray[Int32]
+
+pub fn different_input(Iter[Int32], Iter[Int32]) -> Unit
+
+pub fn distance_candidates(Int32, Int32, Int32) -> Int32
+
+pub fn double_read(() -> Double) -> Bool
+
+pub fn[T] drain_until(Iter[T], (T) -> Bool) -> T?
+
+pub fn effectful_bound(() -> Int32, Int32) -> Int32
+
+pub fn extra_condition(Iter[Int32], () -> Bool) -> Unit
+
+pub fn finite_float(Float) -> Bool
+
+pub fn floating_bound(Double, Double) -> Double
+
+pub fn foreign_next(Sample) -> Unit
+
+pub fn foreign_number(Sample) -> Bool
+
+pub fn foreign_write(Sample, String) -> Unit
+
+pub fn fresh_input(() -> Iter[Int32]) -> Unit
+
+pub fn[T : Compare] generic_min(T, T) -> T
+
+pub fn has_only(Array[Int32], (Int32) -> Bool) -> Bool
+
+pub fn increment_instead(Int32, Int32) -> Int32
+
+pub fn independent_predicate(Double) -> Bool
+
+pub fn literal_write(StringBuilder) -> Unit
+
+pub fn lower_bound(Int32, Int32) -> Int32
+
+pub fn mismatched_end(String, String, Int32) -> StringView
+
+pub fn nonfinite(Double) -> Bool
+
+pub fn raise_floor(Int32, Int32) -> Int32
+
+pub fn reads_builder(StringBuilder) -> Unit
+
+pub fn repeated_bound(Int32) -> Int32
+
+pub fn special(Double) -> Bool
+
+pub fn stop_on_pattern(Iter[Int32?]) -> Unit
+
+pub fn two_numbers(Double, Double) -> Bool
+
+pub fn unknown_logger(&Logger, String) -> Unit
+
+pub fn unsigned_larger(UInt64, UInt64) -> UInt64
+
+pub fn view_factory(() -> String, Int32) -> StringView
+
+pub fn visit_bytes(Bytes, (Byte) -> Unit) -> Unit
+
+pub fn[T] visit_items(Iter[T], (T) -> Unit) -> Unit
+
+pub fn visit_text(StringView, (Char) -> Unit) -> Unit
+
+pub fn whole(String) -> StringView
+
+pub fn write_key(StringBuilder, Int32, String) -> Unit
+
+// Errors
+
+// Types and methods
+pub(all) struct MatchInput {
+  text : StringView
+}
+pub fn MatchInput::tail(Self, Int32) -> StringView
+
+pub(all) struct Sample(Int32)
+pub fn Sample::is_inf(Self) -> Bool
+pub fn Sample::is_nan(Self) -> Bool
+pub fn Sample::next(Self) -> Int32?
+pub fn Sample::write_string(Self, String) -> Unit
+
+pub(all) struct Source {
+  mut text : StringView
+}
+
+// Type aliases
+
+// Traits

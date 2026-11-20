@@ -1,0 +1,9 @@
+id: review_fixed_array_overwrite
+description: |
+  Review this full indexed fill for FixedArray::makei. Check the extent, seed effects,
+  reads or escapes of the partially filled array, and callback control flow.
+patterns:
+  - shape: |
+      let $(out:id) = FixedArray::make($(n:id), $(seed:exp))
+      for $(i:id) in 0..<$(n:id) { $(out:id)[$(i:id)] = $(value:exp) }
+      $(out:id)

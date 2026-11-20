@@ -1,0 +1,23 @@
+id: review_find_then_split
+description: |
+  Review this two-slice split for split_once. Confirm the standard StringView operation,
+  that this index has no other uses, and that the right slice omits the delimiter.
+patterns:
+  - shape: |
+      if $(s:id).find($(sep:const)) is Some($(i:id)) {
+        let $(prefix:id) = $(s:id)[:$(i:id)]
+        let $(suffix:id) = $(s:id)[$(i:id) + 1:]
+        $$$rest
+        $(last:exp)
+      }
+    guard:
+      $sep: '^[=;/:,]$'
+  - shape: |
+      if $(s:id).find($(sep:const)) is Some($(i:id)) {
+        let $(prefix:id) = $(s:id)[:$(i:id)]
+        let $(suffix:id) = $(s:id)[$(i:id) + 1:]
+        $$$rest
+        $(last:exp)
+      } else { $(otherwise:exp) }
+    guard:
+      $sep: '^[=;/:,]$'

@@ -49,3 +49,14 @@ $ moonx moonbit-community/moongrep lint ../../examples/syntax-adoption/iterators
 @STDOUT (empty)
 @STDERR (empty)
 ```
+
+The floating-point rule highlights only the adjacent predicates when another
+condition follows them. The October–November audit queries can run separately.
+
+```mooncram moonbit-community/moongrep
+#cwd(.)
+$ moonx moonbit-community/moongrep lint ../../examples/core-month/numbers.mbt --target wasm --json | moonx cli/jq@0.2.1 -cs 'map(select(.rule_id == "moonbitlang/float_finiteness") | .matched_source)'
+["x.is_nan() || x.is_inf()","!x.is_inf() && !x.is_nan()","x.is_inf() || x.is_nan()"]
+$ moonx moonbit-community/moongrep scan ../../examples/core-month/review_examples.mbt --rules ../../examples/core-month/review --json | moonx cli/jq@0.2.1 -cs 'map(.rule_id) | sort'
+["review_find_then_split","review_fixed_array_overwrite","review_iter_then_predicate"]
+```
