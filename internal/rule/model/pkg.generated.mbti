@@ -189,6 +189,12 @@ pub(all) enum StdlibCheck {
   MatchResultUnwrapOrElse
   MatchResultMapErr
   MatchResultToOption
+  LoopAny
+  LoopAll
+  LoopFindFirst
+  CharAsciiDigit
+  CharAsciiLowercase
+  CharAsciiUppercase
 }
 pub fn StdlibCheck::suggested_method(Self) -> String
 

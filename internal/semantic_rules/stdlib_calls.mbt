@@ -242,6 +242,11 @@ async fn check_standard_library(
 ) -> @basic.Location? {
   let matches = match check {
     CollectionIsEmpty => length_test(context, node)
+    LoopAny | LoopAll | LoopFindFirst =>
+      short_circuit_loop(context, node, check)
+    CharAsciiDigit => ascii_interval(context, node, "'0'", "'9'")
+    CharAsciiLowercase => ascii_interval(context, node, "'a'", "'z'")
+    CharAsciiUppercase => ascii_interval(context, node, "'A'", "'Z'")
     StringFindContains
     | StringStripPrefixTest
     | StringStripSuffixTest

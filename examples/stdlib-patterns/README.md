@@ -54,3 +54,33 @@ primitive arithmetic/comparison with a literal, such as `Some(x + 1)`.
 must be a primitive literal or an immutable local. A nullary fallback call
 stays in a closure and may raise. Guards, complex payload patterns and extra
 statements need individual review.
+
+## Short-circuit loops and ASCII predicates
+
+Scan `examples/stdlib-patterns/predicates.mbt` for these examples.
+
+| Rule | Recognized source | Standard-library expression |
+| --- | --- | --- |
+| `loop_any` | Break with `true` on a hit and finish with `false` | `xs.any(x => p(x))` |
+| `loop_all` | Break with `false` on a failed test and finish with `true` | `xs.all(x => p(x))` |
+| `loop_find_first` | Break with `Some(x)` on a hit and finish with `None` | `it.find_first(x => p(x))` |
+| `char_ascii_digit` | `'0' <= c && c <= '9'` | `c.is_ascii_digit()` |
+| `char_ascii_lowercase` | `c is ('a'..<='z')` | `c.is_ascii_lowercase()` |
+| `char_ascii_uppercase` | `'Z' >= c && c >= 'A'` | `c.is_ascii_uppercase()` |
+
+The loop must have one conditional exit and a matching `nobreak`. The
+predicate may call a synchronous function or compare the element with a
+primitive literal. `all` also accepts a `guard`. Core array types and `Iter`
+support `any` and `all`. The element-returning `find_first` requires `Iter`.
+A successful iterator search leaves the next element available to the caller.
+
+The three ASCII checks accept either order of inclusive comparisons on the
+same stable `Char` binding, or a single inclusive range pattern. Each bound
+is exact. Range tests on UTF-16 code units have a different receiver type.
+
+To run the behavioral examples, including raised defaults, predicate call
+order, iterator consumption and non-ASCII input, run:
+
+```sh
+MOON_WORK=off moon -C examples/stdlib-patterns test
+```

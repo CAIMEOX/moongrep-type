@@ -20,6 +20,12 @@ pub(all) enum StdlibCheck {
   MatchResultUnwrapOrElse
   MatchResultMapErr
   MatchResultToOption
+  LoopAny
+  LoopAll
+  LoopFindFirst
+  CharAsciiDigit
+  CharAsciiLowercase
+  CharAsciiUppercase
 }
 
 ///|
@@ -44,6 +50,12 @@ fn stdlib_check(name : String) -> StdlibCheck? {
     "match-result-unwrap-or-else" => Some(MatchResultUnwrapOrElse)
     "match-result-map-err" => Some(MatchResultMapErr)
     "match-result-to-option" => Some(MatchResultToOption)
+    "loop-any" => Some(LoopAny)
+    "loop-all" => Some(LoopAll)
+    "loop-find-first" => Some(LoopFindFirst)
+    "char-ascii-digit" => Some(CharAsciiDigit)
+    "char-ascii-lowercase" => Some(CharAsciiLowercase)
+    "char-ascii-uppercase" => Some(CharAsciiUppercase)
     _ => None
   }
 }
@@ -65,5 +77,11 @@ pub fn StdlibCheck::suggested_method(self : StdlibCheck) -> String {
     MatchOptionUnwrapOrElse | MatchResultUnwrapOrElse => "unwrap_or_else"
     MatchResultMapErr => "map_err"
     MatchResultToOption => "to_option"
+    LoopAny => "any"
+    LoopAll => "all"
+    LoopFindFirst => "find_first"
+    CharAsciiDigit => "is_ascii_digit"
+    CharAsciiLowercase => "is_ascii_lowercase"
+    CharAsciiUppercase => "is_ascii_uppercase"
   }
 }

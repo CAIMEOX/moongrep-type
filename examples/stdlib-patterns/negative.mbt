@@ -146,3 +146,87 @@ pub fn double_wrapped(r : Result[Int32?, String]) -> Int32? {
     Ok(x) => x
   }
 }
+
+///|
+pub fn incomplete_digit(c : Char) -> Bool {
+  '0' <= c && c < '9'
+}
+
+///|
+pub fn different_chars(x : Char, y : Char) -> Bool {
+  'a' <= x && y <= 'z'
+}
+
+///|
+pub fn successive_chars(read : () -> Char) -> Bool {
+  read() >= 'A' && read() <= 'Z'
+}
+
+///|
+pub fn excluded_uppercase(c : Char) -> Bool {
+  c is ('A'..<'Z')
+}
+
+///|
+pub fn first_indexed_value(xs : Array[Int32], p : (Int32) -> Bool) -> Int32? {
+  for x in xs {
+    if p(x) {
+      break Some(x)
+    }
+  } nobreak {
+    None
+  }
+}
+
+///|
+pub fn first_transformed(xs : Iter[Int32], p : (Int32) -> Bool) -> Int32? {
+  for x in xs {
+    if p(x) {
+      break Some(x + 1)
+    }
+  } nobreak {
+    None
+  }
+}
+
+///|
+pub fn calls_on_exhaustion(
+  xs : Iter[Int32],
+  p : (Int32) -> Bool,
+  exhausted : () -> Bool,
+) -> Bool {
+  for x in xs {
+    if p(x) {
+      break true
+    }
+  } nobreak {
+    exhausted()
+  }
+}
+
+///|
+pub fn records_before_testing(
+  xs : Array[Int32],
+  record : (Int32) -> Unit,
+  p : (Int32) -> Bool,
+) -> Bool {
+  for x in xs {
+    record(x)
+    if !p(x) {
+      break false
+    }
+  } nobreak {
+    true
+  }
+}
+
+///|
+pub async fn async_optional_transform(
+  n : Int32?,
+  f : async (Int32) -> Int32,
+) -> Int32? {
+  match n {
+    Some(x) => Some(f(x))
+    None => None
+  }
+}

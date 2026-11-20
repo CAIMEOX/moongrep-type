@@ -1,0 +1,12 @@
+id: loop_find_first
+description: |
+  Use iter.find_first(x => condition) to return the first matching element and leave the iterator just past it.
+semantic:
+  check: loop-find-first
+  patterns:
+    - shape: |
+        for $(x:id) in $(source:exp) {
+          if $(cond:exp) { break Some($(x:id)) }
+        } nobreak {
+          None
+        }

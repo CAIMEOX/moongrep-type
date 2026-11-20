@@ -1,0 +1,12 @@
+id: loop_any
+description: |
+  Use values.any(x => condition) for a loop that stops at the first successful test.
+semantic:
+  check: loop-any
+  patterns:
+    - shape: |
+        for $(x:id) in $(source:exp) {
+          if $(cond:exp) { break true }
+        } nobreak {
+          false
+        }

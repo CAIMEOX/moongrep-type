@@ -44,3 +44,26 @@ async test "handwritten Option and Result matches use core constructors and the 
   }
   assert_eq(counts.length(), 10)
 }
+
+///|
+async test "short circuit loops and exact ASCII bounds resolve at their original expressions" {
+  let root = @fs.tmpdir(prefix="moongrep-stdlib-predicates-")
+  defer @fs.rmdir(root, recursive=true)
+  copy_ide_fixture("examples/stdlib-patterns", root)
+  let counts = run_ide_fixture_rules(
+    [root + "/predicates.mbt", root + "/negative.mbt"],
+    @provider.Session::new(target="wasm"),
+  )
+  for
+    (name, n) in [
+      ("loop_any", 1),
+      ("loop_all", 2),
+      ("loop_find_first", 1),
+      ("char_ascii_digit", 1),
+      ("char_ascii_lowercase", 1),
+      ("char_ascii_uppercase", 1),
+    ] {
+    assert_eq(counts.get("moonbitlang/" + name), Some(n), msg=name)
+  }
+  assert_eq(counts.length(), 6)
+}

@@ -350,3 +350,31 @@ dev_build(
   input: "match_result_to_option.yaml",
   output: "match_result_to_option.mbt",
 )
+
+dev_build(rule: "embed", input: "loop_any.yaml", output: "loop_any.mbt")
+
+dev_build(rule: "embed", input: "loop_all.yaml", output: "loop_all.mbt")
+
+dev_build(
+  rule: "embed",
+  input: "loop_find_first.yaml",
+  output: "loop_find_first.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "char_ascii_digit.yaml",
+  output: "char_ascii_digit.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "char_ascii_lowercase.yaml",
+  output: "char_ascii_lowercase.mbt",
+)
+
+dev_build(
+  rule: "embed",
+  input: "char_ascii_uppercase.yaml",
+  output: "char_ascii_uppercase.mbt",
+)

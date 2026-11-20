@@ -18,6 +18,12 @@ pub let boolean_match_yaml : String
 
 pub let catch_all_yaml : String
 
+pub let char_ascii_digit_yaml : String
+
+pub let char_ascii_lowercase_yaml : String
+
+pub let char_ascii_uppercase_yaml : String
+
 pub let collection_is_empty_yaml : String
 
 pub let consumed_iterator_yaml : String
@@ -45,6 +51,12 @@ pub let iter_filter_next_yaml : String
 pub let iter_find_first_exists_yaml : String
 
 pub let iter_map_flatten_yaml : String
+
+pub let loop_all_yaml : String
+
+pub let loop_any_yaml : String
+
+pub let loop_find_first_yaml : String
 
 pub let map_get_contains_yaml : String
 

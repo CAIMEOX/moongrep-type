@@ -1,0 +1,16 @@
+id: char_ascii_lowercase
+description: |
+  Use c.is_ascii_lowercase() for the inclusive ASCII range 'a' through 'z'.
+semantic:
+  check: char-ascii-lowercase
+  patterns:
+    - shape: "$(c:id) >= 'a' && $(c:id) <= 'z'"
+    - shape: "$(c:id) <= 'z' && $(c:id) >= 'a'"
+    - shape: "$(c:id) >= 'a' && 'z' >= $(c:id)"
+    - shape: "'z' >= $(c:id) && $(c:id) >= 'a'"
+    - shape: "'a' <= $(c:id) && $(c:id) <= 'z'"
+    - shape: "$(c:id) <= 'z' && 'a' <= $(c:id)"
+    - shape: "'a' <= $(c:id) && 'z' >= $(c:id)"
+    - shape: "'z' >= $(c:id) && 'a' <= $(c:id)"
+    - shape: "$(c:exp) is ('a'..<='z')"
+    - shape: "$(c:exp) is 'a'..<='z'"

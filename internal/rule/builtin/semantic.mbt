@@ -58,6 +58,12 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ),
     ("match_result_map_err", @moonbitlang_rules.match_result_map_err_yaml),
     ("match_result_to_option", @moonbitlang_rules.match_result_to_option_yaml),
+    ("loop_any", @moonbitlang_rules.loop_any_yaml),
+    ("loop_all", @moonbitlang_rules.loop_all_yaml),
+    ("loop_find_first", @moonbitlang_rules.loop_find_first_yaml),
+    ("char_ascii_digit", @moonbitlang_rules.char_ascii_digit_yaml),
+    ("char_ascii_lowercase", @moonbitlang_rules.char_ascii_lowercase_yaml),
+    ("char_ascii_uppercase", @moonbitlang_rules.char_ascii_uppercase_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

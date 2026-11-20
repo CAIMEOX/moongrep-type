@@ -2,9 +2,17 @@
 package "moongrep/stdlib-patterns-example"
 
 // Values
+pub fn[A] all_items(Iter[A], (A) -> Bool raise?) -> Bool raise?
+
+pub fn[A] any_item(Array[A], (A) -> Bool raise?) -> Bool raise?
+
+pub async fn async_optional_transform(Int32?, async (Int32) -> Int32) -> Int32?
+
 pub fn bind_position(Array[Int32], Int32) -> Int32
 
 pub fn bumped(Int32?) -> Int32?
+
+pub fn calls_on_exhaustion(Iter[Int32], (Int32) -> Bool, () -> Bool) -> Bool
 
 pub fn changes_map(Map[String, Int32]) -> Int32
 
@@ -16,6 +24,10 @@ pub fn[A, B, E] convert(Result[A, E], (A) -> B raise?) -> Result[B, E] raise?
 
 pub fn[A, E, F] convert_error(Result[A, E], (E) -> F raise?) -> Result[A, F] raise?
 
+pub fn different_chars(Char, Char) -> Bool
+
+pub fn digit(Char) -> Bool
+
 pub fn double_wrapped(Result[Int32?, String]) -> Int32?
 
 pub fn[T] empty_list(Array[T]) -> Bool
@@ -24,17 +36,31 @@ pub fn error_from_elsewhere(Result[Int32, String], String) -> Result[Int32, Stri
 
 pub fn error_is_used(Result[Int32, Int32]) -> Int32
 
+pub fn excluded_uppercase(Char) -> Bool
+
 pub fn fallback_reads_mutable(Int32?) -> Int32
+
+pub fn first_indexed_value(Array[Int32], (Int32) -> Bool) -> Int32?
+
+pub fn first_negative(Iter[Int32]) -> Int32?
+
+pub fn first_transformed(Iter[Int32], (Int32) -> Bool) -> Int32?
 
 pub fn[T] fourth(Iter[T]) -> T?
 
 pub fn frequency(Map[String, Int32], String) -> Int32
 
+pub fn[A] guarded_all(ArrayView[A], (A) -> Bool) -> Bool
+
 pub fn has_bytes(Bytes) -> Bool
+
+pub fn incomplete_digit(Char) -> Bool
 
 pub fn increment_other(Int32?, Int32) -> Int32?
 
 pub fn[A, E] keep_success(Result[A, E]) -> A?
+
+pub fn lowercase(Char) -> Bool
 
 pub fn namesake_empty(Other) -> Bool
 
@@ -56,13 +82,15 @@ pub fn[A, B] optional_lookup(A?, (A) -> B? raise?) -> B? raise?
 
 pub fn optional_read(Int32?, () -> Int32 raise?) -> Int32 raise?
 
-pub fn other_sum(MaybeCount) -> MaybeCount
-
 pub fn[A] optional_singleton(A?) -> Array[A]?
+
+pub fn other_sum(MaybeCount) -> MaybeCount
 
 pub fn prefix(StringView, StringView) -> Bool
 
 pub fn present_key(Map[String, Int32?], String) -> Bool
+
+pub fn records_before_testing(Array[Int32], (Int32) -> Unit, (Int32) -> Bool) -> Bool
 
 pub fn result_default(Result[Int32, String]) -> Int32
 
@@ -72,11 +100,15 @@ pub fn[T] searched(Array[T], (T) -> Bool raise) -> Bool raise
 
 pub fn substring(String, StringView) -> Bool
 
+pub fn successive_chars(() -> Char) -> Bool
+
 pub fn suffix(String, StringView) -> Bool
 
 pub fn tests_index(String) -> Bool
 
 pub fn unknown_drop(Iter[Int32], Int32) -> Int32?
+
+pub fn uppercase(Char) -> Bool
 
 // Errors
 

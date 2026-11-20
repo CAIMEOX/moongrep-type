@@ -1,0 +1,16 @@
+id: char_ascii_digit
+description: |
+  Use c.is_ascii_digit() for the inclusive ASCII range '0' through '9'.
+semantic:
+  check: char-ascii-digit
+  patterns:
+    - shape: "$(c:id) >= '0' && $(c:id) <= '9'"
+    - shape: "$(c:id) <= '9' && $(c:id) >= '0'"
+    - shape: "$(c:id) >= '0' && '9' >= $(c:id)"
+    - shape: "'9' >= $(c:id) && $(c:id) >= '0'"
+    - shape: "'0' <= $(c:id) && $(c:id) <= '9'"
+    - shape: "$(c:id) <= '9' && '0' <= $(c:id)"
+    - shape: "'0' <= $(c:id) && '9' >= $(c:id)"
+    - shape: "'9' >= $(c:id) && '0' <= $(c:id)"
+    - shape: "$(c:exp) is ('0'..<='9')"
+    - shape: "$(c:exp) is '0'..<='9'"

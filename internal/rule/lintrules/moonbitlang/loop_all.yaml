@@ -1,0 +1,18 @@
+id: loop_all
+description: |
+  Use values.all(x => condition) for a loop that stops at the first failed test.
+semantic:
+  check: loop-all
+  patterns:
+    - shape: |
+        for $(x:id) in $(source:exp) {
+          if !$(cond:exp) { break false }
+        } nobreak {
+          true
+        }
+    - shape: |
+        for $(x:id) in $(source:exp) {
+          guard $(cond:exp) else { break false }
+        } nobreak {
+          true
+        }
