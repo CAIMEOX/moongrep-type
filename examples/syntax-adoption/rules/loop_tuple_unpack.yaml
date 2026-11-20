@@ -1,0 +1,5 @@
+id: loop_tuple_unpack
+description: Inventory loops that immediately unpack a pair.
+patterns:
+  - shape: 'for $(item:id) in $(input:exp) { let ($(x:pat), $(y:pat)) = $(item:id); $$$rest; $(last:exp) }'
+  - shape: 'for $(key:id), $(item:id) in $(input:exp) { let ($(x:pat), $(y:pat)) = $(item:id); $$$rest; $(last:exp) }'

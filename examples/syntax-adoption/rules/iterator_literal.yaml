@@ -1,0 +1,6 @@
+id: iterator_literal
+description: Inventory primitive iterator constructors and immediate array literals.
+patterns:
+  - shape: 'Iter::empty()'
+  - shape: 'Iter::singleton($(value:exp))'
+  - shape: '[$$$(items:exp)].iter()'

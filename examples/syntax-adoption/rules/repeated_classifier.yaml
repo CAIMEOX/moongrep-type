@@ -1,0 +1,5 @@
+id: repeated_classifier
+description: Inventory adjacent alternatives on the same identifier.
+patterns:
+  - shape: '$(c:id) is $(a:pat) || $(c:id) is $(b:pat)'
+  - shape: '$(c:id) == $(a:const) || $(c:id) == $(b:const)'
