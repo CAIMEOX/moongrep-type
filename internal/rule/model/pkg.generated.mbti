@@ -135,6 +135,7 @@ pub(all) struct RulePrefilter {
 
 pub(all) enum SemanticCheck {
   Stdlib(StdlibCheck)
+  LoopTupleUnpack
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

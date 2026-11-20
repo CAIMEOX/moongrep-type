@@ -2,6 +2,17 @@
 package "moongrep/syntax-adoption-example"
 
 // Values
+pub fn add_pairs(Array[(Int32, Int32)]) -> Int32
+
+pub fn collect_counts(Map[String, (Bool, Int32)]) -> Int32
+
+pub fn keep_pair(Array[(Int32, Int32)], ((Int32, Int32), Int32) -> Unit) -> Unit
+
+pub fn keep_prior_work(Array[(Int32, Int32)], () -> Unit) -> Int32
+
+pub fn key_shadows_header(Map[Int32, (Int32, Int32)]) -> Int32
+
+pub fn sum_keys(Map[(Int32, Int32), Int32]) -> Int32
 
 // Errors
 

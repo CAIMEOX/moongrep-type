@@ -145,6 +145,7 @@ pub(all) enum RuleDefinitionSpec {
 /// candidates with ordinary structural patterns and regex guards.
 pub(all) enum SemanticCheck {
   Stdlib(StdlibCheck)
+  LoopTupleUnpack
   ArrayComprehension
   FilterMapComprehension
   IterComprehension

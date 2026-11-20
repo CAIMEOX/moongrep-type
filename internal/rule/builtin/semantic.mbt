@@ -64,6 +64,7 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     ("char_ascii_digit", @moonbitlang_rules.char_ascii_digit_yaml),
     ("char_ascii_lowercase", @moonbitlang_rules.char_ascii_lowercase_yaml),
     ("char_ascii_uppercase", @moonbitlang_rules.char_ascii_uppercase_yaml),
+    ("loop_tuple_unpack", @moonbitlang_rules.loop_tuple_unpack_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

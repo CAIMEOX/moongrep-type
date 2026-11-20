@@ -58,6 +58,8 @@ pub let loop_any_yaml : String
 
 pub let loop_find_first_yaml : String
 
+pub let loop_tuple_unpack_yaml : String
+
 pub let map_get_contains_yaml : String
 
 pub let map_get_default_yaml : String

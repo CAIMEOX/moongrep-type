@@ -8,6 +8,7 @@ fn expect_semantic_rule(
   }
   ensure_allowed_keys(path, "semantic", body, ["check", "patterns"])
   let check = match body.get("check") {
+    Some(String("loop-tuple-unpack")) => LoopTupleUnpack
     Some(String("array-comprehension")) => ArrayComprehension
     Some(String("filter-map-comprehension")) => FilterMapComprehension
     Some(String("iter-comprehension")) => IterComprehension

@@ -378,3 +378,9 @@ dev_build(
   input: "char_ascii_uppercase.yaml",
   output: "char_ascii_uppercase.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "loop_tuple_unpack.yaml",
+  output: "loop_tuple_unpack.mbt",
+)

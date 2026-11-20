@@ -1,0 +1,10 @@
+id: loop_tuple_unpack
+description: |
+  Move this tuple pattern into the for-in header where the pair is bound.
+  For example, write for (x, y) in rows or for key, (x, y) in entries.
+semantic:
+  check: loop-tuple-unpack
+  patterns:
+    - shape: 'for $(item:id) in $(input:exp) { let ($(x:pat), $(y:pat)) = $(item:id); $$$rest; $(last:exp) }'
+    - shape: 'for $(other:pat), $(item:id) in $(input:exp) { let ($(x:pat), $(y:pat)) = $(item:id); $$$rest; $(last:exp) }'
+    - shape: 'for $(item:id), $(other:pat) in $(input:exp) { let ($(x:pat), $(y:pat)) = $(item:id); $$$rest; $(last:exp) }'
