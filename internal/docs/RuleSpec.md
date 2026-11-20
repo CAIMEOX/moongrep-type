@@ -148,7 +148,9 @@ rule ID with underscores replaced by hyphens (for example, `match-result-bind`).
 The [syntax-adoption rules](../../examples/syntax-adoption/RULES.md) add
 `loop-tuple-unpack`, `repeated-classifier`, `iterator-literal` and
 `conditional-array-spread`. All these checks use the same YAML schema and verify
-their semantic conditions.
+their semantic conditions. The [month-diff catalogue](../../examples/core-month/README.md)
+adds seven checks for numeric comparisons, traversal, slices and formatted output.
+The numeric replacements also require a suitable method in the active core interface.
 
 `patterns` is a nonempty array of ordinary `shape` / `guard` objects. A structural
 match and all regex guards must succeed before the selected check runs. Semantic

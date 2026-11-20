@@ -17,6 +17,7 @@ moongrep lint
 
 `lint` 加载内置规则，默认扫描当前目录。它也接受 `scan` 的其他选项，
 用于添加自定义规则、过滤结果或调整输出格式。
+[core 月度改写示例](examples/core-month/README.md)列出了数值比较、遍历、切片和插值规则，以及它们在标准库中实际命中的位置。
 
 要进行结构化搜索，可以在 MoonBit 项目根目录运行 `scan` 命令。默认情况下，
 它会递归扫描，并跳过 Git 和 MoonBit 工具链生成的目录。使用 `--pattern`

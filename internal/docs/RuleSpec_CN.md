@@ -115,6 +115,8 @@ semantic:
 语义前提和运行示例见[标准库规则清单](../../examples/stdlib-patterns/README.md)。
 四个语法迁移检查分别为 `loop-tuple-unpack`、`repeated-classifier`、`iterator-literal`
 和 `conditional-array-spread`。适用范围和命令见[语法规则](../../examples/syntax-adoption/RULES.md)。
+[core 月度差异规则](../../examples/core-month/README.md)给出了另外七个数值、遍历、切片和插值检查。
+数值规则还会核对当前 core 的公开接口。
 
 patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
 YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、
