@@ -92,3 +92,7 @@ MOON_WORK=off moon -C examples/stdlib-patterns test
 The [counterexample study](COUNTEREXAMPLES.md) traces these checks to six
 merged core PRs and six Mooncakes releases. It includes runnable cases for
 callback escape, wrapper identity, reserved capacity, queued work and partial reads.
+
+The [MoonBit syntax adoption study](../syntax-adoption/README.md) compares
+17 further Mooncakes releases with core PRs, including source locations,
+replay results and three structural survey queries.
