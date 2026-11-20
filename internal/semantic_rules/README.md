@@ -6,8 +6,9 @@ commands, and each check's scope. Rule loading, compilation, regex guards,
 structural matching, prefiltering, disables, source display, and diagnostics use
 the existing MoonGrep infrastructure.
 
-`semantic.check` selects one of 27 built-in analyses: seven original checks and
-[20 semantic theorems](../../examples/semantic-theorems/README.md). Its `patterns` narrow
+`semantic.check` selects one of 52 built-in analyses, covering the seven original checks,
+[20 semantic theorems](../../examples/semantic-theorems/README.md) and
+[25 standard-library patterns](../../examples/stdlib-patterns/README.md). Its `patterns` narrow
 the candidates using the same surface-syntax matcher as structural rules.
 Semantic checks confirm compiler identities, normalized types, binding uses,
 and the required control-flow shape. Incomplete evidence remains explicit.

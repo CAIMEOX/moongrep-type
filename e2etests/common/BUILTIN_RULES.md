@@ -82,12 +82,12 @@ $ moonx moonbit-community/moongrep lint --json ../testdata/builtin-simplifiable-
 ## Forward array iteration variants
 
 The loop appends children to the queue and checks its length on every
-iteration. A for-in loop would skip those children.
+iteration. A for-in loop would skip those children. The map lookup inside
+the loop qualifies for `get_or_default`.
 
 ```mooncram moonbit-community/moongrep
-$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-forward-array-iteration-variants/growing_queue.mbt
-@STDOUT (empty)
-@STDERR (empty)
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-forward-array-iteration-variants/growing_queue.mbt | moonx cli/jq@0.2.1 -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
+moonbitlang/map_get_default 17:21
 ```
 
 The rule still reports a loop that copies elements to a different array.

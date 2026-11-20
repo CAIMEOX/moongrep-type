@@ -13,7 +13,8 @@ moon run --target native . -- lint examples/semantic-rules
 The default output uses MoonGrep's existing source context and highlighting.
 Set `NO_COLOR=1` for plain text, or add `--json` for the existing finding and
 diagnostic JSON Lines formats. These are suggestions; no source is rewritten.
-There are 18 semantic findings in this example, plus any ordinary lint findings.
+The original checks produce 18 findings. The nested match in `filter_map_option`
+also qualifies for `match_option_map`, giving 19 semantic findings.
 
 ## YAML configuration
 
@@ -22,7 +23,8 @@ The seven checks demonstrated here have YAML rule files in
 Ordinary `lint` includes the semantic builtins. It queries the IDE only after a YAML shape and its guards match.
 
 The additional [20 semantic theorems](../semantic-theorems/README.md) use the
-same pipeline and have separate runnable examples.
+same pipeline. The [25 standard-library patterns](../stdlib-patterns/README.md)
+have their own runnable examples and negative cases.
 
 `custom-count.yaml` demonstrates a user-authored semantic rule:
 

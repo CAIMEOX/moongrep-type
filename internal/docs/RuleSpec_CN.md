@@ -110,7 +110,9 @@ semantic:
 另有 20 条集合终结操作、Option/Result 融合、恒等式及构造器消去规则。
 完整 check 名称、等式和所需证据见
 [semantic theorem 清单](../../examples/semantic-theorems/README.md#catalogue)。
-它们沿用相同的 YAML schema，配置不能跳过语义前提。
+另有 9 条标准库惯用法和 16 条手写实现识别规则。将规则 ID 的下划线换成连字符
+即可得到 YAML 的 check 名称，例如 `match-result-bind`。各规则的匹配范围、
+语义前提和运行示例见[标准库规则清单](../../examples/stdlib-patterns/README.md)。
 
 patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
 YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、
