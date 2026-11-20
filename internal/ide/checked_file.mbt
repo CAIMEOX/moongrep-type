@@ -141,6 +141,23 @@ pub async fn CheckedFile::type_at(
 }
 
 ///|
+/// Tuple arity is visible in an exact hover even if a component belongs to
+/// a transitive dependency whose printed alias is outside this source scope.
+pub async fn CheckedFile::is_tuple_at(
+  self : CheckedFile,
+  node : @untyped_cst.CstNode,
+  arity : Int32,
+) -> Bool? {
+  let range = span(node)
+  guard self.project.client.hover(self.path(), range.end) is Some((text, found)) &&
+    found == range &&
+    parse_hover_type(text) is Some(ty) else {
+    return None
+  }
+  Some(ty is Tuple(tys~, ..) && tys.length() == arity)
+}
+
+///|
 /// Ask the compiler for all occurrences only for rules proving exclusive use.
 pub async fn CheckedFile::references(
   self : CheckedFile,

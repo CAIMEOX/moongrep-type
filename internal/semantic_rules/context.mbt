@@ -9,6 +9,7 @@ priv struct CheckContext {
   text : String
   package_name : async () -> String
   shape_at : async (@untyped_cst.CstNode) -> Json?
+  is_tuple_at : async (@untyped_cst.CstNode, Int32) -> Bool?
   call_header_at : async (@untyped_cst.CstNode) -> (String, Int32)?
   symbol_at : async (@untyped_cst.CstNode) -> @semantic.SymbolInfo?
   binding : async (String) -> @semantic.Range?

@@ -351,6 +351,11 @@ fn TypeTable::parse(
     }
     return None
   }
+  parse_hover_type(text).bind(ty => self.convert(ty, source, root_scope))
+}
+
+///|
+fn parse_hover_type(text : String) -> @syntax.Type? {
   let parsed = @untyped_cst.parse_expression("(_ : " + text + ")")
   guard parsed.diagnostics_view().is_empty() else { return None }
   let (expr, reports) = parsed.to_expr()
@@ -360,5 +365,5 @@ fn TypeTable::parse(
     _ => expr
   }
   guard expr is Constraint(ty~, ..) else { return None }
-  self.convert(ty, source, root_scope)
+  Some(ty)
 }

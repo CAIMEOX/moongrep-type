@@ -111,6 +111,7 @@ async fn Candidates::context(
       let file = checked.wait()
       file.type_at(node).bind(id => type_shape(i => file.raw_type(i), id))
     },
+    is_tuple_at: (node, arity) => checked.wait().is_tuple_at(node, arity),
     call_header_at: node => {
       let file = checked.wait()
       file.type_at(node).bind(id => file.raw_type(id)).bind(function_header)

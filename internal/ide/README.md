@@ -35,6 +35,11 @@ generic scopes, checked errors and async types, and distinguishes polymorphic
 declarations from instantiated expression types. Definitions and re-exports
 must resolve to one symbol. Derived bodies have no authored CST candidate.
 
+Moving a tuple pattern needs only the tuple's arity. The IDE adapter parses the
+type at the exact operand range for this check, including tuples whose element
+types refer to transitive dependencies. Comparisons of payload types still use
+their resolved nominal identities.
+
 Before emitting semantic findings, the scanner rechecks input contents, source
 membership, definition files, the backend selector and the compiler version.
 Input failures produce a scan-input error. The rule reports only verified

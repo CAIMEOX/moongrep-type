@@ -44,6 +44,23 @@ fn fixture_context(
       }
       type_shape(i => types.get(i), id.to_int())
     },
+    is_tuple_at: (node, arity) => {
+      guard positions.get(node_range(file, node)) is Some(entries) &&
+        entries.filter(entry => entry is { "kind": "expression", .. })
+        is [{ "type_id": Number(id, ..), .. }] &&
+        types.get(id.to_int()) is Some(raw) else {
+        return None
+      }
+      Some(
+        raw
+        is {
+          "kind": "named",
+          "path": { "kind": "tuple", "arity": value, .. },
+          ..
+        } &&
+        reference_id(value) == Some(arity),
+      )
+    },
     call_header_at: node => {
       guard positions.get(node_range(file, node)) is Some(entries) &&
         entries.filter(entry => entry is { "kind": "expression", .. })

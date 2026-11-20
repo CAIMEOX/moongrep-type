@@ -18,12 +18,27 @@ async test "alternative patterns report the whole chain once and exclude overlap
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/syntax-adoption", root)
   let id = "moonbitlang/repeated_classifier"
+  let file = root + "/grouped.mbt"
+  let prefix = "pub fn grouped(n : Int32) -> Bool { "
+  let expr = "n == 1 || (n == 2 || n == 3)"
+  @fs.write_file(file, prefix + expr + " }\n")
+  let session = @provider.Session::new(target="wasm")
   let counts = run_ide_fixture_rules(
     [root + "/classifiers.mbt", root + "/negative.mbt"],
-    @provider.Session::new(target="wasm"),
+    session,
     only=id,
   )
   assert_eq(counts, Map([(id, 5)]))
+  let rules = @compile.compile_rules(
+    @builtin.load_semantic_rules().filter(r => r.rule_id == id),
+  )
+  let report = candidate_file(file, rules).verify(session)
+  guard report.findings is [hit] && report.warnings.is_empty() else {
+    fail("expected one complete disjunction")
+  }
+  assert_eq(hit.loc.start.column(), prefix.length() + 1)
+  assert_eq(hit.loc.end.column(), prefix.length() + expr.length() + 1)
+  session.validate()
 }
 
 ///|
@@ -91,4 +106,41 @@ async test "conditional spread needs a private array used only by two pushes and
     only=id,
   )
   assert_eq(counts, Map([(id, 2)]))
+}
+
+///|
+async test "blackbox loop evidence needs only the tuple arity of a re-exported payload" {
+  let root = @fs.tmpdir(prefix="moongrep-tuple-payload-")
+  defer @fs.rmdir(root, recursive=true)
+  @fs.write_file(root + "/moon.mod", "name = \"moongrep/pairprobe\"\n")
+  @fs.write_file(
+    root + "/moon.pkg",
+    "import { \"moongrep/pairprobe/detail\" @internal_types }\n",
+  )
+  @fs.mkdir(root + "/detail")
+  @fs.write_file(root + "/detail/moon.pkg", "")
+  @fs.write_file(root + "/detail/detail.mbt", "pub(all) struct Glyph(Int32)\n")
+  @fs.write_file(
+    root + "/rows.mbt",
+    "pub fn rows() -> Array[(UInt32, @internal_types.Glyph)] { [(1U, @internal_types.Glyph(4))] }\n",
+  )
+  let file = root + "/rows_test.mbt"
+  @fs.write_file(
+    file,
+    (
+      #|test {
+      #|  for pair in @pairprobe.rows() {
+      #|    let (key, glyph) = pair
+      #|    ignore((key, glyph))
+      #|  }
+      #|}
+    ),
+  )
+  let id = "moonbitlang/loop_tuple_unpack"
+  let counts = run_ide_fixture_rules(
+    [file],
+    @provider.Session::new(target="wasm"),
+    only=id,
+  )
+  assert_eq(counts, Map([(id, 1)]))
 }

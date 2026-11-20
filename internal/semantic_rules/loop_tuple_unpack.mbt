@@ -66,10 +66,17 @@ async fn check_loop_tuple_unpack(
     header
   }
   guard @cst.normalized_pattern_identifier_name(binder) == Some(name) &&
-    context.uses_only_at(binder, [binder, value]) &&
-    context.shape(value)
-    is { "kind": "named", "path": { "kind": "tuple", "arity": 2, .. }, .. } else {
+    context.uses_only_at(binder, [binder, value]) else {
     return None
   }
-  Some(binding.loc)
+  guard (context.is_tuple_at)(value, 2) is Some(is_pair) else {
+    raise Unavailable(
+      "The IDE did not provide an exact expression type for the unpacked value.",
+    )
+  }
+  if is_pair {
+    Some(binding.loc)
+  } else {
+    None
+  }
 }
