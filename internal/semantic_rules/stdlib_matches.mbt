@@ -67,6 +67,22 @@ async fn forwarded_arm(
 }
 
 ///|
+/// A declaration provides the calling convention. The argument and result
+/// types come from the instantiated source expressions, including generic calls.
+async fn sync_arity(
+  context : CheckContext,
+  callee : @untyped_cst.CstNode,
+  arity : Int32,
+) -> Bool {
+  guard (context.call_header_at)(callee) is Some((mode, count)) else {
+    raise Unavailable(
+      "The IDE did not resolve the function signature at this call.",
+    )
+  }
+  mode == "sync" && count == arity
+}
+
+///|
 async fn applied_payload(
   context : CheckContext,
   expr : @untyped_cst.CstNode,
@@ -78,11 +94,11 @@ async fn applied_payload(
     callee.kind is Expr_Ident &&
     positional_args(expr) is Some([arg]) &&
     same_payload(context, binder, arg) &&
-    unary_callback(context.shape(callee)) is Some((parameter, output)) &&
-    parameter == input else {
+    sync_arity(context, callee, 1) &&
+    context.shape(arg) == input else {
     return None
   }
-  Some(output)
+  Some(context.shape(expr))
 }
 
 ///|
@@ -122,15 +138,7 @@ async fn checked_fallback(
     callee.kind is Expr_Ident else {
     return false
   }
-  context.shape(callee)
-  is {
-    "kind": "function",
-    "parameters": [],
-    "return_type": output,
-    "async": "sync",
-    ..
-  } &&
-  output == input
+  sync_arity(context, callee, 0) && context.shape(expr) == input
 }
 
 ///|

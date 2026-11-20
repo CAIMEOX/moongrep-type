@@ -110,6 +110,10 @@ async fn Candidates::context(
       let file = checked.wait()
       file.type_at(node).bind(id => type_shape(i => file.raw_type(i), id))
     },
+    call_header_at: node => {
+      let file = checked.wait()
+      file.type_at(node).bind(id => file.raw_type(id)).bind(function_header)
+    },
     symbol_at: node => checked.wait().symbol_at(node),
     binding: id => checked.wait().binding(id),
     references: node => checked.wait().references(node),

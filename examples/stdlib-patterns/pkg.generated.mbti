@@ -58,6 +58,8 @@ pub fn optional_read(Int32?, () -> Int32 raise?) -> Int32 raise?
 
 pub fn other_sum(MaybeCount) -> MaybeCount
 
+pub fn[A] optional_singleton(A?) -> Array[A]?
+
 pub fn prefix(StringView, StringView) -> Bool
 
 pub fn present_key(Map[String, Int32?], String) -> Bool

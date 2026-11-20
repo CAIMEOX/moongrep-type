@@ -213,3 +213,18 @@ fn unary_callback(shape : Json) -> (Json, Json)? {
     _ => None
   }
 }
+
+///|
+/// Arity and async status also apply to polymorphic declarations. Their type
+/// parameters must be instantiated using evidence from the actual call site.
+fn function_header(raw : Json) -> (String, Int32)? {
+  match raw {
+    {
+      "kind": "function",
+      "async": String(mode),
+      "parameters": Array(params),
+      ..
+    } => Some((mode, params.length()))
+    _ => None
+  }
+}

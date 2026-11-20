@@ -44,6 +44,14 @@ fn fixture_context(
       }
       type_shape(i => types.get(i), id.to_int())
     },
+    call_header_at: node => {
+      guard positions.get(node_range(file, node)) is Some(entries) &&
+        entries.filter(entry => entry is { "kind": "expression", .. })
+        is [{ "type_id": Number(id, ..), .. }] else {
+        return None
+      }
+      types.get(id.to_int()).bind(function_header)
+    },
     symbol_at: n => {
       guard positions.get(node_range(file, n)) is Some(entries) else {
         return None

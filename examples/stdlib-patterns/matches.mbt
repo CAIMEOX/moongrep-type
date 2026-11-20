@@ -89,3 +89,16 @@ pub fn result_read(
     Err(_) => read()
   }
 }
+
+///|
+fn[A] singleton(value : A) -> Array[A] {
+  [value]
+}
+
+///|
+pub fn[A] optional_singleton(value : A?) -> Array[A]? {
+  match value {
+    None => None
+    Some(x) => Some(singleton(x))
+  }
+}

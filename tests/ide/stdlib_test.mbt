@@ -39,7 +39,8 @@ async test "handwritten Option and Result matches use core constructors and the 
       "match_result_map", "match_result_map_err", "match_result_bind", "match_result_to_option",
       "match_result_unwrap_or", "match_result_unwrap_or_else",
     ] {
-    assert_eq(counts.get("moonbitlang/" + name), Some(1), msg=name)
+    let expected = if name == "match_option_map" { 2 } else { 1 }
+    assert_eq(counts.get("moonbitlang/" + name), Some(expected), msg=name)
   }
   assert_eq(counts.length(), 10)
 }
