@@ -40,9 +40,15 @@ pub let cstyle_forward_simple_forloop_yaml : String
 
 pub let discarded_array_map_yaml : String
 
+pub let float_finiteness_yaml : String
+
 pub let inspect_boolean_yaml : String
 
 pub let inspect_number_yaml : String
+
+pub let integer_max_yaml : String
+
+pub let integer_min_yaml : String
 
 pub let iter_drop_next_yaml : String
 

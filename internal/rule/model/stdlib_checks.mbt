@@ -1,6 +1,9 @@
 ///|
 /// Standard-library suggestions dispatched after structural matching.
 pub(all) enum StdlibCheck {
+  IntegerMax
+  IntegerMin
+  FloatFiniteness
   CollectionIsEmpty
   StringFindContains
   StringStripPrefixTest
@@ -31,6 +34,9 @@ pub(all) enum StdlibCheck {
 ///|
 fn stdlib_check(name : String) -> StdlibCheck? {
   match name {
+    "integer-max" => Some(IntegerMax)
+    "integer-min" => Some(IntegerMin)
+    "float-finiteness" => Some(FloatFiniteness)
     "collection-is-empty" => Some(CollectionIsEmpty)
     "string-find-contains" => Some(StringFindContains)
     "string-prefix-presence" => Some(StringStripPrefixTest)
@@ -64,6 +70,9 @@ fn stdlib_check(name : String) -> StdlibCheck? {
 /// A lint hint inside the implementation it recommends could introduce recursion.
 pub fn StdlibCheck::suggested_method(self : StdlibCheck) -> String {
   match self {
+    IntegerMax => "max"
+    IntegerMin => "min"
+    FloatFiniteness => "is_finite"
     CollectionIsEmpty => "is_empty"
     StringFindContains | MapGetContains | ArraySearchContains => "contains"
     StringStripPrefixTest => "has_prefix"

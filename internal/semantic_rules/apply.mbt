@@ -103,28 +103,42 @@ async fn Candidates::context(
     }
     file
   })
+  async fn active(node : @untyped_cst.CstNode) -> @ide.CheckedFile {
+    let file = checked.wait()
+    if file.excludes(node) {
+      raise Skip("inactive_declaration")
+    }
+    file
+  }
   let context : CheckContext = {
     file: path,
     text: self.text,
     package_name: () => checked.wait().package_name(),
     shape_at: node => {
-      let file = checked.wait()
+      let file = active(node)
       file.type_at(node).bind(id => type_shape(i => file.raw_type(i), id))
     },
-    is_tuple_at: (node, arity) => checked.wait().is_tuple_at(node, arity),
+    is_tuple_at: (node, arity) => active(node).is_tuple_at(node, arity),
     call_header_at: node => {
-      let file = checked.wait()
+      let file = active(node)
       file.type_at(node).bind(id => file.raw_type(id)).bind(function_header)
     },
-    symbol_at: node => checked.wait().symbol_at(node),
+    symbol_at: node => active(node).symbol_at(node),
+    exports_method: (witness, pkg, owner, name, arity) => {
+      checked.wait().exports_method(witness, pkg, owner, name, arity)
+    },
     binding: id => checked.wait().binding(id),
-    references: node => checked.wait().references(node),
+    references: node => active(node).references(node),
     binders: {},
     local_callbacks: Set([]),
+    finite_oracles: {},
     sum_uses: Map([]),
     previous: {},
   }
-  context.inspect_syntax(self.tree)
+  context.inspect_syntax(
+    self.tree,
+    finite_checks=self.matches.any(hit => hit.check is Stdlib(FloatFiniteness)),
+  )
   context
 }
 
@@ -141,9 +155,15 @@ async fn verify_match(context : CheckContext, hit : Match) -> Outcome {
     match evaluate_semantic_check(context, hit.check, hit.candidate) {
       Some(loc) => {
         if hit.check is Stdlib(check) &&
-          hit.enclosing_method == Some(check.suggested_method()) &&
-          (context.package_name)().has_prefix("moonbitlang/core/builtin@") {
-          return Rejected
+          hit.enclosing_method == Some(check.suggested_method()) {
+          let pkg = (context.package_name)()
+          if pkg.has_prefix("moonbitlang/core/builtin@") ||
+            (
+              check is FloatFiniteness &&
+              pkg.has_prefix("moonbitlang/core/float@")
+            ) {
+            return Rejected
+          }
         }
         Finding(loc)
       }

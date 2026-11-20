@@ -103,6 +103,7 @@ fn fixture_context(
       None
     },
     binding: id => bindings.get(id),
+    exports_method: (_, _, _, _, _) => false,
     references: n => {
       for id, loc in bindings {
         if loc == node_range(file, n) {
@@ -113,6 +114,7 @@ fn fixture_context(
     },
     binders: Map([]),
     local_callbacks: Set([]),
+    finite_oracles: {},
     sum_uses: Map([]),
     previous: Map([]),
   }

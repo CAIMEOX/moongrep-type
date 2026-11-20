@@ -70,6 +70,9 @@ pub fn load_semantic_rules() -> Array[RawRuleSpec] raise {
     (
       "conditional_array_spread", @moonbitlang_rules.conditional_array_spread_yaml,
     ),
+    ("float_finiteness", @moonbitlang_rules.float_finiteness_yaml),
+    ("integer_min", @moonbitlang_rules.integer_min_yaml),
+    ("integer_max", @moonbitlang_rules.integer_max_yaml),
   ]
   sources.map(fn(source) raise {
     @model.RawRuleSpec::from_str(

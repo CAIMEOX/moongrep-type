@@ -1,0 +1,14 @@
+id: integer_max
+description: |
+  Use the integer max method for this choice of the larger value. Keep the assignment if updating a local.
+semantic:
+  check: integer-max
+  patterns:
+    - shape: "if $(a:exp) < $(b:exp) { $$$_; $(b:exp) } else { $$$_; $(a:exp) }"
+    - shape: "if $(acc:id) < $(value:exp) { $(acc:id) = $(value:exp) }"
+    - shape: "if $(a:exp) <= $(b:exp) { $$$_; $(b:exp) } else { $$$_; $(a:exp) }"
+    - shape: "if $(acc:id) <= $(value:exp) { $(acc:id) = $(value:exp) }"
+    - shape: "if $(a:exp) > $(b:exp) { $$$_; $(a:exp) } else { $$$_; $(b:exp) }"
+    - shape: "if $(value:exp) > $(acc:id) { $(acc:id) = $(value:exp) }"
+    - shape: "if $(a:exp) >= $(b:exp) { $$$_; $(a:exp) } else { $$$_; $(b:exp) }"
+    - shape: "if $(value:exp) >= $(acc:id) { $(acc:id) = $(value:exp) }"

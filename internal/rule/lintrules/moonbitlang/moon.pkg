@@ -402,3 +402,13 @@ dev_build(
   input: "conditional_array_spread.yaml",
   output: "conditional_array_spread.mbt",
 )
+
+dev_build(
+  rule: "embed",
+  input: "float_finiteness.yaml",
+  output: "float_finiteness.mbt",
+)
+
+dev_build(rule: "embed", input: "integer_min.yaml", output: "integer_min.mbt")
+
+dev_build(rule: "embed", input: "integer_max.yaml", output: "integer_max.mbt")

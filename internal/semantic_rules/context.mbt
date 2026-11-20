@@ -12,10 +12,12 @@ priv struct CheckContext {
   is_tuple_at : async (@untyped_cst.CstNode, Int32) -> Bool?
   call_header_at : async (@untyped_cst.CstNode) -> (String, Int32)?
   symbol_at : async (@untyped_cst.CstNode) -> @semantic.SymbolInfo?
+  exports_method : async (@semantic.SymbolInfo, String, String, String, Int32) -> Bool
   binding : async (String) -> @semantic.Range?
   references : async (@untyped_cst.CstNode) -> Array[@semantic.Range]
   binders : Map[@semantic.Range, Bool]
   local_callbacks : Set[@semantic.Position]
+  finite_oracles : Map[(Int32, Int32), String]
   sum_uses : Map[(Int32, Int32), @untyped_cst.CstNode]
   previous : Map[(Int32, Int32), (@untyped_cst.CstNode, @untyped_cst.CstNode)]
 }
@@ -24,12 +26,16 @@ priv struct CheckContext {
 fn CheckContext::inspect_syntax(
   self : CheckContext,
   root : @untyped_cst.CstNode,
+  finite_checks~ : Bool = false,
 ) -> Unit {
   for declaration in @cst.toplevel_nodes(root) {
     self.record_local_callbacks(declaration)
   }
   let pending = [root]
   while pending.pop() is Some(node) {
+    if finite_checks {
+      self.record_finite_comparison(node)
+    }
     self.record_sum_use(node)
     if node.kind is Name_Binder {
       let location = self.range(node)
@@ -109,6 +115,33 @@ async fn CheckContext::method_is(
     return false
   }
   builtin_owner_is(path, owner) && names.contains(name)
+}
+
+///|
+async fn CheckContext::core_trait_method(
+  self : CheckContext,
+  node : @untyped_cst.CstNode,
+  trait_name : String,
+  method_name : String,
+) -> @semantic.SymbolInfo? {
+  guard (self.symbol_at)(node) is Some(symbol) else {
+    raise Unavailable("The IDE could not resolve the operator definition.")
+  }
+  if symbol.kind == "global" &&
+    symbol.identity
+    is {
+      "kind": "trait_impl",
+      "package": "moonbitlang/core/builtin",
+      "trait": tr,
+      "name": String(found),
+      ..
+    } &&
+    found == method_name &&
+    builtin_owner_is(tr, trait_name) {
+    Some(symbol)
+  } else {
+    None
+  }
 }
 
 ///|

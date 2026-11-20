@@ -1,24 +1,4 @@
 ///|
-async fn core_scalar_equality(
-  context : CheckContext,
-  expr : @untyped_cst.CstNode,
-) -> Bool {
-  guard (context.symbol_at)(expr) is Some(symbol) else {
-    raise Unavailable("The IDE could not resolve the equality operator.")
-  }
-  symbol.kind == "global" &&
-  symbol.identity
-  is {
-    "kind": "trait_impl",
-    "package": "moonbitlang/core/builtin",
-    "trait": trait_path,
-    "name": "equal",
-    ..
-  } &&
-  builtin_owner_is(trait_path, "Eq")
-}
-
-///|
 async fn check_repeated_classifier(
   context : CheckContext,
   node : @untyped_cst.CstNode,
@@ -70,7 +50,7 @@ async fn check_repeated_classifier(
     }
   }
   for comparison in comparisons {
-    if !core_scalar_equality(context, comparison) {
+    if context.core_trait_method(comparison, "Eq", "equal") is None {
       return None
     }
   }

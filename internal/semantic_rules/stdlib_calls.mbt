@@ -241,6 +241,9 @@ async fn check_standard_library(
   check : @rule_model.StdlibCheck,
 ) -> @basic.Location? {
   let matches = match check {
+    FloatFiniteness => return check_float_finiteness(context, node)
+    IntegerMin => check_integer_extremum(context, node, minimum=true)
+    IntegerMax => check_integer_extremum(context, node, minimum=false)
     CollectionIsEmpty => length_test(context, node)
     LoopAny | LoopAll | LoopFindFirst =>
       short_circuit_loop(context, node, check)

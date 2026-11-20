@@ -1,0 +1,14 @@
+id: float_finiteness
+description: |
+  Use !x.is_finite() for NaN or infinity, or x.is_finite() when both are excluded.
+semantic:
+  check: float-finiteness
+  patterns:
+    - shape: "$(x:id).is_nan() || $(x:id).is_inf()"
+    - shape: "$(x:id).is_nan() || $(x:id).is_inf() || $(tail:exp)"
+    - shape: "$(x:id).is_inf() || $(x:id).is_nan()"
+    - shape: "$(x:id).is_inf() || $(x:id).is_nan() || $(tail:exp)"
+    - shape: "!$(x:id).is_nan() && !$(x:id).is_inf()"
+    - shape: "!$(x:id).is_nan() && !$(x:id).is_inf() && $(tail:exp)"
+    - shape: "!$(x:id).is_inf() && !$(x:id).is_nan()"
+    - shape: "!$(x:id).is_inf() && !$(x:id).is_nan() && $(tail:exp)"
