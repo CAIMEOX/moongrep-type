@@ -93,7 +93,8 @@ fn nominal_path(name : @syntax.LongIdent, source : InputSource) -> Json? {
     Some({ "kind": "builtin", "name": name })
   } else if [
       "Array", "ArrayView", "ReadOnlyArray", "Map", "Iter", "Iter2", "StringView",
-      "BytesView", "Ref", "Eq", "Compare", "Hash", "Show", "Default",
+      "BytesView", "Ref", "Eq", "Compare", "Add", "Sub", "Hash", "Show", "Default",
+      "Logger", "StringBuilder",
     ].contains(name) {
     Some({
       "kind": "named",
@@ -236,6 +237,8 @@ fn type_declarations(
     match item {
       TopTypeDef(decl) =>
         result[decl.tycon] = package_type_path(package_name, decl.tycon)
+      TopTrait(decl) =>
+        result[decl.name.name] = package_type_path(package_name, decl.name.name)
       TopUsing(pkg~, names~, ..) =>
         if aliases.get(pkg.name) is Some(imported) {
           for (alias_target, kind) in names {

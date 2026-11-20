@@ -40,6 +40,12 @@ type at the exact operand range for this check, including tuples whose element
 types refer to transitive dependencies. Comparisons of payload types still use
 their resolved nominal identities.
 
+When a suggested numerical API depends on the core release, the verifier reads
+the public interface in the package containing the resolved operator or method.
+The session caches and validates that interface. A concrete trait implementation
+and its matching unaliased method promotion can supply the same definition.
+Known false backend predicates exclude their declarations from IDE queries.
+
 Before emitting semantic findings, the scanner rechecks input contents, source
 membership, definition files, the backend selector and the compiler version.
 Input failures produce a scan-input error. The rule reports only verified

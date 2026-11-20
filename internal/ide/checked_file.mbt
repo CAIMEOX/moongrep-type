@@ -4,6 +4,17 @@ pub struct CheckedFile {
   priv input : InputSource
   priv declarations : Array[@untyped_cst.CstNode]
   priv scopes : Map[(Int32, Int32), Scope]
+  priv inactive : Array[(Int32, Int32)]
+}
+
+///|
+pub fn CheckedFile::excludes(
+  self : CheckedFile,
+  node : @untyped_cst.CstNode,
+) -> Bool {
+  self.inactive.any(bounds => {
+    bounds.0 <= node.source_span.0 && node.source_span.1 <= bounds.1
+  })
 }
 
 ///|
@@ -73,15 +84,54 @@ pub async fn CheckedFile::symbol_at(
     span(query_anchor(node)).start,
     catalog.documents,
   )
-  let mut unique : String? = None
+  let ids : Set[String] = Set([])
   for definition in defs {
-    let id = catalog.symbol(definition)
-    if unique is Some(previous) && previous != id {
-      return None
-    }
-    unique = Some(id)
+    ids.add(catalog.symbol(definition))
   }
-  unique.bind(id => catalog.symbols.get(id))
+  match ids.to_array() {
+    [id] => catalog.symbols.get(id)
+    [a, b] => {
+      let first = catalog.symbols[a]
+      let second = catalog.symbols[b]
+      if promotes_impl(first.identity, second.identity) {
+        Some(second)
+      } else if promotes_impl(second.identity, first.identity) {
+        Some(first)
+      } else {
+        None
+      }
+    }
+    _ => None
+  }
+}
+
+///|
+/// peek-def can report both an unaliased promotion and its concrete impl.
+/// Keep every other multi-definition result ambiguous.
+fn promotes_impl(promotion : Json, implementation : Json) -> Bool {
+  promotion
+  is {
+    "kind": "promotion",
+    "package": pkg,
+    "trait": tr,
+    "self_type": owner,
+    "name": name,
+    ..
+  } &&
+  implementation
+  is {
+    "kind": "trait_impl",
+    "package": impl_pkg,
+    "trait": impl_tr,
+    "self_type": impl_owner,
+    "name": impl_name,
+    ..
+  } &&
+  owner is Object(_) &&
+  owner == impl_owner &&
+  tr == impl_tr &&
+  name == impl_name &&
+  pkg == impl_pkg
 }
 
 ///|

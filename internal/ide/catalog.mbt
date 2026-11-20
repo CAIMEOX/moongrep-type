@@ -82,11 +82,41 @@ fn declarations(source : InputSource) -> Array[Declaration] {
           }
         }
       }
-      TopImpl(trait_~, method_name~, ..) => {
+      TopExtend(type_name~, trait_~, names~, ..) => {
+        guard !type_name.is_object &&
+          !trait_.is_object &&
+          nominal_path(trait_.name, source) is Some(trait_path) &&
+          nominal_path(type_name.name, source) is Some(owner) else {
+          continue
+        }
+        for entry in names {
+          guard entry.target is None else { continue }
+          result.push({
+            range: syntax_span(entry.binder.loc),
+            kind: "global",
+            name: entry.binder.name,
+            identity: {
+              "kind": "promotion",
+              "package": source.package_name,
+              "self_type": owner,
+              "trait": trait_path,
+              "name": entry.binder.name,
+            },
+            alias_name: None,
+          })
+        }
+      }
+      TopImpl(trait_~, method_name~, self_ty~, quantifiers~, ..) => {
         guard nominal_path(trait_.name, source) is Some(trait_path) else {
           continue
         }
         let range = syntax_span(method_name.loc)
+        let owner = if quantifiers.is_empty() &&
+          self_ty is Some(Name(constr_id~, tys=Empty, ..)) {
+          nominal_path(constr_id.id, source).unwrap_or(Json::null())
+        } else {
+          Json::null()
+        }
         result.push({
           range,
           kind: "global",
@@ -95,6 +125,7 @@ fn declarations(source : InputSource) -> Array[Declaration] {
             "kind": "trait_impl",
             "package": source.package_name,
             "trait": trait_path,
+            "self_type": owner,
             "name": method_name.name,
             "definition": definition_key({ file: source.path, range, }),
           },
@@ -163,6 +194,7 @@ fn declarations(source : InputSource) -> Array[Declaration] {
 
 ///|
 priv struct Catalog {
+  exports : Map[String, @async.Lazy[Set[(String, String, Int32)]]]
   types : TypeTable
   symbols : Map[String, @semantic.SymbolInfo]
   symbol_ids : Map[String, String]

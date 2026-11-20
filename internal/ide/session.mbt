@@ -246,7 +246,11 @@ pub async fn Session::file(
     fail("source changed after syntax matching: \{file}")
   }
   project.catalog.documents[requested] = input.text
-  Some({ project, input, declarations: @cst.toplevel_nodes(tree), scopes: {}, })
+  let declarations = @cst.toplevel_nodes(tree)
+  let inactive = declarations
+    .filter(d => excluded_by_target(d, project.client.backend))
+    .map(d => d.source_span)
+  Some({ project, input, declarations, scopes: {}, inactive, })
 }
 
 ///|
@@ -410,6 +414,7 @@ async fn check_project(
   ignore(command("moon", args, root, environment))
   require_unchanged(snapshots)
   let catalog : Catalog = {
+    exports: {},
     types: TypeTable::new(),
     symbols: {},
     symbol_ids: {},

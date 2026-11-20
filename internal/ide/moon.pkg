@@ -2,6 +2,8 @@ import {
   "moonbit-community/moongrep/internal/cst",
   "moonbit-community/moongrep/semantic",
   "moonbitlang/parser/untyped_cst",
+  "moonbitlang/parser/mbti_parser",
+  "moonbitlang/parser/attribute",
   "moonbitlang/parser/syntax",
   "moonbitlang/core/json",
   "moonbitlang/core/string",

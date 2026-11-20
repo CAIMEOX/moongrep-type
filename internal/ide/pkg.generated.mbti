@@ -16,6 +16,8 @@ pub struct CheckedFile {
   // private fields
 }
 pub fn CheckedFile::binding(Self, String) -> @semantic.Range?
+pub fn CheckedFile::excludes(Self, @node.CstNode) -> Bool
+pub async fn CheckedFile::exports_method(Self, @semantic.SymbolInfo, String, String, String, Int32) -> Bool
 pub async fn CheckedFile::is_tuple_at(Self, @node.CstNode, Int32) -> Bool?
 pub fn CheckedFile::package_name(Self) -> String
 pub fn CheckedFile::path(Self) -> String
