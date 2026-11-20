@@ -1,6 +1,6 @@
 ///|
 /// One-based line and Unicode scalar column. Range ends are exclusive.
-#derive(Eq, Hash, Debug, FromJson)
+#derive(Eq, Hash, Debug, @json.FromJson)
 pub(all) struct Position {
   line : Int32
   column : Int32
@@ -8,7 +8,7 @@ pub(all) struct Position {
 
 ///|
 /// The file is the original absolute path of the checked source snapshot.
-#derive(Eq, Hash, Debug, FromJson)
+#derive(Eq, Hash, Debug, @json.FromJson)
 pub(all) struct Range {
   file : String
   start : Position
@@ -47,7 +47,7 @@ pub extend Range with Eq::{equal, not_equal}
 pub extend Range with Hash::{hash, hash_combine}
 
 ///|
-pub extend Position with FromJson::{from_json}
+pub extend Position with @json.FromJson::{from_json}
 
 ///|
-pub extend Range with FromJson::{from_json}
+pub extend Range with @json.FromJson::{from_json}

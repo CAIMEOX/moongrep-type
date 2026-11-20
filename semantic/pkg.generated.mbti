@@ -17,7 +17,7 @@ pub(all) struct Position {
   column : Int32
 }
 pub fn Position::equal(Self, Self) -> Bool
-pub fn Position::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Position::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Position::hash(Self) -> Int32
 pub fn Position::hash_combine(Self, Hasher) -> Unit
 pub fn Position::not_equal(Self, Self) -> Bool
@@ -30,7 +30,7 @@ pub(all) struct Range {
   end : Position
 }
 pub fn Range::equal(Self, Self) -> Bool
-pub fn Range::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Range::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Range::hash(Self) -> Int32
 pub fn Range::hash_combine(Self, Hasher) -> Unit
 pub fn Range::not_equal(Self, Self) -> Bool

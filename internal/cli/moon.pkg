@@ -16,6 +16,7 @@ import {
   "moonbitlang/async/os_error",
   "moonbitlang/async/stdio",
   "moonbitlang/core/argparse",
+  "moonbitlang/core/env",
   "moonbitlang/core/json",
   "moonbitlang/lexer/basic",
   "moonbitlang/parser/untyped_cst",

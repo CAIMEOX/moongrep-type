@@ -1,10 +1,10 @@
-# internal/rule/compile Internal Notes
+# Rule compiler internals
 
-This document records implementation details that are easy to miss when
-changing the `internal/rule/compile` package. It is for maintainers of the rule compiler
-and its callers, not for rule authors.
+The `internal/rule/compile` package validates and normalizes patterns before
+matching. These notes cover its implementation and the contracts its callers
+depend on.
 
-## Package Role
+## Package role
 
 `internal/rule/compile` is the validation and normalization boundary between pattern
 source text and executable matcher or rule values.
@@ -22,7 +22,7 @@ rule metadata, guards, or a rule-level prefilter.
 `compile_inside_toplevel_pattern` does the same for one top-level shape using
 the default `inside-toplevel` match mode and target-placeholder validation.
 
-Compilation is deliberately narrow. This package:
+The compiler:
 
 - checks duplicate rule ids
 - parses ordinary rule `shape` values as MoonBit expressions and each
@@ -36,7 +36,7 @@ It does not match source code, evaluate guards, lower taint rules, or scan
 files. Those responsibilities live in `matching`, `internal/rule/apply`,
 `internal/rule/taint_lowering`, and `internal/rule/prefilter`.
 
-## Main Flow
+## Main flow
 
 `compile_rules` first calls `ensure_unique_rule_ids`, then compiles each raw rule
 with `compile_rule`.
@@ -82,7 +82,7 @@ Each expression shape is compiled with `compile_metavar_shape`;
 environments. The group compiler validates `__TARGET__` according to whether
 the entry has a `then` body and compiles guards and matcher patterns.
 
-## Shape Parsing
+## Shape parsing
 
 `collect_shape_metavars` first lexes with:
 
@@ -107,8 +107,8 @@ metavar mode while building each segment's `expr` subtree, including nested
 interpolations, so validation and context discovery use the original CST
 directly.
 
-As before the CST migration, a `Type_Name` starts with an uppercase identifier
-token. Explicit `type` metavars and typed type ellipsis metavars therefore need
+A `Type_Name` starts with an uppercase identifier token. Explicit `type`
+metavars and typed type ellipsis metavars therefore need
 an uppercase name. Lowercase and keyword names remain rejected by the parser.
 
 Ordinary `patterns`, `patterns-not`, every `then` entry, and taint clause
@@ -125,7 +125,7 @@ top-level item" depending on the clause.
 Recovery nodes (`Missing` and `Error`) are rejected even when the parser does
 not emit a diagnostic.
 
-## Metavar Context
+## Metavar context
 
 Metavar compilation locates every recorded source span in the parsed CST and
 derives its context from the path to that node. The context records expression,
@@ -151,7 +151,7 @@ binder and reuse that kind in later expression occurrences. It also rejects a
 plain match pattern such as `$item => body`, because that position is ambiguous
 between `id`, `const`, and `pat`.
 
-## Metavar Kinds
+## Metavar kinds
 
 Only these inline kinds are supported:
 
@@ -175,7 +175,7 @@ order. Top-level function shapes retain the existing identifier priority:
 identifier metavars found in parameters precede other identifier entries. Do
 not sort registry entries as a cleanup.
 
-## Reserved Names
+## Reserved names
 
 Inline declarations may not use:
 
@@ -190,7 +190,7 @@ The complete, unqualified spelling `$_` is the matcher ignore placeholder.
 Names that merely start with underscores, such as `__moongrep_value`, are not
 reserved. The exact built-ins listed above are reserved.
 
-## Structural Rules
+## Structural rules
 
 StructuralRuleSpec contains the optional ordered inside_toplevel array and a
 recursive StructuralPatternGroupSpec. Each positive StructuralPatternSpec
@@ -227,7 +227,7 @@ This is a rule-compiler restriction. Guard evaluation in `internal/rule/apply` e
 string-like value from normalized identifiers or constants, not arbitrary
 expression, pattern, argument, or type CST subtrees.
 
-## Taint Rules
+## Taint rules
 
 Every taint source, sink, and sanitizer shape must compile to a top-level call
 CST:
@@ -253,9 +253,9 @@ For labelled arguments, both label and index are stored. The lowering layer uses
 the index to find the evaluated call argument and the label to confirm that the
 same labelled slot was selected.
 
-## Integration Boundaries
+## Integration boundaries
 
-Several packages intentionally know about the same placeholder semantics:
+These packages share the placeholder semantics:
 
 - `internal/rule/compile` parses and validates inline syntax, `__TARGET__`, and
   `__SOURCE__`
@@ -268,7 +268,7 @@ Several packages intentionally know about the same placeholder semantics:
 When changing user-visible rule semantics, update all affected boundaries and
 the rule-author docs in `internal/docs/RuleSpec.md` and `internal/docs/RuleSpec_CN.md`.
 
-## Maintenance Checklist
+## Maintenance checklist
 
 When adding support for a new parser CST form:
 
@@ -307,6 +307,6 @@ When changing taint target behavior:
    `__SOURCE__` matching changes
 4. add compile-time validation tests and rule-application tests
 
-For package-local validation work, `moon test internal/rule/compile` is the tight loop.
-For behavior visible through loaded YAML rules, also test `internal/rule/apply`,
+Run `moon test internal/rule/compile` for validation changes. If a change affects
+loaded YAML rule behavior, also test `internal/rule/apply`,
 `internal/rule/taint_lowering`, and the relevant e2e snapshots.

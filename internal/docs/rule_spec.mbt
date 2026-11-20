@@ -2,26 +2,25 @@
 
 ///|
 let _embed_rulespec_md : String =
-  #|# Rule Specification
+  #|# Rule specification
   #|
-  #|This document specifies the current YAML rule format, validation rules, and
-  #|matching semantics accepted by moongrep.
+  #|moongrep rules use YAML, with MoonBit snippets as matching patterns.
   #|
   #|For command-line rule selection, scanning, output, diagnostics, and exit
   #|behavior, see [CLISpec.md](CLISpec.md).
   #|
-  #|Rules use YAML format. Every `shape` value is MoonBit surface syntax. The scanner
-  #|matches parsed MoonBit expression structure and does not match raw text.
+  #|Every `shape` value is MoonBit surface syntax. The scanner matches parsed
+  #|MoonBit expression structure.
   #|Whitespace formatting and comments, including documentation comments, are not
   #|significant. Literal source spelling is an exception: constants are compared by
   #|their parser CST kind and preserved source spelling, not by normalized semantic
   #|value. Equivalent values such as `1000` and `1_000` therefore do not necessarily
-  #|match. Expression form,
-  #|operators, labels, callee names, and argument structure are also significant.
+  #|match. Expression form, operators, labels, callee names, and argument structure
+  #|are also significant.
   #|Wildcards and declared metavariables modify these matching requirements as
   #|documented below.
   #|
-  #|## Rule Files
+  #|## Rule files
   #|
   #|A rules root is a directory containing YAML rule files.
   #|
@@ -76,9 +75,9 @@ let _embed_rulespec_md : String =
   #|
   #|Rule ids must be unique.
   #|
-  #|## YAML Schema
+  #|## YAML schema
   #|
-  #|### Top-Level Keys
+  #|### Top-level keys
   #|
   #|Allowed root keys are `id`, `description`, `patterns`, `patterns-not`,
   #|`inside-toplevel`, `taint`, and `semantic`. A structural rule requires positive `patterns`,
@@ -92,7 +91,7 @@ let _embed_rulespec_md : String =
   #|required and must be a string. Its content is preserved as supplied by YAML,
   #|including trailing newlines produced by block scalars.
   #|
-  #|### Pattern Objects
+  #|### Pattern objects
   #|
   #|Structural entries in `patterns` and `patterns-not` use this
   #|object schema. `inside-toplevel` adds the `match-mode` key described below.
@@ -201,7 +200,7 @@ let _embed_rulespec_md : String =
   #|them. Semantic rules validate compiler identities only after this structural
   #|candidate match succeeds.
   #|
-  #|### Function Bodies and Explicit Blocks
+  #|### Function bodies and explicit blocks
   #|
   #|The braces around a function, method, test, lambda, or local-function body are
   #|matching containers. They are not themselves an explicit block expression
@@ -225,7 +224,7 @@ let _embed_rulespec_md : String =
   #|does not expose its braces as an explicit block candidate. An empty sequence
   #|or a selected part of a continuation retains its exact statement boundaries.
   #|
-  #|### Let Shapes With Omitted Bodies
+  #|### Let shapes with omitted bodies
   #|
   #|An ordinary `let` shape without an explicit body is a let-header pattern. For
   #|example, this shape matches the binding pattern and right-hand side. It places
@@ -288,7 +287,7 @@ let _embed_rulespec_md : String =
   #|header match covers only the `proof_let` while later expressions remain
   #|searchable.
   #|
-  #|### Guard Shapes With Omitted Bodies
+  #|### Guard shapes with omitted bodies
   #|
   #|A `guard` shape without an explicit body is a guard-header pattern. It matches
   #|the condition and `else` expression but places no constraint on the candidate
@@ -376,7 +375,7 @@ let _embed_rulespec_md : String =
   #|  - shape: $value + $value
   #|```
   #|
-  #|The moongrep infers a single kind for all occurrences of the same name. Bare
+  #|moongrep infers a single kind for all occurrences of the same name. Bare
   #|names used only as expression placeholders infer `exp`; bare names used in
   #|binder, label, constructor, type-name, or qualified-identifier positions infer
   #|`id`; bare names used as whole type nodes infer `type`. For example, in
@@ -401,7 +400,7 @@ let _embed_rulespec_md : String =
   #|The old YAML `metavars` key is not supported. Pattern objects that contain it
   #|are rejected as using an unsupported key.
   #|
-  #|### Ellipsis Metavariables
+  #|### Ellipsis metavariables
   #|
   #|`$$$name` captures zero or more consecutive siblings in an ordered untyped-CST
   #|list. `$$$(name:kind)` applies one of `exp`, `id`, `const`, `arg`, `pat`, or
@@ -459,7 +458,7 @@ let _embed_rulespec_md : String =
   #|`ExprQuery::captures_from_cst` all use this representation. A terminal `$_`
   #|continuation wildcard is non-binding and therefore produces no `BoundValue`.
   #|
-  #|### Reserved Names
+  #|### Reserved names
   #|
   #|These names must not be used as metavar names:
   #|
@@ -472,7 +471,7 @@ let _embed_rulespec_md : String =
   #|`then` and `inside-toplevel`; `__SOURCE__` is only valid in taint sink
   #|and sanitizer shapes.
   #|
-  #|### Where Metavars Can Bind
+  #|### Where metavars can bind
   #|
   #|`$(name:exp)` is valid only as a whole bare identifier expression. It captures the
   #|candidate expression at that position. This is valid:
@@ -536,7 +535,7 @@ let _embed_rulespec_md : String =
   #|  - shape: match input { $(item:pat) => item }
   #|```
   #|
-  #|### Built-In Wildcards
+  #|### Built-in wildcards
   #|
   #|The exact spelling `$_` is an ignore placeholder when it appears in a
   #|binding-capable position:
@@ -598,13 +597,12 @@ let _embed_rulespec_md : String =
   #|make(value) == make(other)
   #|```
   #|
-  #|`exp` is not the right choice when the same source-level name appears in
-  #|different syntactic roles, such as once as a binder and later as an identifier
-  #|expression. Use `id` for that.
+  #|Use `id` when the same source-level name appears in different syntactic roles,
+  #|such as a binder and a later identifier expression. An `exp` capture compares
+  #|expression structure.
   #|
-  #|Repeated `exp` equality is currently guaranteed because captured values are
-  #|compared as untyped CST nodes by node kind and child values, ignoring source
-  #|locations. It is not limited to a fixed list of expression shapes. Semantic
+  #|Repeated `exp` captures compare untyped CST node kinds and child values,
+  #|ignoring source locations. This works for any expression shape. Semantic
   #|equivalents with different CST structures do not match. A placeholder can
   #|absorb the structural difference.
   #|
@@ -789,8 +787,8 @@ let _embed_rulespec_md : String =
   #|captures established by `then` or `inside-toplevel`.
   #|
   #|Guards are checked after the structural CST match succeeds. All guards in a
-  #|single pattern object must match; this is AND semantics. Regex matching uses
-  #|contains semantics. Use anchors such as `^...$` when the whole capture value
+  #|single pattern object must match (AND). Regexes match substrings by default.
+  #|Use anchors such as `^...$` when the whole capture value
   #|must match.
   #|
   #|For `id` captures, the regex sees the normalized identifier string, such as
@@ -798,7 +796,7 @@ let _embed_rulespec_md : String =
   #|value: string constants without quotes, numeric constants as their source text,
   #|and booleans as `true` or `false`.
   #|
-  #|## Structural Rules
+  #|## Structural rules
   #|
   #|A structural rule has a non-empty `patterns` array, or has
   #|`inside-toplevel` with non-empty `patterns`, non-empty `patterns-not`, or both.
@@ -992,8 +990,8 @@ let _embed_rulespec_md : String =
   #|
   #|`inside-toplevel` restricts a structural rule to matches inside selected
   #|MoonBit top-level items. It is a non-empty ordered array using the same object
-  #|shape/guard schema; its selected target is scanned with the root group. Each entry's `shape` is
-  #|parsed as exactly one top-level item, not as an expression.
+  #|shape/guard schema. The root group scans the selected target. Each entry's `shape`
+  #|must parse as exactly one top-level item.
   #|
   #|```yaml
   #|id: safe-function-target
@@ -1056,7 +1054,8 @@ let _embed_rulespec_md : String =
   #|  optional `guard` may filter those captures.
   #|- Captures declared by the selected `inside-toplevel` entry remain visible to
   #|  inner `patterns` and `patterns-not`, using the same all-alternatives
-  #|  declaration and kind-consistency rules across all top-level alternatives, including references in nested groups and guards.
+  #|  declaration and kind-consistency rules across all top-level alternatives.
+  #|  These checks include references in nested groups and guards.
   #|- `inside-toplevel` is not supported on taint rules.
   #|
   #|The candidate top-level item tries eligible `inside-toplevel` entries in YAML
@@ -1068,7 +1067,7 @@ let _embed_rulespec_md : String =
   #|finding whose `loc` is the inner match location. With only `patterns-not`, one
   #|finding is produced at the matched top-level item location.
   #|
-  #|## Taint Rules
+  #|## Taint rules
   #|
   #|A taint rule has a top-level `taint` mapping.
   #|
@@ -1098,7 +1097,7 @@ let _embed_rulespec_md : String =
   #|    - shape: sanitize_html(__SOURCE__)
   #|```
   #|
-  #|### Taint Shape Restrictions
+  #|### Taint shape restrictions
   #|
   #|Every taint `shape` must be a direct call or method call.
   #|
@@ -1146,7 +1145,7 @@ let _embed_rulespec_md : String =
   #|The invalid example nests `__SOURCE__` inside another expression. A valid shape
   #|uses it as the whole argument value.
   #|
-  #|### Taint Semantics
+  #|### Taint semantics
   #|
   #|Taint analysis is intraprocedural. It currently analyzes function bodies and
   #|method bodies. Top-level lets, consts, tests, views, and declarations without
@@ -1194,7 +1193,7 @@ let _embed_rulespec_md : String =
   #|prevented taint analysis. Unknown calls do not implicitly raise exceptions;
   #|YAML rules do not currently declare exceptional call models.
   #|
-  #|## Error Conditions
+  #|## Error conditions
   #|
   #|A rule set or rule file is rejected when any of these conditions occurs:
   #|
@@ -1234,7 +1233,7 @@ let _embed_rulespec_md : String =
   #|- a shape uses the same metavar name across multiple metavar kinds
   #|- a bare `$name` cannot be inferred to one compatible kind
   #|- a bare `$name` appears only as an ambiguous simple pattern variable
-  #|- an metavar uses a reserved name
+  #|- a metavar uses a reserved name
   #|- `$(name:exp)` appears outside a bare expression position
   #|- `$(name:const)` appears outside a constant expression or constant pattern position
   #|- `$(name:arg)` appears outside a bare argument position
@@ -1265,7 +1264,7 @@ let _embed_rulespec_md : String =
   #|
   #|## Examples
   #|
-  #|### Ordered Structural Alternatives
+  #|### Ordered structural alternatives
   #|
   #|```yaml
   #|id: collect-output
@@ -1278,7 +1277,7 @@ let _embed_rulespec_md : String =
   #|
   #|Both alternatives emit the same rule id and description.
   #|
-  #|### Binder and Use Name Comparison
+  #|### Binder and use name comparison
   #|
   #|```yaml
   #|id: counter-loop
@@ -1294,7 +1293,7 @@ let _embed_rulespec_md : String =
   #|`counter` is compared by source-level name across binder, condition, and update
   #|positions. `start`, `limit`, and `body` are expression captures.
   #|
-  #|### Context-Restricted Structural Match
+  #|### Context-restricted structural match
   #|
   #|```yaml
   #|id: wrapped-sink
@@ -1310,7 +1309,7 @@ let _embed_rulespec_md : String =
   #|The rule first finds `wrapper(...)`, then searches only the expression captured
   #|by `__TARGET__` for `sink(...)`.
   #|
-  #|### Negative Structural Constraint
+  #|### Negative structural constraint
   #|
   #|```yaml
   #|id: unblocked-target
@@ -1329,7 +1328,7 @@ let _embed_rulespec_md : String =
   #|matches `patterns-not`, and prunes its children. The negative pattern binds its
   #|own `value`; it does not reuse any positive pattern capture.
   #|
-  #|### Context Without a Positive Inner Pattern
+  #|### Context without a positive inner pattern
   #|
   #|```yaml
   #|id: wrapper-without-danger
@@ -1346,7 +1345,7 @@ let _embed_rulespec_md : String =
   #|`danger()`. If no negative pattern matches inside that subtree, the wrapper
   #|itself is reported.
   #|
-  #|### Guarded Structural Match
+  #|### Guarded structural match
   #|
   #|```yaml
   #|id: guarded-render
@@ -1363,7 +1362,7 @@ let _embed_rulespec_md : String =
   #|then keep only calls whose normalized callee is `@html.render` and whose
   #|constant value contains `danger` or `raw`.
   #|
-  #|### Taint Source, Sink, and Sanitizer
+  #|### Taint source, sink, and sanitizer
   #|
   #|```yaml
   #|id: raw-html

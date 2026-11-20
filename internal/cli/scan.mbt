@@ -16,7 +16,7 @@ priv enum ScanWarning {
     file~ : String,
     rule_id~ : String,
     loc~ : @basic.Location,
-    reason~ : String
+    reason~ : String,
   )
 }
 

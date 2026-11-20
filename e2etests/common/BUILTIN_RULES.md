@@ -78,3 +78,53 @@ effects. The fixture produces no findings for this rule.
 $ moonx moonbit-community/moongrep lint --json ../testdata/builtin-simplifiable-assignment-variants/negative.mbt | moonx cli/jq@0.2.1 -s '[.[] | select(.rule_id == "moonbitlang/simplifiable_assignment")] | length'
 0
 ```
+
+## Forward array iteration variants
+
+The loop appends children to the queue and checks its length on every
+iteration. A for-in loop would skip those children.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-forward-array-iteration-variants/growing_queue.mbt
+@STDOUT (empty)
+@STDERR (empty)
+```
+
+The rule still reports a loop that copies elements to a different array.
+Collecting the index alongside each element requires keeping the index in the
+loop.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-forward-array-iteration-variants/index_uses.mbt | moonx cli/jq@0.2.1 -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
+moonbitlang/cstyle_forward_array_iteration 4:3
+```
+
+## Loop rewrite conditions
+
+A loop can mutate its input array, change its bound between iterations, or
+pass a replacement counter to `continue`. These loops produce no findings.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-loop-variants/unsafe.mbt
+@STDOUT (empty)
+@STDERR (empty)
+```
+
+Fixed integer bounds and a reverse copy still produce findings. A bare
+`continue` uses the loop's normal counter update.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-loop-variants/safe.mbt | moonx cli/jq@0.2.1 -r '"\(.rule_id) \(.range.start.line):\(.range.start.column)"'
+moonbitlang/cstyle_forward_simple_forloop 4:3
+moonbitlang/cstyle_backward_simple_forloop 16:3
+moonbitlang/cstyle_backward_array_iteration 25:3
+```
+
+Array traversal findings ask readers to check for mutations through aliases
+or function calls before rewriting.
+
+```mooncram moonbit-community/moongrep
+$ moonx moonbit-community/moongrep lint --json ../testdata/builtin-loop-variants/aliases.mbt | moonx cli/jq@0.2.1 -r '"\(.rule_id): \(.description | split("\n") | last)"'
+moonbitlang/cstyle_forward_array_iteration: mutations through aliases or function calls.
+moonbitlang/cstyle_backward_array_iteration: mutations through aliases or function calls.
+```
