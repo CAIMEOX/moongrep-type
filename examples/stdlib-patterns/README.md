@@ -88,3 +88,7 @@ order, iterator consumption and non-ASCII input, run:
 ```sh
 MOON_WORK=off moon -C examples/stdlib-patterns test
 ```
+
+The [counterexample study](COUNTEREXAMPLES.md) traces these checks to six
+merged core PRs and six Mooncakes releases. It includes runnable cases for
+callback escape, wrapper identity, reserved capacity, queued work and partial reads.

@@ -48,6 +48,10 @@ pub fn first_negative(Iter[Int32]) -> Int32?
 
 pub fn first_transformed(Iter[Int32], (Int32) -> Bool) -> Int32?
 
+pub fn flush_callbacks(Array[() -> Unit]) -> Unit
+
+pub fn follow_path(Array[Char], Map[(Int32, Char), Int32], Map[Int32, String]) -> String?
+
 pub fn[T] fourth(Iter[T]) -> T?
 
 pub fn frequency(Map[String, Int32], String) -> Int32
@@ -59,6 +63,8 @@ pub fn has_bytes(Bytes) -> Bool
 pub fn incomplete_digit(Char) -> Bool
 
 pub fn increment_other(Int32?, Int32) -> Int32?
+
+pub fn keep_capacity(Array[Int32], (Int32) -> Bool) -> Array[Int32]
 
 pub fn[A, E] keep_success(Result[A, E]) -> A?
 
@@ -98,11 +104,17 @@ pub fn optional_read(Int32?, () -> Int32 raise?) -> Int32 raise?
 
 pub fn[A] optional_singleton(A?) -> Array[A]?
 
+pub fn optional_token(Result[(Char, Int32), ParseStop], Int32) -> Result[(Char?, Int32), ParseStop]
+
 pub fn other_sum(MaybeCount) -> MaybeCount
 
 pub fn prefix(StringView, StringView) -> Bool
 
 pub fn present_key(Map[String, Int32?], String) -> Bool
+
+pub fn read_minimum(Int32, () -> (Int32, Bool)) -> (Int32, Bool)
+
+pub fn read_without_caching(Map[Int32, Int32], () -> Int32) -> Int32
 
 pub fn records_before_testing(Array[Int32], (Int32) -> Unit, (Int32) -> Bool) -> Bool
 
@@ -140,6 +152,12 @@ pub(all) struct Other(Int32)
 pub fn Other::find(Self, String) -> Int32?
 pub fn Other::get(Self, String) -> Int32?
 pub fn Other::length(Self) -> Int32
+
+pub(all) enum ParseStop {
+  Miss
+  Committed
+  Need(Int32)
+}
 
 pub(all) struct WordList {
   words : Array[String]

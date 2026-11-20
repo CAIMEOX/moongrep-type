@@ -77,5 +77,7 @@ async test "counterexamples from core and Mooncakes retain their original behavi
     [root + "/counterexamples.mbt"],
     @provider.Session::new(target="wasm"),
   )
-  assert_eq(counts, Map([]))
+  // The queue can change during its traversal. Its emptiness check is
+  // independently eligible, and the other expressions keep their semantics.
+  assert_eq(counts, Map([("moonbitlang/collection_is_empty", 1)]))
 }
