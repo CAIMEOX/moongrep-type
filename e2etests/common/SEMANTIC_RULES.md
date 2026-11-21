@@ -51,7 +51,7 @@ $ moonx moonbit-community/moongrep lint ../../examples/syntax-adoption/iterators
 ```
 
 The floating-point rule highlights only the adjacent predicates when another
-condition follows them. The October–November audit queries can run separately.
+condition follows them. The optional review queries run separately with `scan --rules`.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)

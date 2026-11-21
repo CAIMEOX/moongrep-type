@@ -1,5 +1,5 @@
 ///|
-async test "month-diff rules verify the owning methods and report only the intended source" {
+async test "numeric, iteration and text rules distinguish standard operations from lookalikes" {
   let root = @fs.tmpdir(prefix="moongrep-core-month-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/core-month", root)
