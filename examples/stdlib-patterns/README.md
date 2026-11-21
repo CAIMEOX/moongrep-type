@@ -1,5 +1,7 @@
 # Standard-library patterns
 
+[中文](README_CN.md)
+
 Run these commands from the MoonGrep repository. The outer target builds the
 native CLI. The inner target selects the backend for checking the example.
 
@@ -11,6 +13,8 @@ moon run --target native . -- scan examples/stdlib-patterns/idioms.mbt --rule in
 Each row has a YAML rule in [the builtin rule directory](../../internal/rule/lintrules/moonbitlang).
 The builtin ID is `moonbitlang/` followed by the name in the first column.
 All findings are suggestions. A custom shape still has to pass its semantic check.
+
+## Collection and text queries
 
 | Rule | Recognized source | Suggestion or condition |
 | --- | --- | --- |
@@ -28,6 +32,11 @@ The presence checks also accept `is None` (negate the suggested predicate)
 and the legacy Option methods `is_some()` and `is_none()`. A pattern testing
 a payload or binding a value needs more than a presence test. Source methods
 and constructors must resolve to the standard library.
+
+An emptiness suggestion changes only the condition. A loop that drains a queue
+can use `!queue.is_empty()` and still process elements appended by its body.
+`map_get_default` preserves a read-only lookup. An operation that inserts the
+missing key would change the map on subsequent lookups.
 
 ## Handwritten Option and Result operations
 
@@ -82,18 +91,6 @@ The three ASCII checks accept either order of inclusive comparisons on the
 same stable `Char` binding, or a single inclusive range pattern. Each bound
 is exact. Range tests on UTF-16 code units have a different receiver type.
 
-To run the behavioral examples, including raised defaults, predicate call
-order, iterator consumption and non-ASCII input, run:
-
-```sh
-MOON_WORK=off moon -C examples/stdlib-patterns test
-```
-
-The [counterexample study](COUNTEREXAMPLES.md) traces these checks to six
-merged core PRs and six Mooncakes releases. It includes runnable cases for
-callback escape, wrapper identity, reserved capacity, queued work and partial reads.
-
-The [MoonBit syntax adoption study](../syntax-adoption/README.md) compares
-17 further Mooncakes releases with core PRs, including source locations,
-replay results and three structural survey queries. Four new checks are included
-in the [builtin syntax-adoption rules](../syntax-adoption/RULES.md).
+The [matching examples](counterexamples.mbt) include a growing queue and callbacks
+with `#locals` restrictions. For `map` and `bind` calls that return the original
+payload, see the [Option and Result identity rules](../semantic-theorems/README.md#matching-conditions).

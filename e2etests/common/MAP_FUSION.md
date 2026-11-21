@@ -1,6 +1,6 @@
 # Map fusion CLI integration
 
-The POC uses the same help and diagnostic handling as other moongrep commands.
+The `map-fusion` command reports the matched and skipped chains for each file.
 
 ```mooncram moonbit-community/moongrep
 #cwd(.)

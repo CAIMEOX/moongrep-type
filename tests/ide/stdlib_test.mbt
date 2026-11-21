@@ -69,7 +69,7 @@ async test "short circuit loops and exact ASCII bounds resolve at their original
 }
 
 ///|
-async test "counterexamples from core and Mooncakes retain their original behavior" {
+async test "stdlib counterexamples produce only the queue emptiness suggestion" {
   let root = @fs.tmpdir(prefix="moongrep-counterexamples-")
   defer @fs.rmdir(root, recursive=true)
   copy_ide_fixture("examples/stdlib-patterns", root)

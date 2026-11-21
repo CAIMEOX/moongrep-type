@@ -1,124 +1,27 @@
-# Semantic rules
+# Semantic rule guide
 
-The YAML-driven checks run through `scan` and `lint`.
-See [the examples](../../examples/semantic-rules/README.md) for configuration,
-commands, and each check's scope. Rule loading, compilation, regex guards,
-structural matching, prefiltering, disables, source display, and diagnostics use
-the existing MoonGrep infrastructure.
+[中文](README_CN.md)
 
-`semantic.check` selects one of 63 built-in analyses, covering the seven original checks,
-[20 semantic theorems](../../examples/semantic-theorems/README.md),
-[25 standard-library patterns](../../examples/stdlib-patterns/README.md),
-[four syntax-adoption rules](../../examples/syntax-adoption/RULES.md) and
-[seven rules from the core history](../../examples/core-month/README.md). Its `patterns` narrow
-the candidates using the same surface-syntax matcher as structural rules.
-Semantic checks confirm compiler identities, normalized types, binding uses,
-and the required control-flow shape. Incomplete evidence remains explicit.
+`moongrep lint <path>` includes 63 semantic rules. To run one rule, pass its YAML file to `moongrep scan <path> --rule <file>`. The default report shows the rule ID, suggestion and matched source.
 
-The standalone map-fusion command below remains a compatibility/demo entrypoint.
+| Rule guide | Examples |
+| --- | --- |
+| [Arrays and iterators](../../examples/semantic-rules/README.md) | Build comprehensions, count without collecting, and spot a second traversal of a consumed iterator. |
+| [Collections, Option and Result](../../examples/semantic-theorems/README.md) | Combine filters with terminal operations, compose callbacks, and simplify constructor and identity operations. |
+| [Standard-library methods](../../examples/stdlib-patterns/README.md) | Recognize membership and emptiness checks, handwritten Option and Result operations, short-circuit loops and ASCII predicates. |
+| [Loop patterns and collection literals](../../examples/syntax-adoption/README.md) | Unpack pairs in loop headers, combine scalar alternatives, use iterator literals, and build arrays with conditional spreads. |
+| [Numeric, iteration and text rules](../../examples/core-month/README.md) | Use numeric predicates and extrema, iterate directly, omit a slice end, and stream string interpolation. Includes optional review queries. |
 
-The first rule recognizes `xs.map(g).map(f)` when both calls resolve to the
-standard library's `Array::map`. The map law is
-`map f ∘ map g = map (f ∘ g)`, so the proposed composition is `f(g(x))`.
+A YAML shape and its guards select candidates in the source. Each semantic check requests the types, definitions or binding references it needs at that location. A custom YAML can narrow a builtin check. [YAML rule specification](../docs/RuleSpec.md#semantic-rules) · [IDE lookup behavior](../ide/README.md)
 
-## Architecture
+## Array map fusion
 
-```text
-source CST → enabled YAML shapes and guards → candidate expressions
-           → rule-specific IDE lookups → checked findings or warnings
-```
+`array_map_fusion` matches two consecutive standard `Array::map` calls with one positional callback each. For `xs.map(g).map(f)`, the receiver and results must have types `Array[A]`, `Array[B]` and `Array[C]`. The callbacks must have compatible synchronous, non-raising types `A → B` and `B → C`.
 
-Rules ask the [IDE backend](../ide/README.md) for exact types, definitions,
-and binding references as their checks evaluate. The CLI verifies the inputs
-and reuses its existing terminal and JSON renderers. The standalone map-fusion
-report uses the same candidates and evidence.
+The suggested composition is `xs.map(x => f(g(x)))`. With pure, terminating callbacks, it produces the same elements in a single traversal. If the callbacks have effects, the order matters. The original finishes every call to `g` before starting `f`. The fused form calls `f` after each element's `g`. Callback factories must also retain their original evaluation time and count.
 
-## Recognition contract
-
-1. Find adjacent dot calls with one positional callback each.
-2. Join original CST nodes to official IDE queries at exact source positions.
-   Hover ranges must describe the requested source operation or a specific
-   language-defined member/operator anchor. Unsupported or ambiguous evidence
-   yields a skipped result. No enclosing-range fallback is used.
-3. Require both calls to resolve to the same global method identity:
-   `moonbitlang/core/builtin.Array::map`. A user method named `map`, `Option::map`,
-   `Iter::map`, and indirect calls do not qualify.
-4. Check the receiver, intermediate result, and final result are `Array[A]`,
-   `Array[B]`, and `Array[C]`; check callback types `A → B` and `B → C`.
-   Type IDs are handles, not equality. Follow resolved variables and compare
-   structural types, keeping nominal paths and generic parameter owners.
-   Unknown, cyclic, or excessively deep types are not proof of equality.
-5. For this POC, callbacks must be synchronous and have no checked error effect.
-   This does **not** establish purity or termination.
-
-Candidates include source snippets and ranges, package view, resolved symbol,
-and normalized type flow. Skipped results explain which
-condition could not be established. A three-map chain produces two overlapping
-candidates. Qualified function-call syntax and maps separated by bindings are
-outside this first recognizer.
-
-## Why no automatic fix
-
-For a finite array and pure, total callbacks:
-
-```text
-xs.map(g).map(f)[i]
-= f(xs.map(g)[i])       (definition of map)
-= f(g(xs[i]))           (definition of map)
-= xs.map(x => f(g(x)))[i]
-```
-
-Both sides have the same length and elements. Fusion avoids the intermediate
-array and one traversal. Resource failures are outside this algebraic model.
-
-But eager map runs `g(x0), g(x1), f(y0), f(y1)`, whereas fusion runs
-`g(x0), f(y0), g(x1), f(y1)`. Mutation, I/O, exceptions, or divergence can make
-these differ. Callback expressions themselves can also have effects: a naive
-replacement of `xs.map(make_g()).map(make_f())` reevaluates factories per element
-and changes when `make_f()` runs. Captured mutable bindings need attention too.
-
-Every result therefore has status `requires_review`, with no replacement edit.
-Before implementing fixes, we need effect/termination evidence, preservation of
-receiver and callback evaluation, and fresh names for generated bindings. A
-non-raising arrow from moonc alone is insufficient.
-
-## Run
-
-From the repository root, with a toolchain compatible with upstream dependencies:
+To see the type flow and reasons for skipped chains, run the dedicated report from the repository root. Each accepted candidate has status `requires_review`. Add `--json` for structured output.
 
 ```sh
 moon run --target native . -- map-fusion tools/map-fusion/fixture
 ```
-
-The default output is a terminal report with source ranges, numbered code
-snippets, readable type flow, review notes, and explanations for skipped chains:
-
-```text
-Array.map fusion: 8 candidates, 4 skipped
-Pattern: xs.map(g).map(f) => xs.map(x => f(g(x)))
-
-.../maps.mbt:19:3-19:35
-rule: array-map-fusion
-description:
-  Array.map fusion candidate; review required.
-  Types: Array[Int] -> Array[String] -> Array[Int]
-source:
-17 | ///|
-18 | pub fn named(xs : Array[Int]) -> Array[Int] {
-19 >   xs.map(to_text).map(text_length)
-20 | }
-21 |
-```
-
-This example uses `NO_COLOR=1`. Without it, matched source is highlighted using
-the same colors as `scan` and `lint`.
-
-Use `--json` for the structured report, or run the integration checks:
-
-```sh
-moon run --target native . -- map-fusion tools/map-fusion/fixture --json
-moon test tests/ide --target native
-```
-
-The command validates the inputs used for the matched files before emitting
-its report. Input failures use exit code 6 and usage errors use exit code 2.
