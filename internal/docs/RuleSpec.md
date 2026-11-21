@@ -123,7 +123,8 @@ semantic:
         $iterator: '^it$'
 ```
 
-`semantic` accepts exactly `check` and `patterns`. The original checks are:
+`semantic` accepts exactly `check` and `patterns`. The following checks apply
+to array and iterator operations.
 
 - `array-comprehension`: a fresh-array binding, one loop that pushes once per
   selected element, and the final array value, with no other accumulator uses.
@@ -138,19 +139,13 @@ semantic:
 - `array-map-fusion`: the type-compatible Array.map fusion candidate, still requiring
   review of purity, termination, and expression evaluation.
 
-There are also 20 checks for collection terminal operations, Option/Result
-fusion, identities, and constructor elimination. Their exact check names,
-equations, and required evidence are listed in the
-[semantic theorem catalogue](../../examples/semantic-theorems/README.md#catalogue).
-The [standard-library catalogue](../../examples/stdlib-patterns/README.md) adds
-9 idioms and 16 handwritten implementations. Their YAML check names use the
-rule ID with underscores replaced by hyphens (for example, `match-result-bind`).
-The [syntax-adoption rules](../../examples/syntax-adoption/RULES.md) add
-`loop-tuple-unpack`, `repeated-classifier`, `iterator-literal` and
-`conditional-array-spread`. All these checks use the same YAML schema and verify
-their semantic conditions. The [month-diff catalogue](../../examples/core-month/README.md)
-adds seven checks for numeric comparisons, traversal, slices and formatted output.
-The numeric replacements also require a suitable method in the active core interface.
+The other checks use the same YAML schema. Each guide describes the matched
+expression, suggested form and required conditions.
+
+- [Collection, Option and Result rules](../../examples/semantic-theorems/README.md#catalogue) cover terminal operations, callback composition, identities and constructors.
+- [Standard-library patterns](../../examples/stdlib-patterns/README.md) recognize membership tests, handwritten methods, short-circuit loops and ASCII predicates. Their check names use hyphens, as in `match-result-bind`.
+- [Loop patterns and collection literals](../../examples/syntax-adoption/README.md) include `loop-tuple-unpack`, `repeated-classifier`, `iterator-literal` and `conditional-array-spread`.
+- [Numeric, iteration and text rules](../../examples/core-month/README.md) cover floating-point predicates, integer extrema, traversal, slicing and formatted output. Numeric checks require the installed standard library to export the replacement method.
 
 `patterns` is a nonempty array of ordinary `shape` / `guard` objects. A structural
 match and all regex guards must succeed before the selected check runs. Semantic
@@ -169,8 +164,8 @@ Compiler-generated derive bodies do not participate in candidate matching.
 
 YAML configures the id, description, structural alternatives, and regex guards;
 new semantic analyses are implemented in MoonBit. All findings are advisory and
-do not edit source. See [the runnable examples](../../examples/semantic-rules/README.md)
-for the check-specific restrictions and current-nightly contract.
+do not edit source. The array and iterator guide includes a
+[runnable example of a custom semantic rule](../../examples/semantic-rules/README.md#run-and-configure).
 
 ## Shapes
 

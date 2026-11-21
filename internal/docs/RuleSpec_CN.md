@@ -94,7 +94,7 @@ semantic:
         $iterator: '^it$'
 ```
 
-`semantic` 只接受 `check` 和非空的 `patterns` 数组。原有 check 包括：
+`semantic` 只接受 `check` 和非空的 `patterns` 数组。以下检查针对数组和迭代器操作。
 
 - `array-comprehension`：新数组绑定、每个选中元素仅 push 一次的循环、最终数组值，
   且累加器没有其他引用或逃逸。
@@ -107,16 +107,12 @@ semantic:
 - `consumed-iterator`：相邻语句通过 count、collect/to_array、last 消费同一不可变绑定。
 - `array-map-fusion`：类型可组合的 Array.map 融合候选，仍需检查纯性、终止性与求值顺序。
 
-另有 20 条集合终结操作、Option/Result 融合、恒等式及构造器消去规则。
-完整 check 名称、等式和所需证据见
-[semantic theorem 清单](../../examples/semantic-theorems/README.md#catalogue)。
-另有 9 条标准库惯用法和 16 条手写实现识别规则。将规则 ID 的下划线换成连字符
-即可得到 YAML 的 check 名称，例如 `match-result-bind`。各规则的匹配范围、
-语义前提和运行示例见[标准库规则清单](../../examples/stdlib-patterns/README.md)。
-四个语法迁移检查分别为 `loop-tuple-unpack`、`repeated-classifier`、`iterator-literal`
-和 `conditional-array-spread`。适用范围和命令见[语法规则](../../examples/syntax-adoption/RULES.md)。
-[core 月度差异规则](../../examples/core-month/README.md)给出了另外七个数值、遍历、切片和插值检查。
-数值规则还会核对当前 core 的公开接口。
+其他检查共用同一种 YAML 格式。各组规则指南说明匹配的表达式、建议写法和适用条件。
+
+- [集合、Option 与 Result 规则](../../examples/semantic-theorems/README_CN.md#规则列表)覆盖终结操作、回调组合、恒等变换和构造函数。
+- [标准库写法](../../examples/stdlib-patterns/README_CN.md)覆盖成员判断、手写方法、短路循环和 ASCII 谓词。这些检查的名称使用连字符，例如 `match-result-bind`。
+- [循环模式与集合字面量](../../examples/syntax-adoption/README_CN.md)包括 `loop-tuple-unpack`、`repeated-classifier`、`iterator-literal` 和 `conditional-array-spread`。
+- [数值、遍历与文本规则](../../examples/core-month/README_CN.md)覆盖浮点谓词、整数极值、遍历、切片和格式化输出。数值规则要求当前标准库公开建议使用的方法。
 
 patterns 条目只接受普通 shape 和 guard。结构匹配及 regex guard 成功后才运行 check；
 YAML 不能跳过语义校验。未知 check、未知字段或混用 then、patterns-not、
@@ -129,8 +125,7 @@ inside-toplevel、match-mode 都会报错。
 规则从手写 CST 选出候选，包括手写 impl。编译器生成的 derive 实现没有对应的手写候选。
 
 YAML 可配置 id、描述、结构 alternative 和正则 guard；新的语义分析需要 MoonBit
-实现。所有结果均为建议，不修改源码。具体限制和当前 nightly 的行为见
-[可运行示例](../../examples/semantic-rules/README.md)。
+实现。所有结果均为建议，不修改源码。数组与迭代器指南提供了[可运行的自定义语义规则示例](../../examples/semantic-rules/README_CN.md#运行与配置)。
 
 ## 匹配模式
 
